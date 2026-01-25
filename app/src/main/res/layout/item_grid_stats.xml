@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:layout_columnWeight="1">
+
+    <TextView
+        android:id="@+id/tvGridLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Runs"
+        android:textColor="#000000"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/tvGridValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="0"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+</LinearLayout>

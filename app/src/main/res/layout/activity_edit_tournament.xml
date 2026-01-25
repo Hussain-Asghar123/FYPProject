@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- HEADER / TOOLBAR -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:background="#E31212"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Update Tournament"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginStart="108dp"
+            app:layout_constraintStart_toEndOf="@id/ivBack"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- SCROLLABLE CONTENT -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:padding="16dp"
+        android:background="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/contentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <!-- Banner (selectable) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#FFFFFF">
+
+                    <ImageView
+                        android:id="@+id/tournament_banner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/banner"
+                        android:contentDescription="Tournament Banner"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Form Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="80dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="#FFFFFF">
+
+                    <!-- Tournament Name -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tournament Name"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+                    <EditText
+                        android:id="@+id/etTournamentName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/rounded_edittext"
+                        android:padding="10dp"
+                        android:textColor="#212121"
+                        android:hint="Enter tournament name"
+                        android:inputType="textPersonName"/>
+
+                    <!-- Start Date -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Start Date"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+                    <EditText
+                        android:id="@+id/etStartDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/rounded_edittext"
+                        android:padding="10dp"
+                        android:textColor="#212121"
+                        android:hint="Select start date"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="date"/>
+
+                    <!-- End Date -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="End Date"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+                    <EditText
+                        android:id="@+id/etEndDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/rounded_edittext"
+                        android:padding="10dp"
+                        android:textColor="#212121"
+                        android:hint="Select end date"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="date"/>
+
+                    <!-- Tournament Stages -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Tournament Stages"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+
+                    <RadioGroup
+                        android:id="@+id/rg_tournament_stage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_round_robin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Round Robin"/>
+
+                        <RadioButton
+                            android:id="@+id/rb_round_robin_knock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Round Robin + Knock Out"/>
+
+                        <RadioButton
+                            android:id="@+id/rb_knock_out"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Knock Out"/>
+
+                        <RadioButton
+                            android:id="@+id/rb_league"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="League"/>
+                    </RadioGroup>
+
+                    <!-- Player Type -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Tournament Player Type"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+
+                    <RadioGroup
+                        android:id="@+id/rg_paper_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_men"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Male"/>
+
+                        <RadioButton
+                            android:id="@+id/rb_women"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Female"/>
+                    </RadioGroup>
+
+                    <!-- Tournament Type -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Tournament Type"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+
+                    <RadioGroup
+                        android:id="@+id/rg_tournament_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_type_hard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Hard"/>
+
+                        <RadioButton
+                            android:id="@+id/rb_type_tennis"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Tennis"/>
+                    </RadioGroup>
+
+                    <!-- Organizer Email -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Enter Organizer Email / AridNo"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:textStyle="bold"/>
+
+                    <EditText
+                        android:id="@+id/etOrganizerEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:hint="abc@biit.edu.pk"
+                        android:padding="12dp"
+                        android:textColor="#212121"
+                        android:background="@drawable/rounded_edittext"
+                        android:textSize="12sp"
+                        android:minLines="1"/>
+
+                    <!-- Hidden ID -->
+                    <EditText
+                        android:id="@+id/etTournamentId"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- FOOTER: Submit Button -->
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:elevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:backgroundTint="#E31212"
+            android:text="Submit"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+    </LinearLayout>
+
+    <!-- Progress overlay -->
+    <FrameLayout
+        android:id="@+id/progressOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:background="#80000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="#E31212" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

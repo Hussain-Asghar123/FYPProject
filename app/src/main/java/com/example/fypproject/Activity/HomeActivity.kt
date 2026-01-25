@@ -1,0 +1,343 @@
+package com.example.fypproject.Activity
+
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.view.View
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.fypproject.Adapter.MatchAdapter
+import com.example.fypproject.Network.RetrofitInstance
+import com.example.fypproject.R
+import com.example.fypproject.Utils.NetworkUi
+import com.example.fypproject.Utils.toastLong
+import com.example.fypproject.Utils.toastShort
+import com.example.fypproject.databinding.ActivityHomeBinding
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class HomeActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityHomeBinding
+    private lateinit var liveAdapter: MatchAdapter
+    private lateinit var upcomingAdapter: MatchAdapter
+    private lateinit var sportButtons: List<MaterialButton>
+    private var currentSportFilter = "All Sports"
+    private var loadingCount: Int = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setupRecyclerViews()
+        setupNavigationDrawer()
+        setupSportsButtons()
+        setupSearchFunctionality()
+        binding.btnEdit.setOnClickListener {
+            showEditNameDialog()
+        }
+
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val name = sharedPreferences.getString("name", "")
+        binding.txtUserName.text = name
+
+        fetchAllForCurrentSport()
+    }
+
+    private fun setupSearchFunctionality() {
+        val searchView = binding.searchViewTop
+        searchView.isIconified = true
+        searchView.queryHint = "Search matches..."
+
+        val searchTextId = resources.getIdentifier("search_src_text", "id", "android")
+            .takeIf { it != 0 }
+            ?: resources.getIdentifier("search_src_text", "id", "androidx.appcompat")
+
+        val searchEditText = searchTextId
+            .takeIf { it != 0 }
+            ?.let { searchView.findViewById<EditText>(it) }
+
+        searchEditText?.setTextColor(Color.parseColor("#212121"))
+        searchEditText?.setHintTextColor(Color.parseColor("#757575"))
+
+        val searchPlateId = resources.getIdentifier("search_plate", "id", "android")
+            .takeIf { it != 0 }
+            ?: resources.getIdentifier("search_plate", "id", "androidx.appcompat")
+
+        val searchPlate = searchPlateId
+            .takeIf { it != 0 }
+            ?.let { searchView.findViewById<View>(it) }
+
+        searchPlate?.setBackgroundColor(Color.WHITE)
+
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                val q = query?.trim()
+                if (q.isNullOrBlank()) {
+                    fetchAllForCurrentSport()
+                } else {
+                    fetchAllForCurrentSport(searchQuery = q.lowercase())
+                }
+                searchView.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val q = newText?.trim()
+                if (q.isNullOrBlank()) {
+                    fetchAllForCurrentSport()
+                } else {
+                    fetchAllForCurrentSport(searchQuery = q.lowercase())
+                }
+                return true
+            }
+        })
+    }
+    private fun showEditNameDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_player, null)
+        val etName = dialogView.findViewById<EditText>(R.id.etNewName)
+        val btnSave = dialogView.findViewById<MaterialButton>(R.id.btnSaveName)
+
+        etName.setText(binding.txtUserName.text.toString())
+
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSave.setOnClickListener {
+            val newName = etName.text.toString().trim()
+            if (newName.isNotEmpty()) {
+                updateName(newName, dialog)
+            } else {
+                etName.error = "Name cannot be empty"
+            }
+        }
+        dialog.show()
+    }
+
+    private fun updateName(newName: String, dialog: AlertDialog) {
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val id = sharedPreferences.getLong("id", -1L)
+
+        if (id == -1L) {
+            toastShort("User ID not found")
+            return
+        }
+        val currentRole = sharedPreferences.getString("role", "Player")
+        val currentUsername = sharedPreferences.getString("username", "")
+
+        lifecycleScope.launch {
+            setLoading(true)
+            try {
+                val updateRequest = com.example.fypproject.DTO.PlayerDto(
+                    id = id,
+                    name = newName,
+                    playerRole = currentRole,
+                    username = currentUsername,
+                    playerRequests = emptyList()
+                )
+
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.api.updatePlayer(id, updateRequest)
+                }
+
+                if (response.isSuccessful) {
+                    binding.txtUserName.text = newName
+                    sharedPreferences.edit().putString("name", newName).apply()
+                    toastShort("Name updated successfully")
+                    dialog.dismiss()
+                } else {
+                    toastLong(NetworkUi.userMessage(response, "Failed to update name"))
+                }
+
+            } catch (e: Exception) {
+                toastLong(NetworkUi.userMessage(e))
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private fun setupRecyclerViews() {
+        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
+        binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
+
+        liveAdapter = MatchAdapter(mutableListOf(), true)
+        upcomingAdapter = MatchAdapter(mutableListOf(), false)
+
+        binding.recyclerLiveMatches.adapter = liveAdapter
+        binding.recyclerUpcomingMatches.adapter = upcomingAdapter
+    }
+
+    private fun setupNavigationDrawer() {
+        binding.btnMenu.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.END)
+        }
+        binding.menuSports.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, SportsActivity::class.java))
+        }
+        binding.menuManageAccount.setOnClickListener {
+            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val role = sharedPreferences.getString("role", "")
+            if (role != "ADMIN") {
+                toastShort("You are not authorized to access this page")
+                return@setOnClickListener
+            }
+            val intent = Intent(this, ManageAccountActivity::class.java)
+            startActivity(intent)
+        }
+        binding.menuSeasons.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, SeasonsActivity::class.java))
+        }
+
+        binding.menuMatches.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, MatchesDetailActivity::class.java))
+        }
+
+        binding.menuMyScorer.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, ScrorerActivity::class.java))
+        }
+        binding.menuRequests.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, RequstsActivity::class.java))
+        }
+        binding.menuStats.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            val intent = Intent(this, HeavyStatsActivity::class.java)
+            startActivity(intent)
+
+        }
+
+        binding.menuLogout.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, _ ->
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    dialog.dismiss()
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        }
+    }
+
+    private fun setupSportsButtons() {
+        sportButtons = listOf(
+            binding.btnAllSports,
+            binding.btnCricket,
+            binding.btnFootball,
+            binding.btnVolleyball,
+            binding.btnBadminton,
+            binding.btnTugOfWar,
+            binding.btnLudo,
+            binding.btnChess,
+            binding.btnTableTennis
+        )
+
+        updateButtonSelection(binding.btnAllSports)
+        currentSportFilter = "All Sports"
+
+        sportButtons.forEach { button ->
+            button.setOnClickListener {
+                updateButtonSelection(button)
+                currentSportFilter = button.text.toString()
+                fetchAllForCurrentSport()
+            }
+        }
+    }
+
+    private fun updateButtonSelection(selectedButton: MaterialButton) {
+        sportButtons.forEach { button ->
+            val isSelected = button == selectedButton
+            val tint = if (isSelected) Color.parseColor("#E31212") else Color.DKGRAY
+            button.backgroundTintList = android.content.res.ColorStateList.valueOf(tint)
+        }
+    }
+    private fun filterAdaptersByQuery(query: String) {
+        val q = query.lowercase().trim()
+        val liveFiltered = (liveAdapter as MatchAdapter).let { adapter ->
+            adapter.run {
+            }
+        }
+        fetchAllForCurrentSport(searchQuery = q)
+    }
+
+    private fun fetchAllForCurrentSport(searchQuery: String? = null) {
+        val sportParam = if (currentSportFilter == "All Sports") null else currentSportFilter
+        fetchMatches("LIVE", sportParam, searchQuery)
+        fetchMatches("UPCOMING", sportParam, searchQuery)
+    }
+
+    private fun fetchMatches(status: String, sport: String?, searchQuery: String? = null) {
+        if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.INVISIBLE
+        else binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
+
+        lifecycleScope.launch {
+            setLoading(true)
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.api.getLiveMatches(status = status, sport = sport)
+                }
+
+                if (response.isSuccessful) {
+                    val list = response.body() ?: emptyList<com.example.fypproject.DTO.MatchResponse>()
+
+                    val filtered = if (!searchQuery.isNullOrBlank()) {
+                        list.filter { m ->
+                            val t1 = m.team1Name?.lowercase() ?: ""
+                            val t2 = m.team2Name?.lowercase() ?: ""
+                            t1.contains(searchQuery) || t2.contains(searchQuery) ||
+                                    (m.tournamentName?.lowercase()?.contains(searchQuery) ?: false)
+                        }
+                    } else list
+
+                    if (status == "LIVE") {
+                        liveAdapter.updateData(filtered)
+                        binding.recyclerLiveMatches.visibility = View.VISIBLE
+                    } else {
+                        upcomingAdapter.updateData(filtered)
+                        binding.recyclerUpcomingMatches.visibility = View.VISIBLE
+                    }
+                } else {
+                    toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
+                    if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.VISIBLE
+                    else binding.recyclerUpcomingMatches.visibility = View.VISIBLE
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                toastLong(NetworkUi.userMessage(e))
+                if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.VISIBLE
+                else binding.recyclerUpcomingMatches.visibility = View.VISIBLE
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
+        binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchAllForCurrentSport()
+    }
+}
