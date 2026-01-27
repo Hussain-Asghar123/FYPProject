@@ -50,6 +50,9 @@ class SportsSelectionActivity : AppCompatActivity() {
         binding.btnAdd.visibility =
             if (role.equals("ADMIN", true)) View.VISIBLE else View.GONE
 
+        // Setup card click listeners
+        setupCardClickListeners()
+
         binding.btnAdd.setOnClickListener {
             val selectedSports = getSelectedSports()
 
@@ -67,6 +70,17 @@ class SportsSelectionActivity : AppCompatActivity() {
 
             addSportsToSeason(request, seasonId, selectedSports)
         }
+    }
+
+    private fun setupCardClickListeners() {
+        binding.cricketCard.setOnClickListener { binding.cbCricket.toggle() }
+        binding.futsalCard.setOnClickListener { binding.cbFutsal.toggle() }
+        binding.volleyballCard.setOnClickListener { binding.cbVolleyball.toggle() }
+        binding.tabletennisCard.setOnClickListener { binding.cbTableTennis.toggle() }
+        binding.badmintonCard.setOnClickListener { binding.cbBadminton.toggle() }
+        binding.ludoCard.setOnClickListener { binding.cbLudo.toggle() }
+        binding.tugofwarCard.setOnClickListener { binding.cbTugOfWar.toggle() }
+        binding.chessCard.setOnClickListener { binding.cbChess.toggle() }
     }
 
     private fun getSelectedSports(): List<Long> {
@@ -96,6 +110,7 @@ class SportsSelectionActivity : AppCompatActivity() {
                 enableButton()
 
                 if (response.isSuccessful) {
+                    showToast("Sports added successfully!")
                     openNextScreen(seasonId, sportsIds)
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Server error"))
