@@ -17,6 +17,9 @@
         android:theme="@style/Theme.FYPProject"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".Activity.StartScoringActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activity.HeavyStatsActivity"
             android:exported="false" />
         <activity

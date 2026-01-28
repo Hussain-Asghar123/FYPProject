@@ -5,9 +5,11 @@
     android:orientation="horizontal"
     android:background="#E31212"
     android:padding="12dp"
-    android:layout_marginBottom="12dp">
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
-    <!-- Text Area -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -24,8 +26,6 @@
             android:textColor="#FFFFFF"
             android:layout_marginBottom="4dp"/>
 
-
-        <!-- Venue and Date/Time -->
         <TextView
             android:id="@+id/tvVenueTime"
             android:layout_width="wrap_content"
@@ -35,12 +35,14 @@
             android:textStyle="bold"
             android:textColor="#FFFFFF"/>
     </LinearLayout>
-    <!-- Edit -->
+
     <ImageButton
         android:id="@+id/btnEdit"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:src="@android:drawable/ic_menu_edit"
-        android:background="@android:color/transparent"/>
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Edit Match"
+        android:tint="#FFFFFF"/>
 
 </LinearLayout>

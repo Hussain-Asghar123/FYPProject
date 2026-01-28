@@ -9,6 +9,7 @@ import com.example.fypproject.DTO.FixturesRequest
 import com.example.fypproject.DTO.FixturesResponse
 import com.example.fypproject.DTO.LoginRequest
 import com.example.fypproject.DTO.LoginResponse
+import com.example.fypproject.DTO.MatchDTO
 import com.example.fypproject.DTO.MatchDetail
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MediaDto
@@ -253,6 +254,17 @@ interface ApiService {
     @GET("tournament/namesAndIds")
     suspend fun getTournamentNamesAndIds(): List<Map<Long, String>>
 
+    @GET("/match/{id}")
+    suspend fun getMatchById1(@Path("id") id: Long): Response<MatchDTO>
+
+    @PUT("/match/start/{id}")
+    suspend fun startMatch(
+        @Path("id") id: Long,
+        @Body match: MatchDTO
+    ): Response<ResponseBody>
+
+    @PUT("/match/abandon/{id}")
+    suspend fun abandonMatch(@Path("id") id: Long): Response<Any>
 
 
 }

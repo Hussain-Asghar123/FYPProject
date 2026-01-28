@@ -8,9 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Activity.CreateFixtureActivity
+import com.example.fypproject.Activity.StartScoringActivity
 import com.example.fypproject.Activity.UpdateFixtureActivity
 import com.example.fypproject.Adapter.FixturesAdapter
 import com.example.fypproject.DTO.FixturesResponse
+import com.example.fypproject.DTO.MatchStatus
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.R
 import com.example.fypproject.Utils.NetworkUi
@@ -58,8 +60,12 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
         adapter = FixturesAdapter(
             matches = filteredList,
             role = role,
-            onClick = { openUpdate(it) },
-            onEdit = { openUpdate(it) }
+            onClick = { fixture ->
+                openStartScoring(fixture)
+            },
+            onEdit = { fixture ->
+                openUpdate(fixture)
+            }
         )
         binding.rvFixtures.layoutManager = LinearLayoutManager(requireContext())
         binding.rvFixtures.adapter = adapter
@@ -77,7 +83,11 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
                 if (response.isSuccessful) {
                     val matches = response.body() ?: emptyList()
                     filteredList.clear()
-                    filteredList.addAll(matches)
+                    filteredList.addAll(
+                        matches.filter {
+                            it.status== MatchStatus.UPCOMING
+                        }
+                    )
                     adapter.notifyDataSetChanged()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "No fixtures found"))
@@ -94,6 +104,13 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
         if (_binding == null) return
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnAddFixture.isEnabled = !isLoading
+    }
+
+    private fun openStartScoring(fixture: FixturesResponse) {
+        val intent = Intent(requireContext(), StartScoringActivity::class.java)
+        intent.putExtra("matchId", fixture.id)
+        intent.putExtra("tournamentId", fixture.tournamentId)
+        startActivity(intent)
     }
 
     private fun openUpdate(fixture: FixturesResponse) {

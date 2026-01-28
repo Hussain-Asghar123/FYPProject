@@ -146,7 +146,8 @@ class UpdateFixtureActivity : AppCompatActivity() {
             time = binding.etTime.text.toString(),
             sportId = sportId,
             overs = binding.etOvers.text.toString().toInt(),
-            scorerId = binding.etScorerId.text.toString()
+            scorerId = binding.etScorerId.text.toString(),
+            status = ""
         )
 
         setLoading(true)

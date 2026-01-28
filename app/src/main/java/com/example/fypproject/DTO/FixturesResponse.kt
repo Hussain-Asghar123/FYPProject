@@ -13,5 +13,6 @@ data class FixturesResponse(
     val time: String,
     val sportId: Long,
     val overs:Int,
+    val status: String,
     val scorerId: String
 )
