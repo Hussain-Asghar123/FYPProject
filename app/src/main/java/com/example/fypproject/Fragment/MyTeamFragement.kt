@@ -177,7 +177,8 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
                 val request = PlayerRequest(
                     playerId = selectedPlayer!!.playerId,
                     teamId = currentTeamId!!,
-                    tournamentId = tournamentId
+                    tournamentId = tournamentId,
+                    us=""
                 )
                 val response = api.createPlayerRequest(request)
                 setLoading(false)

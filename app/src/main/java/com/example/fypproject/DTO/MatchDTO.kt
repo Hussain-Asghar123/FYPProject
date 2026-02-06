@@ -1,5 +1,7 @@
 package com.example.fypproject.DTO
 
+import java.io.Serializable
+
 data class MatchDTO(
     val id: Long? = null,
     val tournamentId: Long? = null,
@@ -15,5 +17,6 @@ data class MatchDTO(
     var tossWinnerId: Long? = null,
     var decision: String? = null,
     val sportId: Long? = null,
-    val overs: Int? = null
-)
+    val overs: Int? = null,
+    val sets: Int? = null,
+): Serializable

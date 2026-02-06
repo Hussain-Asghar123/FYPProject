@@ -37,6 +37,7 @@ class EditTournamentActivity : AppCompatActivity() {
         tournamentId = intent.getLongExtra("tournamentId", -1L)
         seasonId = intent.getLongExtra("seasonId", -1L)
         sportId = intent.getLongExtra("sportId", -1L)
+        updateTournamentTypeUI(sportId)
 
         if (tournamentId == -1L) finish()
 
@@ -45,6 +46,11 @@ class EditTournamentActivity : AppCompatActivity() {
 
         setupDatePickers()
         loadTournament()
+    }
+    private fun updateTournamentTypeUI(sportId: Long) {
+        val isVisible = sportId == 1L
+        binding.tvType.visibility = if (isVisible) View.VISIBLE else View.GONE
+        binding.rgTournamentType.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     private fun setupDatePickers() {

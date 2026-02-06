@@ -24,6 +24,7 @@ import com.example.fypproject.DTO.SeasonResponse
 import com.example.fypproject.DTO.SeasonSportsRequest
 import com.example.fypproject.DTO.SportTournamentCount
 import com.example.fypproject.DTO.TeamDTO
+import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.DTO.TeamRequest
 import com.example.fypproject.DTO.TeamRequestDto
 import com.example.fypproject.DTO.TeamResponse
@@ -60,7 +61,7 @@ interface ApiService {
     fun getMatchesBySport(
         @Query("name") name: String?,
         @Query("status") status: String
-    ): Call<List<MatchDetail>>
+    ): Call<List<MatchResponse>>
 
     @POST("account")
     suspend fun createAccount(
@@ -126,9 +127,6 @@ interface ApiService {
 
     @GET("match/scorer/{id}")
     suspend fun getMatchesByScorer(@Path("id") scorerId: Long): Response<List<MatchResponse>>
-
-    @GET("match")
-    suspend fun getAllMatches(): Response<List<FixturesResponse>>
 
     //backend sends name,id in map in response body
     @GET("team/tournament/{id}")
@@ -255,16 +253,19 @@ interface ApiService {
     suspend fun getTournamentNamesAndIds(): List<Map<Long, String>>
 
     @GET("/match/{id}")
-    suspend fun getMatchById1(@Path("id") id: Long): Response<MatchDTO>
+    suspend fun getMatchById1(@Path("id") id: Long): Response<MatchResponse>
 
     @PUT("/match/start/{id}")
     suspend fun startMatch(
         @Path("id") id: Long,
-        @Body match: MatchDTO
+        @Body match: MatchResponse
     ): Response<ResponseBody>
 
     @PUT("/match/abandon/{id}")
     suspend fun abandonMatch(@Path("id") id: Long): Response<Any>
+
+    @GET("team/{teamId}/players")
+    suspend fun getPlayersByTeam(@Path("teamId") teamId: Long): Response<List<TeamPlayerDto>>
 
 
 }

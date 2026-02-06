@@ -7,7 +7,8 @@ import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.databinding.ItemScoringCardBinding
 
 class ScrorerAdapter(
-    private val items: List<MatchResponse>
+    private val items: List<MatchResponse>,
+    private val onItemClick:(MatchResponse) -> Unit
 ) : RecyclerView.Adapter<ScrorerAdapter.ViewHolder>() {
 
     inner class ViewHolder(private val binding: ItemScoringCardBinding) :
@@ -17,6 +18,8 @@ class ScrorerAdapter(
             binding.tvTournamentName.text = match.tournamentName
             binding.tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
             binding.tvVenueTime.text = "${match.date ?: ""} ${match.time ?: ""}"
+
+            binding.root.setOnClickListener { onItemClick(match) }
         }
     }
 

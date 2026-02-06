@@ -89,7 +89,7 @@ class SeasonsActivity : AppCompatActivity() {
                     username = username
                 )
 
-                val response = api.createSeason(request)
+                 api.createSeason(request)
                 toastShort("Season created successfully")
                 dialog.dismiss()
                 fetchSeasons()

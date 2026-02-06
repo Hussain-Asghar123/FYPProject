@@ -25,7 +25,8 @@ data class CreateTeamResponseDto(
 data class PlayerRequest(
     val playerId: Long,
     val teamId: Long,
-    val tournamentId: Long
+    val tournamentId: Long,
+    val us: String
 )
 data class TeamRequest(
     val teamId: Long,

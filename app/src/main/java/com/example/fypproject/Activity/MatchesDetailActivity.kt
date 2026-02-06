@@ -1,15 +1,15 @@
 package com.example.fypproject.Activity
-
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.MatchesDetailAdapter
-import com.example.fypproject.DTO.MatchDetail
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -33,6 +33,10 @@ class MatchesDetailActivity : AppCompatActivity() {
 
         adapter = MatchesDetailAdapter(mutableListOf()) { match ->
             toastShort("${match.team1Name} vs ${match.team2Name}")
+            val intent = Intent(this@MatchesDetailActivity, CricketScoringActivity::class.java)
+            intent.putExtra("match", match)
+            startActivity(intent)
+
         }
         binding.rvMatches.layoutManager = LinearLayoutManager(this)
         binding.rvMatches.adapter = adapter
@@ -69,8 +73,8 @@ class MatchesDetailActivity : AppCompatActivity() {
 
     private fun fetchMatches(sport: String?, status: String) {
         setLoading(true)
-        api.getMatchesBySport(sport, status).enqueue(object : Callback<List<MatchDetail>> {
-            override fun onResponse(call: Call<List<MatchDetail>>, response: Response<List<MatchDetail>>) {
+        api.getMatchesBySport(sport, status).enqueue(object : Callback<List<MatchResponse>> {
+            override fun onResponse(call: Call<List<MatchResponse>>, response: Response<List<MatchResponse>>) {
                 setLoading(false)
                 if (response.isSuccessful) {
                     val list = response.body() ?: emptyList()
@@ -79,7 +83,7 @@ class MatchesDetailActivity : AppCompatActivity() {
                     toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
                 }
             }
-            override fun onFailure(call: Call<List<MatchDetail>>, t: Throwable) {
+            override fun onFailure(call: Call<List<MatchResponse>>, t: Throwable) {
                 setLoading(false)
                 toastLong(NetworkUi.userMessage(t))
             }

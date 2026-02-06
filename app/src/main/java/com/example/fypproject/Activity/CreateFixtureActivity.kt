@@ -3,6 +3,7 @@ package com.example.fypproject.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.fypproject.Adapter.TeamSpinnerAdapter
@@ -38,6 +39,7 @@ class CreateFixtureActivity : AppCompatActivity() {
 
         tournamentId = intent.getLongExtra("tournamentId", -1L)
         sportId = intent.getLongExtra("sportId", -1L)
+        updateFixtureTypeUI(sportId)
 
 
         if (tournamentId == -1L) {
@@ -54,6 +56,26 @@ class CreateFixtureActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnSave.setOnClickListener { createFixture() }
     }
+
+    private fun updateFixtureTypeUI(sportId: Long) {
+        when (sportId) {
+            1L -> {
+                binding.etOvers.visibility = View.VISIBLE
+                binding.etSets.visibility = View.GONE
+            }
+
+            4L, 5L -> {
+                binding.etSets.visibility = View.VISIBLE
+                binding.etOvers.visibility = View.GONE
+            }
+
+            else -> {
+                binding.etOvers.visibility = View.GONE
+                binding.etSets.visibility = View.GONE
+            }
+        }
+    }
+
 
     private fun fetchTeams() {
         setLoading(true)
@@ -137,8 +159,7 @@ class CreateFixtureActivity : AppCompatActivity() {
 
         if (
             binding.etDate.text.isNullOrBlank() ||
-            binding.etTime.text.isNullOrBlank() ||
-            binding.etOvers.text.isNullOrBlank()
+            binding.etTime.text.isNullOrBlank()
         ) {
             toastShort("All fields are required")
             return

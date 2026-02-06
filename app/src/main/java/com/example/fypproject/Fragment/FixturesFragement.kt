@@ -85,7 +85,7 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
                     filteredList.clear()
                     filteredList.addAll(
                         matches.filter {
-                            it.status== MatchStatus.UPCOMING
+                            it.status== MatchStatus.UPCOMING || it.status == MatchStatus.LIVE
                         }
                     )
                     adapter.notifyDataSetChanged()

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.MatchAdapter
 import com.example.fypproject.Network.RetrofitInstance
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -170,8 +171,14 @@ class HomeActivity : AppCompatActivity() {
         binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
 
-        liveAdapter = MatchAdapter(mutableListOf(), true)
-        upcomingAdapter = MatchAdapter(mutableListOf(), false)
+        liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
+            val intent = Intent(this@HomeActivity, CricketScoringActivity::class.java)
+            intent.putExtra("match", match)
+            startActivity(intent)
+
+        }
+        upcomingAdapter = MatchAdapter(mutableListOf(), true){
+        }
 
         binding.recyclerLiveMatches.adapter = liveAdapter
         binding.recyclerUpcomingMatches.adapter = upcomingAdapter
@@ -286,8 +293,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun fetchMatches(status: String, sport: String?, searchQuery: String? = null) {
-        if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.INVISIBLE
-        else binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
+        if (status == "LIVE")
+            binding.recyclerLiveMatches.visibility = View.INVISIBLE
+        else
+            binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
 
         lifecycleScope.launch {
             setLoading(true)

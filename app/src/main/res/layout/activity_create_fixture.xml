@@ -132,6 +132,17 @@
                 android:paddingStart="12dp"
                 android:textColor="#212121"/>
 
+            <EditText
+                android:id="@+id/etSets"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:hint="Sets"
+                android:inputType="numberDecimal"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121"/>
+
 
             <Button
                 android:id="@+id/btnSave"

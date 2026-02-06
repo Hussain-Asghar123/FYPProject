@@ -10,7 +10,8 @@ import com.example.fypproject.databinding.ItemUpcomingMatchBinding
 
 class MatchAdapter (
     private val matches:MutableList<MatchResponse>,
-    private val isLive:Boolean
+    private val isLive:Boolean,
+    private val onItemClick:(MatchResponse) -> Unit
 ): RecyclerView.Adapter<MatchAdapter.MatchViewHolder>() {
 
     inner class MatchViewHolder(val binding: ViewBinding):RecyclerView.ViewHolder(binding.root)
@@ -26,6 +27,7 @@ class MatchAdapter (
 
     override fun onBindViewHolder(holder: MatchViewHolder, position: Int) {
         val match = matches[position]
+        holder.itemView.setOnClickListener { onItemClick(match) }
         if(isLive){
             val b=holder.binding as ItemLiveMatchBinding
             b.txtTeamNames.text = "${match.team1Name ?: "Team1"} - ${match.team2Name ?: "Team2"}"

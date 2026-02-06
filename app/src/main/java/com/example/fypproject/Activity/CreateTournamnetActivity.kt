@@ -36,6 +36,7 @@ class CreateTournamnetActivity : AppCompatActivity() {
         api= RetrofitInstance.api
         seasonId = intent.getLongExtra("seasonId", -1L)
         sportId = intent.getLongExtra("sportsId", -1L)
+        updateTournamentTypeUI(sportId)
         if (seasonId == -1L || sportId == -1L) {
             finish()
             return
@@ -56,6 +57,12 @@ class CreateTournamnetActivity : AppCompatActivity() {
                 createTournament()
             }
         }
+
+    }
+    private fun updateTournamentTypeUI(sportId: Long) {
+        val isVisible = sportId == 1L
+        binding.tvType.visibility = if (isVisible) View.VISIBLE else View.GONE
+        binding.rgTournamentType.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
     private fun showDatePicker(editText: AppCompatEditText) {
         val cal = Calendar.getInstance()
@@ -109,10 +116,6 @@ class CreateTournamnetActivity : AppCompatActivity() {
             return false
         }
 
-        if (binding.rgTournamentType.checkedRadioButtonId == -1) {
-            showToast("Select tournament type")
-            return false
-        }
 
         if (binding.rgTournamentStage.checkedRadioButtonId == -1) {
             showToast("Select tournament stage")

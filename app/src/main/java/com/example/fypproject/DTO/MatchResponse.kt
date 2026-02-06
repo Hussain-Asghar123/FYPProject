@@ -1,5 +1,8 @@
 package com.example.fypproject.DTO
 
+import java.io.Serializable
+
+
 data class MatchResponse(
     val id: Long? = null,
     val tournamentId: Long? = null,
@@ -8,8 +11,15 @@ data class MatchResponse(
     val team1Name: String? = null,
     val team2Id: Long? = null,
     val team2Name: String? = null,
+    val scorerId: String? = null,
     val status: String? = null,
     val venue: String? = null,
     val date: String? = null,
-    val time: String? = null
-)
+    val time: String? = null,
+    val tossWinnerId: Long? = null,
+    val decision: String? = null,
+    val sportId: Long? = null,
+    val overs: Int? = null,
+    val sets: Int? = null,
+    val inningsId: Long?=null
+): Serializable

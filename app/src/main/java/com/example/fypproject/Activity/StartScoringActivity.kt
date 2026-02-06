@@ -1,13 +1,16 @@
 package com.example.fypproject.Activity
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.fypproject.DTO.MatchDTO
+import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MatchStatus
 import com.example.fypproject.Network.ApiClient.api
+import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityStartScoringBinding
@@ -19,7 +22,7 @@ class StartScoringActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStartScoringBinding
     private var matchId: Long = -1L
     private var tournamentId: Long = -1L
-    private var matchData: MatchDTO? = null
+    private var matchData: MatchResponse? = null
     private var selectedTossWinnerId: Long? = null
     private var selectedDecision: String? = null
 
@@ -129,7 +132,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ---------------- START MATCH ----------------
 
     private fun startMatchCall() {
         val payload = matchData?.copy(
@@ -142,7 +144,10 @@ class StartScoringActivity : AppCompatActivity() {
             try {
                 val response = api.startMatch(matchId, payload)
                 if (response.isSuccessful) {
-                    toastShort("Match Started")
+                    val intent = Intent(this@StartScoringActivity, CricketScoringActivity::class.java)
+                    intent.putExtra("match", payload)
+                    startActivity(intent)
+                    finish()
                     binding.abandonYesBtn.isEnabled = false
                     binding.abandonYesBtn.alpha = 0.5f
                 } else {

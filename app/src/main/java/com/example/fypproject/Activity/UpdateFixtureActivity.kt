@@ -3,6 +3,7 @@ package com.example.fypproject.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -41,6 +42,7 @@ class UpdateFixtureActivity : AppCompatActivity() {
         matchId = intent.getLongExtra("matchId", -1L)
         tournamentId = intent.getLongExtra("tournamentId", -1L)
         sportId = intent.getLongExtra("sportId", -1L)
+        updateFixtureTypeUI(sportId)
 
 
 
@@ -59,6 +61,26 @@ class UpdateFixtureActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnSave.setOnClickListener { updateMatch() }
     }
+
+    private fun updateFixtureTypeUI(sportId: Long) {
+        when (sportId) {
+            1L -> {
+                binding.etOvers.visibility = View.VISIBLE
+                binding.etSets.visibility = View.GONE
+            }
+
+            4L, 5L -> {
+                binding.etSets.visibility = View.VISIBLE
+                binding.etOvers.visibility = View.GONE
+            }
+
+            else -> {
+                binding.etOvers.visibility = View.GONE
+                binding.etSets.visibility = View.GONE
+            }
+        }
+    }
+
 
     private fun loadMatch(id: Long) {
         setLoading(true)

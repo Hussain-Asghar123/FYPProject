@@ -1,5 +1,6 @@
 package com.example.fypproject.Activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -7,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.ScrorerAdapter
 import com.example.fypproject.Network.ApiClient.api
+import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -49,7 +51,11 @@ class ScrorerActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val matchList = response.body()
                     if (!matchList.isNullOrEmpty()) {
-                        binding.scoringRecycler.adapter = ScrorerAdapter(matchList)
+                        binding.scoringRecycler.adapter = ScrorerAdapter(matchList) { match ->
+                            val intent = Intent(this@ScrorerActivity, CricketScoringActivity::class.java)
+                            intent.putExtra("match", match)
+                            startActivity(intent)
+                        }
                     } else {
                         toastShort("No matches assigned to score")
                     }

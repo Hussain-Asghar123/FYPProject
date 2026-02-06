@@ -6,11 +6,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.MatchDetail
+import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
 
 class MatchesDetailAdapter(
-    private var items: MutableList<MatchDetail> = mutableListOf(),
-    private val onItemClick: ((MatchDetail) -> Unit)? = null
+    private var items: MutableList<MatchResponse> = mutableListOf(),
+    private val onItemClick: ((MatchResponse) -> Unit)? = null
 ) : RecyclerView.Adapter<MatchesDetailAdapter.VH>() {
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
@@ -38,7 +39,7 @@ class MatchesDetailAdapter(
     }
     override fun getItemCount(): Int = items.size
 
-    fun setItems(newItems: List<MatchDetail>) {
+    fun setItems(newItems: List<MatchResponse>) {
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
