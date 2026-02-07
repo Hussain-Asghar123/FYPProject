@@ -22,10 +22,13 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
     private val binding get() = _binding!!
 
     private lateinit var playerAdapter: PlayerAdapter
+
     private var allAvailablePlayers: List<PlayerResponse> = emptyList()
     private var currentTeamPlayers: List<Player> = emptyList()
     private var selectedPlayer: PlayerResponse? = null
+
     private var tournamentId: Long = -1
+    private var sportId: Long = -1
     private var accountId: Long = -1
     private var playerId: Long = -1
     private var currentTeamId: Long? = null
@@ -34,9 +37,11 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragementMyTeamBinding.bind(view)
 
-        val prefs = requireContext().getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
+        val prefs = requireContext()
+            .getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
 
         tournamentId = arguments?.getLong("tournamentId") ?: -1
+        sportId = arguments?.getLong("sportId") ?: -1
         accountId = prefs.getLong("id", -1)
         playerId = prefs.getLong("playerId", -1)
 
@@ -49,20 +54,12 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         binding.rvPlayers.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlayers.adapter = playerAdapter
 
-        binding.btnAddInitialTeam.setOnClickListener {
-            showCreateTeamDialog()
-        }
+        binding.btnAddInitialTeam.setOnClickListener { showCreateTeamDialog() }
+        binding.btnFilterOrAdd.setOnClickListener { addPlayerToTeam() }
+        binding.btnSendRequest.setOnClickListener { submitTeamRequest() }
 
-        binding.btnFilterOrAdd.setOnClickListener {
-            addPlayerToTeam()
-        }
-
-        binding.btnSendRequest.setOnClickListener {
-            submitTeamRequest()
-        }
-
-        binding.spinnerPlayers.setOnItemClickListener { parent, view, position, id ->
-            if (position >= 0 && position < allAvailablePlayers.size) {
+        binding.spinnerPlayers.setOnItemClickListener { _, _, position, _ ->
+            if (position in allAvailablePlayers.indices) {
                 selectedPlayer = allAvailablePlayers[position]
                 toastShort("Selected: ${selectedPlayer!!.name}")
             }
@@ -73,7 +70,9 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val response = api.getTeamByTournamentAndAccount(tournamentId, accountId)
+                val response =
+                    api.getTeamByTournamentAndAccount(tournamentId, accountId)
+
                 if (response.isSuccessful && response.body() != null) {
                     val team = response.body()!!
                     currentTeamId = team.teamId
@@ -83,10 +82,10 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
                 } else {
                     showCreateTeamOnly()
                 }
-                setLoading(false)
-            } catch (e: Exception) {
-                setLoading(false)
+            } catch (_: Exception) {
                 showCreateTeamOnly()
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -96,13 +95,9 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         binding.btnAddInitialTeam.visibility = View.GONE
 
         binding.tvTeamNameDisplay.text = team.teamName ?: "My Team"
-        binding.tvTeamStatus.text = "DRAFT"
-
-        playerAdapter.submitList(team.players)
-
         binding.tvTeamStatus.text = team.teamStatus
+        playerAdapter.submitList(team.players)
         binding.btnSendRequest.isEnabled = true
-
     }
 
     private fun showCreateTeamOnly() {
@@ -121,7 +116,7 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
                     setupDropdownFilter()
                 }
             } catch (e: Exception) {
-                toastShort("Error: ${e.message}")
+                toastShort(e.message ?: "Error")
             }
         }
     }
@@ -132,31 +127,18 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
             return
         }
 
-        val playerDisplayNames = allAvailablePlayers.map {
+        val names = allAvailablePlayers.map {
             "${it.username} (-${it.name})"
-        }.toMutableList()
+        }
 
         val adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_dropdown_item_1line,
-            playerDisplayNames
+            names
         )
 
-        binding.spinnerPlayers.apply {
-            setAdapter(adapter)
-            setOnClickListener {
-                showDropDown()
-            }
-            addTextChangedListener(object : android.text.TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    adapter.filter.filter(s)
-                }
-
-                override fun afterTextChanged(s: android.text.Editable?) {}
-            })
-        }
+        binding.spinnerPlayers.setAdapter(adapter)
+        binding.spinnerPlayers.setOnClickListener { binding.spinnerPlayers.showDropDown() }
     }
 
     private fun addPlayerToTeam() {
@@ -164,12 +146,10 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
             toastShort("Please select a player")
             return
         }
-
         if (currentTeamId == null) {
             toastShort("Team not found")
             return
         }
-
 
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
@@ -178,105 +158,122 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
                     playerId = selectedPlayer!!.playerId,
                     teamId = currentTeamId!!,
                     tournamentId = tournamentId,
-                    us=""
+                    us = ""
                 )
-                val response = api.createPlayerRequest(request)
-                setLoading(false)
 
+                val response = api.createPlayerRequest(request)
                 if (response.isSuccessful) {
-                    toastShort("Request sent to ${selectedPlayer!!.name}")
-                    binding.spinnerPlayers.setText("", false)
+                    toastShort("Request sent")
                     selectedPlayer = null
+                    binding.spinnerPlayers.setText("", false)
                     checkTeamExists()
                 } else {
-                    toastShort("Failed to send request")
+                    toastShort("Request failed")
                 }
             } catch (e: Exception) {
+                toastShort(e.message ?: "Error")
+            } finally {
                 setLoading(false)
-                toastShort("Error: ${e.message}")
             }
         }
     }
 
     private fun submitTeamRequest() {
-        if (currentTeamId == null) {
-            toastShort("Team not found")
+        if (currentTeamId == null || playerId == -1L) {
+            toastShort("Invalid team/player")
             return
         }
 
-        if (playerId == -1L) {
-            toastShort("Player ID not found")
+        val totalPlayers = currentTeamPlayers.size
+        var minPlayers: Int
+        var maxPlayers: Int
+
+        when (sportId) {
+            1L -> { minPlayers = 11; maxPlayers = 15 }
+            2L -> { minPlayers = 5; maxPlayers = 11 }
+            3L -> { minPlayers = 8; maxPlayers = 11 }
+            4L, 5L, 6L -> { minPlayers = 1; maxPlayers = 2 }
+            7L -> { minPlayers = 8; maxPlayers = 11 }
+            8L -> { minPlayers = 1; maxPlayers = 2 }
+            else -> {
+                toastShort("Invalid sport")
+                return
+            }
+        }
+
+        if (totalPlayers < minPlayers) {
+            toastShort("Minimum $minPlayers players required")
+            return
+        }
+
+        if (totalPlayers > maxPlayers) {
+            toastShort("Maximum $maxPlayers players allowed")
             return
         }
 
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val request = TeamRequest(
-                    teamId = currentTeamId!!,
-                    playerId = playerId
-                )
-
-                toastShort("Submitting team...")
-
-                val response = api.createTeamRequest(request)
-                setLoading(false)
-
+                val response =
+                    api.createTeamRequest(TeamRequest(currentTeamId!!, playerId))
                 if (response.isSuccessful) {
-                    toastShort("Team submitted successfully!")
+                    toastShort("Team submitted")
                     checkTeamExists()
                 } else {
-                    toastShort("Failed to submit team - ${response.code()}")
+                    toastShort("Submit failed")
                 }
             } catch (e: Exception) {
+                toastShort(e.message ?: "Error")
+            } finally {
                 setLoading(false)
-                toastShort("Error: ${e.message}")
             }
         }
     }
 
     private fun showCreateTeamDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_team, null)
-        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etTeamName)
+        val dialogView =
+            layoutInflater.inflate(R.layout.dialog_add_team, null)
+        val etName =
+            dialogView.findViewById<android.widget.EditText>(R.id.etTeamName)
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
-            .setCancelable(true)
             .create()
 
         dialogView.findViewById<View>(R.id.btnSaveTeam).setOnClickListener {
             val name = etName.text.toString().trim()
-            if (name.isNotEmpty()) {
-                createTeam(name, dialog)
-            } else toastShort("Team name required")
+            if (name.isNotEmpty()) createTeam(name, dialog)
+            else toastShort("Team name required")
         }
 
         dialog.show()
     }
 
-    private fun createTeam(name: String, dialog: androidx.appcompat.app.AlertDialog) {
+    private fun createTeam(
+        name: String,
+        dialog: androidx.appcompat.app.AlertDialog
+    ) {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val response = api.createTeam(tournamentId, playerId, CreateTeamRequestDto(name))
-                setLoading(false)
-                if (response.isSuccessful && response.body() != null) {
-                    currentTeamId = response.body()?.teamId
+                val response =
+                    api.createTeam(tournamentId, playerId, CreateTeamRequestDto(name))
+                if (response.isSuccessful) {
                     dialog.dismiss()
                     toastShort("Team created")
                     checkTeamExists()
-                } else {
-                    toastShort("Team create failed")
-                }
+                } else toastShort("Create failed")
             } catch (e: Exception) {
+                toastShort(e.message ?: "Error")
+            } finally {
                 setLoading(false)
-                toastShort("Error: ${e.message}")
             }
         }
     }
 
     private fun setLoading(show: Boolean) {
-        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+        binding.progressOverlay.visibility =
+            if (show) View.VISIBLE else View.GONE
     }
 
     override fun onDestroyView() {
@@ -285,12 +282,12 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
     }
 
     companion object {
-        fun newInstance(tournamentId: Long): MyTeamFragment {
-            return MyTeamFragment().apply {
+        fun newInstance(tournamentId: Long, sportId: Long) =
+            MyTeamFragment().apply {
                 arguments = Bundle().apply {
                     putLong("tournamentId", tournamentId)
+                    putLong("sportId", sportId)
                 }
             }
-        }
     }
 }

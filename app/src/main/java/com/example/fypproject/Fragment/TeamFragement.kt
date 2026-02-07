@@ -13,12 +13,14 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
     private val binding get() = _binding!!
 
     private var tournamentId: Long = -1L
+    private var sportId: Long=-1L
     private lateinit var buttons: List<MaterialButton>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentTeamBinding.bind(view)
         tournamentId = arguments?.getLong("tournamentId") ?: -1L
+        sportId=arguments?.getLong("sportId")?: -1L
 
         buttons = listOf(
             binding.btnTeams,
@@ -26,11 +28,11 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
         )
 
         selectButton(binding.btnMyTeam)
-        loadFragment(MyTeamFragment.newInstance(tournamentId))
+        loadFragment(MyTeamFragment.newInstance(tournamentId,sportId))
 
         binding.btnMyTeam.setOnClickListener {
             selectButton(binding.btnMyTeam)
-            loadFragment(MyTeamFragment.newInstance(tournamentId))
+            loadFragment(MyTeamFragment.newInstance(tournamentId,sportId))
         }
 
         binding.btnTeams.setOnClickListener {
@@ -60,10 +62,11 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
     }
 
     companion object {
-        fun newInstance(tournamentId: Long): TeamFragement {
+        fun newInstance(tournamentId: Long,sportId:Long): TeamFragement {
             val fragment = TeamFragement()
             val args = Bundle()
             args.putLong("tournamentId", tournamentId)
+            args.putLong("sportId",sportId)
             fragment.arguments = args
             return fragment
         }
