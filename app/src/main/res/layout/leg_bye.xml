@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/panelLegBye"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCloseLegBye"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X   Leg Byes"
+        android:textColor="#FFFFFF"
+        android:background="@android:color/transparent"
+        android:textSize="18sp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:paddingBottom="20dp" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="3">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb1" style="@style/SubControlBtn" android:text="1 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb2" style="@style/SubControlBtn" android:text="2 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb3" style="@style/SubControlBtn" android:text="3 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb4" style="@style/SubControlBtn" android:text="4 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb5" style="@style/SubControlBtn" android:text="5 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb6" style="@style/SubControlBtn" android:text="6 LB" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLb7" style="@style/SubControlBtn" android:text="7 LB" android:layout_columnSpan="3"/>
+    </GridLayout>
+</LinearLayout>

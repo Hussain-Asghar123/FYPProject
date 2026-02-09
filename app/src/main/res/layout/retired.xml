@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <Button
+        android:id="@+id/btnCloseRetired"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:text="✕  Retired"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Who is retiring?"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetiredBatsman1"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="5dp"
+            android:layout_weight="1"
+            android:text="Striker"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#E31212"
+            app:cornerRadius="6dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetiredBatsman2"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="Non-Striker"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#E31212"
+            app:cornerRadius="6dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvRetiredSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="No batsman selected"
+        android:textColor="#FFCDD2"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="Select New Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmRetired"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="10dp"
+        android:enabled="false"
+        android:text="Select New Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:backgroundTint="#E31212"
+        app:cornerRadius="6dp"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="2dp" />
+
+</LinearLayout>

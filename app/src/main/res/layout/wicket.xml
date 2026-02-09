@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/panelWicket"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCloseWicket"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X   Wicket"
+        android:textColor="#FFFFFF"
+        android:background="@android:color/transparent"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:layout_marginTop="10dp">
+
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnBowled" style="@style/SubControlBtn" android:text="Bowled" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnCaught" style="@style/SubControlBtn" android:text="Caught" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnStumped" style="@style/SubControlBtn" android:text="Stumped" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLBW" style="@style/SubControlBtn" android:text="LBW" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRunOut" style="@style/SubControlBtn" android:text="Run Out" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnManked" style="@style/SubControlBtn" android:text="Manked" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRetired" style="@style/SubControlBtn" android:text="Retired" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnOverFence" style="@style/SubControlBtn" android:text="Over Fence" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnHitWicket" style="@style/SubControlBtn" android:text="Hit Wicket" />
+    </GridLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnOneHand"
+        style="@style/SubControlBtn"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:text="One Hand One Bounce" />
+</LinearLayout>

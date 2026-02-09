@@ -1,0 +1,48 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/panelMainScoring"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical">
+
+    <LinearLayout style="@style/ControlRow">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRun1" style="@style/ControlBtn" android:text="1" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRun2" style="@style/ControlBtn" android:text="2" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRun3" style="@style/ControlBtn" android:text="3" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRun4" style="@style/ControlBtn" android:text="4" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRun6" style="@style/ControlBtn" android:text="6" />
+    </LinearLayout>
+
+    <View style="@style/HorizontalLine" />
+
+    <LinearLayout style="@style/ControlRow">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLegBye" style="@style/ControlBtn" android:text="LB" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnBye" style="@style/ControlBtn" android:text="Bye" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWide" style="@style/ControlBtn" android:text="Wide" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnNoBall" style="@style/ControlBtn" android:text="NB" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnDot" style="@style/ControlBtn" android:text="." />
+    </LinearLayout>
+
+    <View style="@style/HorizontalLine" />
+
+    <LinearLayout style="@style/ControlRow">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnMore" style="@style/ControlBtn" android:text="More" />
+        <View style="@style/VerticalLine" />
+        <ImageView android:id="@+id/btnInfo" style="@style/ControlIcon" android:src="@drawable/ball" />
+        <View style="@style/VerticalLine" />
+        <ImageView android:id="@+id/btnCamera" style="@style/ControlIcon" android:src="@android:drawable/ic_menu_camera" app:tint="#FFFFFF" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnUndo" style="@style/ControlBtn" android:text="Undo" />
+        <View style="@style/VerticalLine" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnOut" style="@style/ControlBtn" android:text="Out" />
+    </LinearLayout>
+</LinearLayout>

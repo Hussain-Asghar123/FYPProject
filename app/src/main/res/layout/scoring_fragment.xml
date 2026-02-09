@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Score Summary Section -->
+    <LinearLayout
+        android:id="@+id/scoreSummaryLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvTeamName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Team A"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvInningsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2nd Innings"
+            android:textColor="#000000"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvMainScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/0"
+            android:textColor="#000000"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvOtherStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Extras - 0   Overs - 0.0/10   CRR - 0.0"
+            android:textColor="#000000"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvTargetStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Target 000  Need 000 on 00"
+            android:textColor="#000000"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="visible" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/div1"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#000000"
+        app:layout_constraintTop_toBottomOf="@id/scoreSummaryLayout" />
+
+    <!-- Batsmen and Bowler Table Section -->
+    <LinearLayout
+        android:id="@+id/tableLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="6dp"
+        app:layout_constraintTop_toBottomOf="@id/div1">
+
+        <!-- Batsmen Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="2dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:text="Batsman"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="R"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="B"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="4s"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="6s"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="SR"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+        </LinearLayout>
+
+        <!-- Batsman 1 Row -->
+        <LinearLayout
+            android:id="@+id/batsman1Row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="2dp">
+            <TextView
+                android:id="@+id/tvBatsman1Name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:text="🏏       "
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman1R"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman1B"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman1_4s"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman1_6s"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman1SR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+        </LinearLayout>
+
+        <!-- Batsman 2 Row -->
+        <LinearLayout
+            android:id="@+id/batsman2Row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="2dp">
+            <TextView
+                android:id="@+id/tvBatsman2Name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman2R"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman2B"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman2_4s"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman2_6s"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBatsman2SR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/div3"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#000000" />
+
+        <!-- Bowler Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="2dp"
+            android:layout_marginTop="2dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:text="Bowler"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="O"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="R"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="W"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="Eco"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="#000000" />
+        </LinearLayout>
+
+        <!-- Current Bowler Row -->
+        <LinearLayout
+            android:id="@+id/bowlerRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="2dp">
+            <TextView
+                android:id="@+id/tvBowlerName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBowlerO"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBowlerR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBowlerW"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+            <TextView
+                android:id="@+id/tvBowlerEco"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="-"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#000000" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/div2"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#000000"
+        app:layout_constraintTop_toBottomOf="@id/tableLayout" />
+
+
+    <FrameLayout
+        android:id="@+id/controlPanel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#E31212"
+        android:layout_marginTop="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/div2">
+
+        <include
+            android:id="@+id/layoutSelectPlayer"
+            layout="@layout/select_player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+        <include
+            android:id="@+id/layoutMainScoring"
+            layout="@layout/main_scoring"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutWidePanel"
+            layout="@layout/wide"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutLegByePanel"
+            layout="@layout/leg_bye"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutByePanel"
+            layout="@layout/bye"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutNoBallPanel"
+            layout="@layout/no_ball"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutWicketPanel"
+            layout="@layout/wicket"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutBowled"
+            layout="@layout/bowled"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutRetired"
+            layout="@layout/retired"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutOvertheFence"
+            layout="@layout/over_the_fence"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutHitWicket"
+            layout="@layout/hit_wicket"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutManked"
+            layout="@layout/manked"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutLBW"
+            layout="@layout/lbw"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutRunOut"
+            layout="@layout/dialog_run_out"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutCaught"
+            layout="@layout/caught_by"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutStumped"
+            layout="@layout/stumbed_by"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutOneHand"
+            layout="@layout/one_hand"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutSelectBowler"
+            layout="@layout/layoutselectbowler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+
+        <include
+            android:id="@+id/layoutMorePanel"
+            layout="@layout/more"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutAbandon"
+            layout="@layout/abandon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutRetiredHurt"
+            layout="@layout/retired_hurt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutPenalty"
+            layout="@layout/penalty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutChangeTarget"
+            layout="@layout/change_target"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutDLS"
+            layout="@layout/dis_options"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutSuperOver"
+            layout="@layout/super_over"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutEndInnings"
+            layout="@layout/end_innings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/dialogPlayerSelection"
+            layout="@layout/dialog_player_selection"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutUserHistory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvOverHistory"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:clipToPadding="false" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

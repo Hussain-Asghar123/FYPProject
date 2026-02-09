@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <Button
+        android:id="@+id/btnCloseLBW"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:text="✕  LBW"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="Select New Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmLBW"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="15dp"
+        android:text="Select Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:backgroundTint="#E31212"
+        app:cornerRadius="6dp"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="2dp" />
+
+</LinearLayout>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <Button
+        android:id="@+id/btnCloseCaught"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:text="✕  Caught"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="Step 1: Select Fielder (Bowling Team)"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSelectFielderCaught"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="10dp"
+        android:text="Select Fielder"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:backgroundTint="#E31212"
+        app:cornerRadius="6dp"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="2dp" />
+
+    <TextView
+        android:id="@+id/tvSelectedFielderCaught"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="No fielder selected"
+        android:textColor="#FFCDD2"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Step 2: Select New Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmCaught"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="10dp"
+        android:enabled="false"
+        android:text="Select New Batsman"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:backgroundTint="#E31212"
+        app:cornerRadius="6dp"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="2dp" />
+
+</LinearLayout>

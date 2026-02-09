@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/panelMore"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCloseMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X   More"
+        android:textColor="#FFFFFF"
+        android:background="@android:color/transparent"
+        android:textSize="18sp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:paddingBottom="20dp" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnEndInnings" style="@style/SubControlBtn" android:text="End Innings" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnDLS" style="@style/SubControlBtn" android:text="DLS" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnSuperOver" style="@style/SubControlBtn" android:text="Super Over" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnAbandon" style="@style/SubControlBtn" android:text="Abandon" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnPenalty" style="@style/SubControlBtn" android:text="Penalty" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnChangeTarget" style="@style/SubControlBtn" android:text="Change Target" />
+    </GridLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnRetiredHurt"
+        style="@style/SubControlBtn"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:text="Retired Hurt" />
+</LinearLayout>

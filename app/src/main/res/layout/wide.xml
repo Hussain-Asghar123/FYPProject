@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/panelWide"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCloseWide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X   Wide"
+        android:textColor="#FFFFFF"
+        android:background="@android:color/transparent"
+        android:textSize="18sp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:paddingBottom="20dp" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="3">
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd1" style="@style/SubControlBtn" android:text="Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd2" style="@style/SubControlBtn" android:text="1 + Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd3" style="@style/SubControlBtn" android:text="2 + Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd4" style="@style/SubControlBtn" android:text="3 + Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd5" style="@style/SubControlBtn" android:text="4 + Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd6" style="@style/SubControlBtn" android:text="5 + Wd" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnWd7" style="@style/SubControlBtn" android:text="6 + Wd" android:layout_columnSpan="3" />
+    </GridLayout>
+</LinearLayout>
