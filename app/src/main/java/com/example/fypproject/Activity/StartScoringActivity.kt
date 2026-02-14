@@ -3,6 +3,7 @@ package com.example.fypproject.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -21,7 +22,7 @@ class StartScoringActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityStartScoringBinding
     private var matchId: Long = -1L
-    private var tournamentId: Long = -1L
+    private var sportId: Long=-1L
     private var matchData: MatchResponse? = null
     private var selectedTossWinnerId: Long? = null
     private var selectedDecision: String? = null
@@ -34,18 +35,80 @@ class StartScoringActivity : AppCompatActivity() {
         binding = ActivityStartScoringBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        matchId = intent.getLongExtra("matchId", -1L)
-        tournamentId = intent.getLongExtra("tournamentId", -1L)
+        matchData = intent.getSerializableExtra("match") as? MatchResponse
 
-        if (matchId == -1L) {
-            toastShort("Invalid match")
+        matchId = matchData?.id ?: intent.getLongExtra("matchId", -1L)
+        sportId = matchData?.sportId ?: intent.getLongExtra("sportId", -1L)
+
+        if (matchId <= 0L) {
+            toastShort("Invalid matchId: $matchId")
             finish()
             return
         }
 
         setupButtons()
-        fetchMatchDetails()
+
+        if (matchData != null) {
+            bindDataToUI()
+        } else {
+            fetchMatchDetails()
+        }
+
+        handleSportUI()
     }
+
+    private fun handleSportUI() {
+
+        when (sportId) {
+
+            1L -> { // Cricket
+                showDecisionSection("Bat", "Bowl")
+            }
+
+            2L -> { // Futsal
+                showDecisionSection("Kickoff", "Choose Side")
+            }
+
+            3L -> { // Volleyball
+                showDecisionSection("Give Service", "Take Service")
+            }
+
+            4L -> { // Table Tennis
+                showDecisionSection("Choose Service", "Choose Side")
+            }
+
+            5L -> { // Badminton
+                showDecisionSection("Choose Service", "Choose Side")
+            }
+
+            6L -> { // Ludo
+                hideDecisionSection()
+            }
+
+            7L -> { // Tug of War
+                showDecisionSection("Left Side", "Right Side")
+            }
+
+            8L -> { // Chess
+                showDecisionSection("White", "Black")
+            }
+
+            else -> hideDecisionSection()
+        }
+    }
+
+    private fun showDecisionSection(option1: String, option2: String) {
+        binding.decisionSection.visibility = View.VISIBLE
+        binding.decisionOption1Btn.text = option1
+        binding.decisionOption2Btn.text = option2
+    }
+
+    private fun hideDecisionSection() {
+        binding.decisionSection.visibility = View.GONE
+    }
+
+
+
 
 
     private fun fetchMatchDetails() {
@@ -56,7 +119,8 @@ class StartScoringActivity : AppCompatActivity() {
                     matchData = response.body()
                     bindDataToUI()
                 } else {
-                    toastShort("Failed to fetch match")
+                    val err = response.errorBody()?.string()
+                    toastShort("Failed to fetch match (${response.code()}) id=$matchId")
                 }
             } catch (e: Exception) {
                 toastLong("Network error")
@@ -64,12 +128,10 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-
     private fun bindDataToUI() {
         val match = matchData ?: return
 
-        binding.teamAName.text = match.team1Name
-        binding.teamBName.text = match.team2Name
+        binding.teamAName.text = "${match.team1Name} vs ${match.team2Name}"
         binding.venueText.text = match.venue
         binding.dateText.text = match.date
         binding.timeText.text = match.time
@@ -80,11 +142,11 @@ class StartScoringActivity : AppCompatActivity() {
         binding.tossTeamBBtn.text = match.team2Name
 
         when (match.status) {
-            MatchStatus.ABANDONED, MatchStatus.COMPLETED -> {
+            "ABANDONED", "COMPLETED" -> {
                 binding.abandonYesBtn.isEnabled = false
                 binding.abandonYesBtn.alpha = 0.5f
             }
-            MatchStatus.LIVE -> {
+            "LIVE" -> {
                 binding.abandonYesBtn.text = "Abandon (Live Match)"
             }
         }
@@ -105,22 +167,13 @@ class StartScoringActivity : AppCompatActivity() {
             updateButtonColors(binding.tossTeamBBtn, binding.tossTeamABtn)
         }
 
-        binding.decisionBatBtn.setOnClickListener {
-            selectedDecision = "BAT"
-            updateButtonColors(binding.decisionBatBtn, binding.decisionBowlBtn)
-        }
-
-        binding.decisionBowlBtn.setOnClickListener {
-            selectedDecision = "BOWL"
-            updateButtonColors(binding.decisionBowlBtn, binding.decisionBatBtn)
-        }
-
         binding.startScoringBtn.setOnClickListener {
-            if (selectedTossWinnerId == null || selectedDecision == null) {
+            if (selectedTossWinnerId != null && selectedDecision != null)
+            {
+                startMatchCall()
+            } else {
                 toastShort("Select toss & decision first")
-                return@setOnClickListener
             }
-            startMatchCall()
         }
 
         binding.abandonYesBtn.setOnClickListener {
@@ -130,6 +183,15 @@ class StartScoringActivity : AppCompatActivity() {
         binding.abandonNoBtn.setOnClickListener {
             toastShort("Action cancelled")
         }
+        binding.decisionOption1Btn.setOnClickListener {
+            selectedDecision = binding.decisionOption1Btn.text.toString()
+            updateButtonColors(binding.decisionOption1Btn, binding.decisionOption2Btn)
+        }
+
+        binding.decisionOption2Btn.setOnClickListener {
+            selectedDecision = binding.decisionOption2Btn.text.toString()
+            updateButtonColors(binding.decisionOption2Btn, binding.decisionOption1Btn)
+        }
     }
 
 
@@ -137,16 +199,21 @@ class StartScoringActivity : AppCompatActivity() {
         val payload = matchData?.copy(
             tossWinnerId = selectedTossWinnerId,
             decision = selectedDecision,
-            status = MatchStatus.LIVE
+            status = "LIVE"
         ) ?: return
-
         lifecycleScope.launch {
             try {
                 val response = api.startMatch(matchId, payload)
                 if (response.isSuccessful) {
-                    val intent = Intent(this@StartScoringActivity, CricketScoringActivity::class.java)
-                    intent.putExtra("match", payload)
-                    startActivity(intent)
+                    val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+                    val role = sharedPreferences.getString("role", "")
+                    val username = sharedPreferences.getString("username", "") ?: ""
+                    if (role.equals("ADMIN", true) || matchData?.scorerId.equals(username, true)) {
+                        val intent =
+                            Intent(this@StartScoringActivity, CricketScoringActivity::class.java)
+                        intent.putExtra("match", payload)
+                        startActivity(intent)
+                    }
                     finish()
                     binding.abandonYesBtn.isEnabled = false
                     binding.abandonYesBtn.alpha = 0.5f

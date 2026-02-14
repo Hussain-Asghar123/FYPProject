@@ -17,6 +17,7 @@ data class MatchResponse(
     val date: String? = null,
     val time: String? = null,
     val tossWinnerId: Long? = null,
+    val tossWinnerName: String? = null,
     val decision: String? = null,
     val sportId: Long? = null,
     val overs: Int? = null,

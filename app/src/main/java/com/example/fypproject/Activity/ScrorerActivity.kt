@@ -52,9 +52,14 @@ class ScrorerActivity : AppCompatActivity() {
                     val matchList = response.body()
                     if (!matchList.isNullOrEmpty()) {
                         binding.scoringRecycler.adapter = ScrorerAdapter(matchList) { match ->
-                            val intent = Intent(this@ScrorerActivity, CricketScoringActivity::class.java)
-                            intent.putExtra("match", match)
-                            startActivity(intent)
+                            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+                            val role = sharedPreferences.getString("role", "")
+                            val username = sharedPreferences.getString("username", "") ?: ""
+                            if (role.equals("ADMIN", true) || match.scorerId.equals(username, true)) {
+                                val intent = Intent(this@ScrorerActivity, CricketScoringActivity::class.java)
+                                intent.putExtra("match", match)
+                                startActivity(intent)
+                            }
                         }
                     } else {
                         toastShort("No matches assigned to score")

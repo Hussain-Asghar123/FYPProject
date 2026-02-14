@@ -1,9 +1,10 @@
 package com.example.fypproject.Fragment
 
+import android.content.Context.MODE_PRIVATE
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,7 +40,7 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentFixturesBinding.bind(view)
 
-        role = requireActivity().getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
+        role = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
             .getString("role", "") ?: ""
 
         tournamentId = arguments?.getLong("tournamentId") ?: -1L
@@ -107,10 +108,15 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
     }
 
     private fun openStartScoring(fixture: FixturesResponse) {
-        val intent = Intent(requireContext(), StartScoringActivity::class.java)
-        intent.putExtra("matchId", fixture.id)
-        intent.putExtra("tournamentId", fixture.tournamentId)
-        startActivity(intent)
+        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val role = sharedPreferences.getString("role", "")
+        if (role.equals("ADMIN")) {
+            val intent = Intent(requireContext(), StartScoringActivity::class.java)
+            intent.putExtra("matchId", fixture.id)
+            intent.putExtra("tournamentId", fixture.tournamentId)
+            intent.putExtra("sportId", fixture.sportId)
+            startActivity(intent)
+        }
     }
 
     private fun openUpdate(fixture: FixturesResponse) {
@@ -148,7 +154,7 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
 
     override fun onResume() {
         super.onResume()
-        role = requireActivity().getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
+        role = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
             .getString("role", "") ?: ""
         checkAdminButton()
         adapter.updateRole(role)

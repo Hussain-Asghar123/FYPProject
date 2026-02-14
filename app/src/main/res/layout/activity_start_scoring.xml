@@ -81,35 +81,6 @@
                             android:textStyle="bold" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
-
-                <!-- TEAM B -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="#F0F0F0">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="12dp">
-
-                        <TextView
-                            android:id="@+id/teamBName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAlignment="center"
-                            android:text="Team B"
-                            android:textColor="#000000"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
             </LinearLayout>
 
             <!-- VENUE -->
@@ -342,6 +313,11 @@
             </LinearLayout>
 
             <!-- TOSS SECTION -->
+            <LinearLayout
+                android:id="@+id/decisionSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -397,7 +373,7 @@
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/decisionBatBtn"
+                    android:id="@+id/decisionOption1Btn"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
@@ -409,7 +385,7 @@
                     android:layout_marginEnd="8dp"/>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/decisionBowlBtn"
+                    android:id="@+id/decisionOption2Btn"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
@@ -419,6 +395,8 @@
                     app:backgroundTint="#E31212"
                     app:cornerRadius="8dp"
                     android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
             </LinearLayout>
 
             <!-- START SCORING -->

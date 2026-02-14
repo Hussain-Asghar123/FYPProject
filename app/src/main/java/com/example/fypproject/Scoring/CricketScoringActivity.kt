@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.fypproject.CricketFragment.BallsFragment
+import com.example.fypproject.CricketFragment.InfoFragment
+import com.example.fypproject.CricketFragment.ScoreCardFragment
 import com.example.fypproject.CricketFragment.ScoringFragment
 import com.example.fypproject.DTO.MatchDTO
 import com.example.fypproject.DTO.MatchResponse
@@ -47,8 +50,6 @@ class CricketScoringActivity : AppCompatActivity() {
         }
 
 
-        // CricketScoringActivity.kt mein yeh line change karo:
-
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             matchResponse?.let {
@@ -59,21 +60,21 @@ class CricketScoringActivity : AppCompatActivity() {
         binding.btnScoreCard.setOnClickListener {
             selectButton(binding.btnScoreCard)
             matchResponse?.let {
-                // loadFragment(ScoreCardFragment.newInstance(it))
+                 loadFragment(ScoreCardFragment.newInstance(it))
             }
         }
 
         binding.btnBalls.setOnClickListener {
             selectButton(binding.btnBalls)
             matchResponse?.let {
-                // loadFragment(BallsFragment.newInstance(it))
+                 loadFragment(BallsFragment.newInstance(it))
             }
         }
 
         binding.btnInfo.setOnClickListener {
             selectButton(binding.btnInfo)
             matchResponse?.let {
-                // loadFragment(InfoFragment.newInstance(it))
+                 loadFragment(InfoFragment.newInstance(it))
             }
         }
     }

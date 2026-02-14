@@ -171,13 +171,22 @@ class HomeActivity : AppCompatActivity() {
         binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
 
-        liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
-            val intent = Intent(this@HomeActivity, CricketScoringActivity::class.java)
-            intent.putExtra("match", match)
-            startActivity(intent)
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role = sharedPreferences.getString("role", "") ?: ""
+        val username = sharedPreferences.getString("username", "") ?: ""
 
+        liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
+                val intent = Intent(this@HomeActivity, CricketScoringActivity::class.java)
+                intent.putExtra("match", match)
+                startActivity(intent)
         }
-        upcomingAdapter = MatchAdapter(mutableListOf(), true){
+
+        upcomingAdapter = MatchAdapter(mutableListOf(), true) { match ->
+            if (role.equals("ADMIN", true) || match.scorerId.equals(username)) {
+                val intent = Intent(this@HomeActivity, StartScoringActivity::class.java)
+                intent.putExtra("match", match)
+                startActivity(intent)
+            }
         }
 
         binding.recyclerLiveMatches.adapter = liveAdapter
