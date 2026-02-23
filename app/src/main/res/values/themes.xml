@@ -96,4 +96,46 @@
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
+
+        <style name="ScoreControlButton" parent="Widget.Material3.Button">
+            <item name="android:textColor">@color/white</item>
+            <item name="android:textStyle">bold</item>
+            <item name="backgroundTint">@color/red_primary</item>
+            <item name="cornerRadius">12dp</item>
+        </style>
+
+        <style name="ScoreControlButtonOutlined" parent="Widget.Material3.Button.OutlinedButton">
+            <item name="android:textColor">@color/white</item>
+            <item name="android:textStyle">bold</item>
+            <item name="backgroundTint">@color/red_primary</item>
+            <item name="strokeColor">@color/white</item>
+            <item name="strokeWidth">1dp</item>
+            <item name="cornerRadius">12dp</item>
+        </style>
+
+
+
+       <color name="red_primary">#E21B1B</color>
+       <color name="red_panel">#E31212</color>
+       <color name="gray_bg">#E9E9E9</color>
+
+    <style name="PanelButton" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/red_panel</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:minHeight">44dp</item>
+    </style>
+
+
+    <style name="PanelButtonOutlined" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/red_panel</item>
+        <item name="strokeColor">@color/white</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:minHeight">44dp</item>
+    </style>
+
 </resources>
