@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.databinding.ItemLiveMatchBinding
 import com.example.fypproject.databinding.ItemUpcomingMatchBinding
 
@@ -33,6 +34,7 @@ class MatchAdapter (
             b.txtTeamNames.text = "${match.team1Name ?: "Team1"} - ${match.team2Name ?: "Team2"}"
             b.txtVenue.text = match.venue ?: "Unknown"
             b.txtMatchStatus.text = match.status ?: "Live"
+            b.txtSportName.text = getSportName(match.sportId)
         }
         else {
             val b = holder.binding as ItemUpcomingMatchBinding
@@ -40,7 +42,21 @@ class MatchAdapter (
             val date = match.date ?: "TBD"
             val time = match.time ?: ""
             val venue = match.venue ?: ""
+            b.txtSportName.text = getSportName(match.sportId)
             b.txtMatchStatus.text = listOf(date, time, venue).filter { it.isNotBlank() }.joinToString(" | ")
+        }
+    }
+    private fun getSportName(sportId: Long?): String {
+        return when (sportId) {
+            1L -> "Cricket"
+            2L -> "Futsal"
+            3L -> "Volleyball"
+            4L -> "Table Tennis"
+            5L -> "Badminton"
+            6L -> "Ludo"
+            7L -> "Tug of War"
+            8L -> "Chess"
+            else -> "Unknown"
         }
     }
 

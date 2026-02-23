@@ -380,13 +380,32 @@
         android:background="#000000"
         app:layout_constraintTop_toBottomOf="@id/tableLayout" />
 
+    <HorizontalScrollView
+        android:id="@+id/ballScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:padding="6dp"
+        app:layout_constraintTop_toBottomOf="@id/div2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/ballContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"/>
+    </HorizontalScrollView>
+
+
+
 
     <FrameLayout
         android:id="@+id/controlPanel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="#E31212"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/div2">
 
@@ -531,12 +550,6 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <include
-            android:id="@+id/layoutRetiredHurt"
-            layout="@layout/retired_hurt"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
 
         <include
             android:id="@+id/layoutPenalty"
@@ -545,12 +558,6 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <include
-            android:id="@+id/layoutChangeTarget"
-            layout="@layout/change_target"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
 
         <include
             android:id="@+id/layoutDLS"
@@ -579,6 +586,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutExtraScores"
+            layout="@layout/extras_scores"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutInningsUndo"
+            layout="@layout/innings_undo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layoutUserHistory"

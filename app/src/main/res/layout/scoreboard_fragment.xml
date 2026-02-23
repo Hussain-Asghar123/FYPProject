@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_marginTop="15dp">
 
     <!-- Team Toggle Tabs -->
     <LinearLayout
@@ -124,7 +125,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Batsman RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvBatsmen"
                 android:layout_width="match_parent"
@@ -132,7 +132,6 @@
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never" />
 
-            <!-- Extras / Total / Overs -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -150,8 +149,18 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Extras - 5"
-                    android:textColor="#CCCCCC"
+                    android:text="Extras - 0"
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+
+
+                <TextView
+                    android:id="@+id/tvTotal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Total - 000"
+                    android:textColor="#000000"
                     android:textSize="12sp" />
 
                 <TextView
@@ -160,35 +169,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Overs - 5.1/10"
-                    android:textColor="#CCCCCC"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvTotal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Total - 134"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvRunRate"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="RR - 26.2"
-                    android:textColor="#CCCCCC"
+                    android:text="Overs - 0.0/10"
+                    android:textColor="#000000"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -271,31 +253,6 @@
                 android:id="@+id/rvBowlers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:overScrollMode="never" />
-
-            <!-- ========== FALL OF WICKETS SECTION ========== -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="12dp"
-                android:background="#333333" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Fall of wickets"
-                android:textColor="#E31212"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <!-- Wickets RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvWickets"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never" />
 

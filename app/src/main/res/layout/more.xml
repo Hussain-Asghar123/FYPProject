@@ -30,14 +30,12 @@
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnDLS" style="@style/SubControlBtn" android:text="DLS" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnSuperOver" style="@style/SubControlBtn" android:text="Super Over" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnAbandon" style="@style/SubControlBtn" android:text="Abandon" />
-        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnPenalty" style="@style/SubControlBtn" android:text="Penalty" />
-        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnChangeTarget" style="@style/SubControlBtn" android:text="Change Target" />
     </GridLayout>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnRetiredHurt"
+        android:id="@+id/btnPenalty"
         style="@style/SubControlBtn"
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"
-        android:text="Retired Hurt" />
+        android:text="Penalty" />
 </LinearLayout>

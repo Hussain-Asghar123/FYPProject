@@ -181,13 +181,12 @@ class HomeActivity : AppCompatActivity() {
                 startActivity(intent)
         }
 
-        upcomingAdapter = MatchAdapter(mutableListOf(), true) { match ->
-            if (role.equals("ADMIN", true) || match.scorerId.equals(username)) {
+        upcomingAdapter = MatchAdapter(mutableListOf(), false) { match ->
                 val intent = Intent(this@HomeActivity, StartScoringActivity::class.java)
                 intent.putExtra("match", match)
                 startActivity(intent)
-            }
         }
+
 
         binding.recyclerLiveMatches.adapter = liveAdapter
         binding.recyclerUpcomingMatches.adapter = upcomingAdapter

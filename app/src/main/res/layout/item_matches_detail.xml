@@ -40,4 +40,13 @@
         android:textSize="13sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"/>
+
+    <TextView
+        android:id="@+id/tvSportName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sport Name"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"/>
 </LinearLayout>

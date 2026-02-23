@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.MatchDetail
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Utils.MatchNavigator
 
 class MatchesDetailAdapter(
     private var items: MutableList<MatchResponse> = mutableListOf(),
@@ -18,6 +19,8 @@ class MatchesDetailAdapter(
         val tvTournamentName: TextView = view.findViewById(R.id.tvTournamentName)
         val tvMatchTitle: TextView = view.findViewById(R.id.tvMatchTitle)
         val tvVenueTime: TextView = view.findViewById(R.id.tvVenueTime)
+
+        val tvSportName: TextView=view.findViewById(R.id.tvSportName)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -35,9 +38,25 @@ class MatchesDetailAdapter(
                 "${match.date ?: ""} ${match.time ?: ""}".trim() else null
         ).joinToString(" • ")
         holder.tvVenueTime.text = dateTime
+        holder.tvSportName.text = getSportName(match.sportId)
         holder.itemView.setOnClickListener { onItemClick?.invoke(match) }
+
     }
     override fun getItemCount(): Int = items.size
+
+    private fun getSportName(sportId: Long?): String {
+        return when (sportId) {
+            1L -> "Cricket"
+            2L -> "Futsal"
+            3L -> "Volleyball"
+            4L -> "Table Tennis"
+            5L -> "Badminton"
+            6L -> "Ludo"
+            7L -> "Tug of War"
+            8L -> "Chess"
+            else -> "Unknown"
+        }
+    }
 
     fun setItems(newItems: List<MatchResponse>) {
         items.clear()

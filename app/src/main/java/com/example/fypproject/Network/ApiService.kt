@@ -34,6 +34,7 @@ import com.example.fypproject.DTO.TournamentResponse
 import com.example.fypproject.DTO.TournamentStatsDto
 import com.example.fypproject.DTO.TournamentUpdateRequest
 import com.example.fypproject.DTO.UpdateAccountRequest
+import com.example.fypproject.ScoringDTO.ScorecardResponse
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
@@ -266,6 +267,12 @@ interface ApiService {
 
     @GET("team/{teamId}/players")
     suspend fun getPlayersByTeam(@Path("teamId") teamId: Long): Response<List<TeamPlayerDto>>
+
+    @GET("match/scoreCard/{Mid}/{T1id}")
+    suspend fun getScoreCard(
+        @Path("Mid") matchId: Long,
+        @Path("T1id") teamId: Long
+    ): Response<ScorecardResponse>
 
 
 }

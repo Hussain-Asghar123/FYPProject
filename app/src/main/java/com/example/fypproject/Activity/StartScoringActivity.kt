@@ -12,6 +12,7 @@ import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MatchStatus
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.Scoring.CricketScoringActivity
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityStartScoringBinding
@@ -201,22 +202,13 @@ class StartScoringActivity : AppCompatActivity() {
             decision = selectedDecision,
             status = "LIVE"
         ) ?: return
+
         lifecycleScope.launch {
             try {
                 val response = api.startMatch(matchId, payload)
                 if (response.isSuccessful) {
-                    val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-                    val role = sharedPreferences.getString("role", "")
-                    val username = sharedPreferences.getString("username", "") ?: ""
-                    if (role.equals("ADMIN", true) || matchData?.scorerId.equals(username, true)) {
-                        val intent =
-                            Intent(this@StartScoringActivity, CricketScoringActivity::class.java)
-                        intent.putExtra("match", payload)
-                        startActivity(intent)
-                    }
+                    MatchNavigator.navigate(this@StartScoringActivity, payload)
                     finish()
-                    binding.abandonYesBtn.isEnabled = false
-                    binding.abandonYesBtn.alpha = 0.5f
                 } else {
                     toastShort("Failed: ${response.code()}")
                 }

@@ -10,7 +10,6 @@ import com.example.fypproject.CricketFragment.BallsFragment
 import com.example.fypproject.CricketFragment.InfoFragment
 import com.example.fypproject.CricketFragment.ScoreCardFragment
 import com.example.fypproject.CricketFragment.ScoringFragment
-import com.example.fypproject.DTO.MatchDTO
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.databinding.ActivityCricketScoringBinding
 import com.google.android.material.button.MaterialButton
@@ -18,14 +17,25 @@ import com.google.android.material.button.MaterialButton
 class CricketScoringActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCricketScoringBinding
     private var matchResponse: MatchResponse? = null
-
     private lateinit var buttons: List<MaterialButton>
+
+    private var scoringFragment: ScoringFragment? = null
+    private var scoreCardFragment: ScoreCardFragment? = null
+    private var ballsFragment: BallsFragment? = null
+    private var infoFragment: InfoFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityCricketScoringBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val role = intent.getStringExtra("role")
+            ?: getSharedPreferences("MyPrefs", MODE_PRIVATE).getString("role", "USER")
+            ?: "USER"
+
+        val isViewerOnly = role.uppercase() == "USER"
+        if (isViewerOnly) binding.btnScoring.text = "Summary"
 
         matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("match", MatchResponse::class.java)
@@ -36,61 +46,56 @@ class CricketScoringActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
-        buttons = listOf(
-            binding.btnScoring,
-            binding.btnScoreCard,
-            binding.btnBalls,
-            binding.btnInfo
-        )
+        buttons = listOf(binding.btnScoring, binding.btnScoreCard, binding.btnBalls, binding.btnInfo)
 
-        selectButton(binding.btnScoring)
-
-        matchResponse?.let {
-            loadFragment(ScoringFragment.newInstance(it))
+        matchResponse?.let { match ->
+            scoringFragment = ScoringFragment.newInstance(match)
+            scoreCardFragment = ScoreCardFragment.newInstance(match)
+            ballsFragment = BallsFragment.newInstance(match)
+            infoFragment = InfoFragment.newInstance(match)
         }
 
+        selectButton(binding.btnScoring)
+        showFragment(scoringFragment ?: return)
 
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
-            matchResponse?.let {
-                loadFragment(ScoringFragment.newInstance(it))
-            }
+            showFragment(scoringFragment ?: return@setOnClickListener)
         }
-
         binding.btnScoreCard.setOnClickListener {
             selectButton(binding.btnScoreCard)
-            matchResponse?.let {
-                 loadFragment(ScoreCardFragment.newInstance(it))
-            }
+            showFragment(scoreCardFragment ?: return@setOnClickListener)
         }
-
         binding.btnBalls.setOnClickListener {
             selectButton(binding.btnBalls)
-            matchResponse?.let {
-                 loadFragment(BallsFragment.newInstance(it))
-            }
+            showFragment(ballsFragment ?: return@setOnClickListener)
         }
-
         binding.btnInfo.setOnClickListener {
             selectButton(binding.btnInfo)
-            matchResponse?.let {
-                 loadFragment(InfoFragment.newInstance(it))
-            }
+            showFragment(infoFragment ?: return@setOnClickListener)
         }
+    }
+
+    private fun showFragment(fragment: Fragment) {
+        val fm = supportFragmentManager
+        val tag = fragment::class.java.simpleName
+
+        fm.beginTransaction().apply {
+            fm.fragments.forEach { hide(it) }
+
+            if (fm.findFragmentByTag(tag) == null) {
+                add(binding.fragmentContainer.id, fragment, tag)
+            } else {
+                show(fragment)
+            }
+        }.commit()
     }
 
     private fun selectButton(active: MaterialButton) {
         buttons.forEach {
-            it.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(Color.DKGRAY)
+            it.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.DKGRAY)
         }
         active.backgroundTintList =
             android.content.res.ColorStateList.valueOf(Color.parseColor("#E31212"))
-    }
-
-    private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainer.id, fragment)
-            .commit()
     }
 }

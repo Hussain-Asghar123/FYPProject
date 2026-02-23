@@ -37,10 +37,6 @@
     <LinearLayout style="@style/ControlRow">
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnMore" style="@style/ControlBtn" android:text="More" />
         <View style="@style/VerticalLine" />
-        <ImageView android:id="@+id/btnInfo" style="@style/ControlIcon" android:src="@drawable/ball" />
-        <View style="@style/VerticalLine" />
-        <ImageView android:id="@+id/btnCamera" style="@style/ControlIcon" android:src="@android:drawable/ic_menu_camera" app:tint="#FFFFFF" />
-        <View style="@style/VerticalLine" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnUndo" style="@style/ControlBtn" android:text="Undo" />
         <View style="@style/VerticalLine" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnOut" style="@style/ControlBtn" android:text="Out" />

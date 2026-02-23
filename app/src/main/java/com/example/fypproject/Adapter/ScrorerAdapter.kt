@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.databinding.ItemScoringCardBinding
 
 class ScrorerAdapter(
@@ -18,8 +19,23 @@ class ScrorerAdapter(
             binding.tvTournamentName.text = match.tournamentName
             binding.tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
             binding.tvVenueTime.text = "${match.date ?: ""} ${match.time ?: ""}"
+            binding.tvSportName.text = getSportName(match.sportId)
 
             binding.root.setOnClickListener { onItemClick(match) }
+
+        }
+    }
+    private fun getSportName(sportId: Long?): String {
+        return when (sportId) {
+            1L -> "Cricket"
+            2L -> "Futsal"
+            3L -> "Volleyball"
+            4L -> "Table Tennis"
+            5L -> "Badminton"
+            6L -> "Ludo"
+            7L -> "Tug of War"
+            8L -> "Chess"
+            else -> "Unknown"
         }
     }
 

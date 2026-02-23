@@ -17,6 +17,9 @@
         android:theme="@style/Theme.FYPProject"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".Scoring.FutsalScoringActivity"
+            android:exported="false" />
+        <activity
             android:name=".Scoring.CricketScoringActivity"
             android:exported="false" />
         <activity

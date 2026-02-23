@@ -75,6 +75,16 @@
             android:textStyle="bold"
             android:layout_marginTop="8dp" />
 
+        <TextView
+            android:id="@+id/txtSportName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sport Name"
+            android:textColor="#FFCDD2"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
