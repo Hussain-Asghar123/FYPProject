@@ -10,6 +10,7 @@ import com.example.fypproject.Fragment.FixturesFragement
 import com.example.fypproject.Fragment.MediaFragment
 import com.example.fypproject.Fragment.OverviewFragment
 import com.example.fypproject.Fragment.PointsTableFragement
+import com.example.fypproject.Fragment.StatsFragment
 import com.example.fypproject.Fragment.TeamFragement
 import com.example.fypproject.databinding.ActivityTournamentOverviewBinding
 import com.google.android.material.button.MaterialButton

@@ -6,7 +6,7 @@ object WebSocketManager {
 
     private val client = OkHttpClient()
     private var webSocket: WebSocket? = null
-    private var currentMatchId: Int? = null
+    private var currentMatchId: Long? = null
 
     var socketStateListener: ((SocketState) -> Unit)? = null
     var messageListener: ((String) -> Unit)? = null
@@ -16,10 +16,10 @@ object WebSocketManager {
         onMessageReceived = { messageListener?.invoke(it) }
     )
 
-    fun connect(matchId: Int) {
+    fun connect(matchId: Long) {
         disconnect()
         // If already connected to same match, don't reconnect
-        if (webSocket != null && currentMatchId == matchId) {
+        if (webSocket != null && currentMatchId?.toLong() == matchId){
             socketStateListener?.invoke(SocketState.Connected)
             return
         }

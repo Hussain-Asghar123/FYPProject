@@ -2,12 +2,11 @@ package com.example.fypproject.Utils
 
 import android.content.Context
 import android.content.Intent
+import com.example.fypproject.Activity.MatchSummaryActivity
 import com.example.fypproject.Activity.StartScoringActivity
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Scoring.FutsalScoringActivity
-
-
 
 object MatchNavigator {
 
@@ -28,18 +27,19 @@ object MatchNavigator {
         val intent = when (match.status?.uppercase()) {
             "LIVE" -> getLiveScoringIntent(context, match)
             "UPCOMING" -> getUpcomingIntent(context, match, role, username)
+            // ✅ COMPLETED ya ABANDONED → Match Summary screen
             "COMPLETED", "ABANDONED" -> getCompletedIntent(context, match)
             else -> null
         }
         intent?.let { context.startActivity(it) }
     }
 
-    // LIVE -> seedha scoring screen
+    // LIVE → seedha scoring screen
     private fun getLiveScoringIntent(context: Context, match: MatchResponse): Intent {
         return getScoringIntent(context, match)
     }
 
-    // UPCOMING -> sirf ADMIN ya assigned scorer ke liye StartScoringActivity
+    // UPCOMING → sirf ADMIN ya assigned scorer ke liye StartScoringActivity
     private fun getUpcomingIntent(
         context: Context,
         match: MatchResponse,
@@ -53,7 +53,6 @@ object MatchNavigator {
         }
     }
 
-    // COMPLETED -> view only (scoring activity read-only mode mein)
     private fun getCompletedIntent(context: Context, match: MatchResponse): Intent {
         return getScoringIntent(context, match)
     }

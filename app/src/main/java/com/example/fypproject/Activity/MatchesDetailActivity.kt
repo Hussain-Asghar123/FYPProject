@@ -1,5 +1,5 @@
 package com.example.fypproject.Activity
-import android.content.Intent
+
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -9,7 +9,7 @@ import com.example.fypproject.Adapter.MatchesDetailAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.R
-import com.example.fypproject.Scoring.CricketScoringActivity
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -33,11 +33,9 @@ class MatchesDetailActivity : AppCompatActivity() {
 
         adapter = MatchesDetailAdapter(mutableListOf()) { match ->
             toastShort("${match.team1Name} vs ${match.team2Name}")
-            val intent = Intent(this@MatchesDetailActivity, CricketScoringActivity::class.java)
-            intent.putExtra("match", match)
-            startActivity(intent)
-
+            MatchNavigator.navigate(this@MatchesDetailActivity, match)
         }
+
         binding.rvMatches.layoutManager = LinearLayoutManager(this)
         binding.rvMatches.adapter = adapter
 
@@ -54,7 +52,7 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnAllMatches.setOnClickListener { onStatusSelected("ALL", it) }
         binding.btnLive.setOnClickListener { onStatusSelected("LIVE", it) }
         binding.btnUpcoming.setOnClickListener { onStatusSelected("UPCOMING", it) }
-        binding.btnCompleted.setOnClickListener { onStatusSelected("FINISHED", it) }
+        binding.btnCompleted.setOnClickListener { onStatusSelected("COMPLETED", it) }
 
         fetchMatches(selectedSport, selectedStatus)
     }
@@ -83,6 +81,7 @@ class MatchesDetailActivity : AppCompatActivity() {
                     toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
                 }
             }
+
             override fun onFailure(call: Call<List<MatchResponse>>, t: Throwable) {
                 setLoading(false)
                 toastLong(NetworkUi.userMessage(t))
@@ -94,7 +93,6 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnBack.isEnabled = !isLoading
     }
-
 
     private fun highlightSelectedSport(selected: View) {
         val allButtons = listOf(
@@ -114,6 +112,7 @@ class MatchesDetailActivity : AppCompatActivity() {
         }
         selected.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
     }
+
     override fun onResume() {
         super.onResume()
         fetchMatches(selectedSport, selectedStatus)

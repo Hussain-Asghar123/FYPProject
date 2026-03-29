@@ -36,7 +36,7 @@ class InfoFragment: Fragment(R.layout.info_fragment) {
     override fun onResume() {
         super.onResume()
         matchResponse?.id?.let { id ->
-            WebSocketManager.connect(id.toInt())
+            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         }
     }
 
@@ -71,7 +71,7 @@ class InfoFragment: Fragment(R.layout.info_fragment) {
                     }
                 }
             }
-            WebSocketManager.connect(id.toInt())
+            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         }
     }
 

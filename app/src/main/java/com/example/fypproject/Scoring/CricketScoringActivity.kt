@@ -30,12 +30,8 @@ class CricketScoringActivity : AppCompatActivity() {
         binding = ActivityCricketScoringBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val role = intent.getStringExtra("role")
-            ?: getSharedPreferences("MyPrefs", MODE_PRIVATE).getString("role", "USER")
-            ?: "USER"
-
-        val isViewerOnly = role.uppercase() == "USER"
-        if (isViewerOnly) binding.btnScoring.text = "Summary"
+        binding.btnScoring.text = "Summary"
+        binding.btnBack.setOnClickListener { finish() }
 
         matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("match", MatchResponse::class.java)
@@ -44,20 +40,31 @@ class CricketScoringActivity : AppCompatActivity() {
             intent.getSerializableExtra("match") as? MatchResponse
         }
 
-        binding.btnBack.setOnClickListener { finish() }
-
         buttons = listOf(binding.btnScoring, binding.btnScoreCard, binding.btnBalls, binding.btnInfo)
 
+        // ✅ Fragments hamesha banao
         matchResponse?.let { match ->
-            scoringFragment = ScoringFragment.newInstance(match)
+            scoringFragment   = ScoringFragment.newInstance(match)
             scoreCardFragment = ScoreCardFragment.newInstance(match)
-            ballsFragment = BallsFragment.newInstance(match)
-            infoFragment = InfoFragment.newInstance(match)
+            ballsFragment     = BallsFragment.newInstance(match)
+            infoFragment      = InfoFragment.newInstance(match)
         }
 
-        selectButton(binding.btnScoring)
-        showFragment(scoringFragment ?: return)
+        // ✅ Sirf fresh launch mein fragment add karo — recreate pe skip karo
+        if (savedInstanceState == null) {
+            selectButton(binding.btnScoring)
+            showFragment(scoringFragment ?: return)
+        } else {
+            // ✅ Recreate ke baad existing fragments wapas lo
+            val fm = supportFragmentManager
+            scoringFragment   = fm.findFragmentByTag("ScoringFragment")   as? ScoringFragment   ?: scoringFragment
+            scoreCardFragment = fm.findFragmentByTag("ScoreCardFragment") as? ScoreCardFragment ?: scoreCardFragment
+            ballsFragment     = fm.findFragmentByTag("BallsFragment")     as? BallsFragment     ?: ballsFragment
+            infoFragment      = fm.findFragmentByTag("InfoFragment")      as? InfoFragment      ?: infoFragment
+            selectButton(binding.btnScoring)
+        }
 
+        // ✅ Button listeners hamesha set honge — COMPLETED ya LIVE dono ke liye
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             showFragment(scoringFragment ?: return@setOnClickListener)
@@ -77,18 +84,18 @@ class CricketScoringActivity : AppCompatActivity() {
     }
 
     private fun showFragment(fragment: Fragment) {
-        val fm = supportFragmentManager
+        val fm  = supportFragmentManager
         val tag = fragment::class.java.simpleName
+        val existing = fm.findFragmentByTag(tag)
 
         fm.beginTransaction().apply {
             fm.fragments.forEach { hide(it) }
-
-            if (fm.findFragmentByTag(tag) == null) {
+            if (existing == null) {
                 add(binding.fragmentContainer.id, fragment, tag)
             } else {
-                show(fragment)
+                show(existing)
             }
-        }.commit()
+        }.commitAllowingStateLoss() // ✅ crash se bachao
     }
 
     private fun selectButton(active: MaterialButton) {

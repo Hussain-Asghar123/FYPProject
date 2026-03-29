@@ -1,46 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="120dp"
     android:layout_margin="4dp"
-    android:layout_weight="1"
-    app:cardCornerRadius="4dp"
-    app:cardElevation="2dp"
-    android:background="#FFFFFF">
+    app:cardCornerRadius="6dp"
+    app:cardElevation="3dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="8dp"
-        android:background="#FFFFFF">
+        android:background="#ffffff">
 
         <TextView
             android:id="@+id/tvLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Best Batsman"
             android:textColor="#ED1C24"
             android:textSize="10sp"
-            android:drawablePadding="4dp" />
+            android:maxLines="1"
+            android:ellipsize="end"/>
 
         <TextView
             android:id="@+id/tvPlayerName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Ahmad"
             android:textColor="#222222"
             android:textStyle="bold"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"/>
 
         <TextView
             android:id="@+id/tvValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="36 runs"
-            android:textSize="10sp" />
+            android:textSize="10sp"
+            android:layout_marginTop="2dp"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+
     </LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>

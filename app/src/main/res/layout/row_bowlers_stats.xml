@@ -3,14 +3,92 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp"
-    android:weightSum="7">
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="10dp"
+    android:background="#F9FAFB"
+    android:gravity="center_vertical">
 
-    <TextView android:id="@+id/tvRank" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:gravity="center" android:text="RANK" android:textSize="10sp" android:textStyle="bold" />
-    <TextView android:id="@+id/tvPlayer" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2.2" android:text="PLAYER" android:textSize="10sp" android:textStyle="bold" />
-    <TextView android:id="@+id/tvWickets" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="WICKETS" android:textSize="10sp" android:textStyle="bold" />
-    <TextView android:id="@+id/tvRuns" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="RUNS" android:textSize="10sp" android:textStyle="bold" />
-    <TextView android:id="@+id/tvEconomy" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:gravity="center" android:text="ECONOMY" android:textSize="10sp" android:textStyle="bold" />
-    <TextView android:id="@+id/tvPOM" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:gravity="center" android:text="POM" android:textSize="10sp" android:textStyle="bold" />
+    <!-- Rank -->
+    <TextView
+        android:id="@+id/tvRank"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:text="#"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
+
+    <!-- Player Name -->
+    <TextView
+        android:id="@+id/tvPlayerName"
+        android:layout_width="0dp"
+        android:layout_weight="2.2"
+        android:layout_height="wrap_content"
+        android:text="PLAYER"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280"
+        android:layout_marginStart="6dp" />
+
+    <!-- Wickets -->
+    <TextView
+        android:id="@+id/tvWickets"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="WKT"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
+
+    <!-- Runs -->
+    <TextView
+        android:id="@+id/tvRuns"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="RUNS"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
+
+    <!-- Balls -->
+    <TextView
+        android:id="@+id/tvBalls"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="BALLS"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
+
+    <!-- Economy -->
+    <TextView
+        android:id="@+id/tvEconomy"
+        android:layout_width="0dp"
+        android:layout_weight="0.9"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="ECO"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
+
+    <!-- POM -->
+    <TextView
+        android:id="@+id/tvPom"
+        android:layout_width="0dp"
+        android:layout_weight="0.8"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="POM"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280" />
 
 </LinearLayout>

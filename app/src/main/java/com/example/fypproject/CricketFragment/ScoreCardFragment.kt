@@ -94,9 +94,9 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
     private fun updateUI(scorecard: ScorecardResponse){
         batsmanAdapter.updateData(scorecard.batsmanScores)
         bowlerAdapter.updateData(scorecard.bowlerScores)
-        binding.tvExtras.text = "Extras - ${scorecard.extras}"
-        binding.tvTotal.text = "Total - ${scorecard.totalRuns}"
-        binding.tvOversInfo.text = "Overs - ${scorecard.overs}.${scorecard.balls}/10"
+        binding.tvExtras.text =    "Extras   ${scorecard.extras}"
+        binding.tvTotal.text =    " Total    ${scorecard.totalRuns}"
+        binding.tvOversInfo.text = "Overs    ${scorecard.overs}.${scorecard.balls}"
     }
 
     private fun highlightTab(isTeamA: Boolean) {
@@ -113,7 +113,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
 
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it.toInt()) }
+        matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         fetchScoreCard(showingTeamA)
     }
 
@@ -148,7 +148,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
                     }
                 }
             }
-            WebSocketManager.connect(id.toInt())
+            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         }
     }
 

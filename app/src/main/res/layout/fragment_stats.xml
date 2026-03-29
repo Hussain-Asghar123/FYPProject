@@ -44,7 +44,7 @@
                         android:textColor="@android:color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"
-                        tools:text="Aitsham" />
+                        tools:text="" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -58,11 +58,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:weightSum="3">
-                <include layout="@layout/item_top_performer_stats" android:id="@+id/cardBestBatsman" />
-                <include layout="@layout/item_top_performer_stats" android:id="@+id/cardBestBowler" />
-                <include layout="@layout/item_top_performer_stats" android:id="@+id/cardHighestScore" />
+                android:orientation="horizontal">
+
+                <include
+                    android:id="@+id/cardBestBatsman"
+                    layout="@layout/item_top_performer_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
+
+                <include
+                    android:id="@+id/cardBestBowler"
+                    layout="@layout/item_top_performer_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
+
+                <include
+                    android:id="@+id/cardHighestScore"
+                    layout="@layout/item_top_performer_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
+
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView

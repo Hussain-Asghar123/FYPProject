@@ -142,14 +142,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:textAlignment="center">
 
                 <TextView
                     android:id="@+id/tvExtras"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Extras - 0"
+                    android:text="Extras  0"
                     android:textColor="#000000"
                     android:textSize="12sp" />
 
@@ -159,7 +160,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Total - 000"
+                    android:text="Total  000"
                     android:textColor="#000000"
                     android:textSize="12sp" />
 
@@ -169,7 +170,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Overs - 0.0/10"
+                    android:text="Overs  0.0"
                     android:textColor="#000000"
                     android:textSize="12sp" />
             </LinearLayout>

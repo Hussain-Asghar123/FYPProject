@@ -195,6 +195,8 @@ class CreateFixtureActivity : AppCompatActivity() {
                 val response = api.createFixture(fixtureRequest)
                 if (response.isSuccessful) {
                     toastShort("Fixture created successfully")
+                    finish()
+
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Fixture creation failed"))
                 }

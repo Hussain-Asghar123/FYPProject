@@ -1,3 +1,5 @@
+package com.example.fypproject.Fragment
+
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -12,6 +14,7 @@ import com.example.fypproject.databinding.FragmentStatsBinding
 import kotlinx.coroutines.launch
 
 class StatsFragment : Fragment(R.layout.fragment_stats) {
+
     private var _binding: FragmentStatsBinding? = null
     private val binding get() = _binding!!
     private var tournamentId: Long = -1L
@@ -24,17 +27,14 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
         if (tournamentId != -1L) {
             fetchTournamentStats(tournamentId)
-        } else {
-            Toast.makeText(context, "Invalid Tournament ID", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun fetchTournamentStats(id: Long) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val response =api.getTournamentStats(id)
-
-                populateUI(response)
+                val stats = api.getTournamentStats(id)
+                populateUI(stats)
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -43,34 +43,46 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     private fun populateUI(stats: TournamentStatsDto) {
 
-        binding.tvManOfTournament.text = stats.manOfTournamentName ?: "N/A"
+        // 🏆 Man of Tournament
+        binding.tvManOfTournament.text =
+            stats.manOfTournament?.playerName ?: "TBD"
 
-        binding.cardBestBatsman.apply {
-            tvLabel.text = "Best Batsman"
-            tvPlayerName.text = stats.bestBatsmanName ?: "N/A"
-            tvValue.text = "${stats.bestBatsmanRuns ?: 0} runs"
-        }
+        binding.cardBestBatsman.tvLabel.text = "Best Batsman"
+        binding.cardBestBatsman.tvPlayerName.text =
+            stats.bestBatsman?.playerName ?: "TBD"
 
-        binding.cardBestBowler.apply {
-            tvLabel.text = "Best Bowler"
-            tvPlayerName.text = stats.bestBowlerName ?: "N/A"
-            tvValue.text = "${stats.bestBowlerWickets ?: 0} wickets"
-        }
+        binding.cardBestBatsman.tvValue.text =
+            "${stats.topRunScorers.firstOrNull { it.playerId == stats.bestBatsman?.playerId }?.runs ?: 0} runs"
 
-        binding.cardHighestScore.apply {
-            tvLabel.text = "Highest Score"
-            tvPlayerName.text = stats.highestScorerName ?: "N/A"
-            tvValue.text = "${stats.highestRuns ?: 0} runs"
-        }
 
+        binding.cardBestBowler.tvLabel.text = "Best Bowler"
+        binding.cardBestBowler.tvPlayerName.text =
+            stats.bestBowler?.playerName ?: "TBD"
+        binding.cardBestBowler.tvValue.text =
+            stats.bestBowler?.reason ?: "No Data"
+
+        binding.cardHighestScore.tvLabel.text = "Best Fielder"
+        binding.cardHighestScore.tvPlayerName.text =
+            stats.bestFielder?.playerName ?: "TBD"
+        binding.cardHighestScore.tvValue.text =
+            stats.bestFielder?.reason ?: "No Data"
+
+        // 🏏 Top Batsmen
         binding.rvTopBatsmen.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = TournamentStatsAdapter(stats.topBatsmen, isBatting = true)
+            adapter = TournamentStatsAdapter(
+                battingItems = stats.topRunScorers,
+                isBatting = true
+            )
         }
 
+        // 🎯 Top Bowlers (FIXED)
         binding.rvTopBowlers.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = TournamentStatsAdapter(stats.topBowlers, isBatting = false)
+            adapter = TournamentStatsAdapter(
+                bowlingItems = stats.topBowlers,
+                isBatting = false
+            )
         }
     }
 
@@ -81,11 +93,11 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     companion object {
         fun newInstance(tournamentId: Long): StatsFragment {
-            val fragment = StatsFragment()
-            val args = Bundle()
-            args.putLong("tournamentId", tournamentId)
-            fragment.arguments = args
-            return fragment
+            return StatsFragment().apply {
+                arguments = Bundle().apply {
+                    putLong("tournamentId", tournamentId)
+                }
+            }
         }
     }
 }

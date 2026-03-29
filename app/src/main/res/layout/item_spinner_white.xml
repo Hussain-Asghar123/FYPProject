@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Spinner xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:background="@drawable/bg_spinner_white_outline"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp"
+    android:popupBackground="@android:color/white"/>

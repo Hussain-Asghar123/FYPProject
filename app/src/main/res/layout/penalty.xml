@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <Button
+        android:id="@+id/btnClosePenalty"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:text="✕  Penalty Runs"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="40dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Award penalty to"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPenaltyBatting"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="Batting Team"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:cornerRadius="6dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="#FFFFFF"
+            app:backgroundTint="#E31212" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPenaltyBowling"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Bowling Team"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:cornerRadius="6dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="#FFFFFF"
+            app:backgroundTint="#E31212" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvPenaltyTeamSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No team selected"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Penalty runs"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/etPenaltyRuns"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:background="@drawable/bg_white_outline"
+        android:hint="5"
+        android:inputType="number"
+        android:padding="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#CCCCCC"
+        android:layout_marginBottom="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmPenalty"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:enabled="false"
+        android:text="Award Penalty"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:cornerRadius="6dp"
+        app:strokeWidth="2dp"
+        app:strokeColor="#FFFFFF"
+        app:backgroundTint="#E31212" />
+
+</LinearLayout>

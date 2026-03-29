@@ -158,18 +158,22 @@ class HeavyStatsActivity : AppCompatActivity() {
 
         setupGrid(binding.layoutBattingStats.root, "Batting Stats", listOf(
             "Runs" to stats.totalRuns.toString(),
+            "Balls Faced" to stats.ballsFaced.toString(),
             "Avg" to String.format("%.2f", stats.battingAvg),
             "S/R" to String.format("%.2f", stats.strikeRate),
             "High" to stats.highest.toString(),
             "4s" to stats.fours.toString(),
-            "6s" to stats.sixes.toString()
+            "6s" to stats.sixes.toString(),
+            "Not Outs" to stats.notOuts.toString()
+
         ))
 
         setupGrid(binding.layoutBowlingStats.root, "Bowling Stats", listOf(
             "Wkts" to stats.wickets.toString(),
             "Econ" to String.format("%.2f", stats.economy),
             "Avg" to String.format("%.2f", stats.bowlingAverage),
-            "Balls" to stats.ballsBowled.toString()
+            "Balls" to stats.ballsBowled.toString(),
+            "Runs Conceded" to stats.runsConceded.toString(),
         ))
     }
 

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Image Source"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#1f2937"
+        android:gravity="center"
+        android:paddingBottom="20dp"/>
+
+    <!-- Camera Button -->
+    <LinearLayout
+        android:id="@+id/btnOpenCamera"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/bg_button_outlined"
+        android:layout_marginBottom="12dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📷"
+            android:textSize="24sp"
+            android:paddingEnd="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open Camera"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#374151"/>
+    </LinearLayout>
+
+    <!-- Gallery Button -->
+    <LinearLayout
+        android:id="@+id/btnOpenGallery"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/bg_button_outlined"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🖼️"
+            android:textSize="24sp"
+            android:paddingEnd="12dp"/>
+
+        <TextView
+            android:id="@+id/tvGalleryLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="From Gallery"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#374151"/>
+    </LinearLayout>
+
+    <!-- Cancel -->
+    <TextView
+        android:id="@+id/btnCancelMedia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:gravity="center"
+        android:padding="8dp"/>
+
+</LinearLayout>
