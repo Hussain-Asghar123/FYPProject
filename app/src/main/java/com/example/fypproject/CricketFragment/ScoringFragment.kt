@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.Adapter.PlayerSelectionAdapter
+import com.example.fypproject.Adapter.VotePlayerAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.Network.RetrofitInstance
@@ -45,6 +46,12 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var innings: Int = 1
     private var inningsId: Long? = null
     private var isInningsInitialized = false
+    private var isBallPending = false
+
+    private var selectedVotePlayerId: Long?    = null
+    private var selectedVotePlayerName: String = ""
+    private var voteAdapter1: VotePlayerAdapter? = null
+    private var voteAdapter2: VotePlayerAdapter? = null
 
    // private var penaltyTeamId: Long? = null
     private var lastReceivedScore: ScoreDTO? = null
@@ -108,7 +115,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             updateHeaderUI(ScoreDTO())
             if (match.status == "COMPLETED" || match.status == "MATCH_COMPLETE") {
                 canEdit = false
-                loadAndShowSummary()
+                loadAndShowVotingThenSummary()
                 return
             }
             setupSocketConnection()
@@ -198,6 +205,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
    private fun updateScoreboardUI(score: ScoreDTO) {
         if (_binding == null || !isAdded) return
+       isBallPending = false
+       setScoringPanelEnabled(true)
         lastReceivedScore = score
        if (binding.layoutMatchSummary.root.visibility == View.VISIBLE) {
            return
@@ -295,7 +304,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
 
         if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE") {
-            loadAndShowSummary()
+            loadAndShowVotingThenSummary()
             return
         }
 
@@ -360,6 +369,38 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         if (canEdit) showOnly(binding.layoutSelectPlayer.root)
 
         requireContext().toastShort("Innings Complete! Select new players.")
+    }
+    private fun setScoringPanelEnabled(enabled: Boolean) {
+        binding.layoutMainScoring.apply {
+            btnDot.isEnabled    = enabled
+            btnRun1.isEnabled   = enabled
+            btnRun2.isEnabled   = enabled
+            btnRun3.isEnabled   = enabled
+            btnRun4.isEnabled   = enabled
+            btnRun6.isEnabled   = enabled
+            btnWide.isEnabled   = enabled
+            btnNoBall.isEnabled = enabled
+            btnBye.isEnabled    = enabled
+            btnLegBye.isEnabled = enabled
+            btnOut.isEnabled    = enabled
+            btnMore.isEnabled   = enabled
+            btnUndo.isEnabled   = enabled
+
+            val alpha = if (enabled) 1.0f else 0.45f
+            btnDot.alpha    = alpha
+            btnRun1.alpha   = alpha
+            btnRun2.alpha   = alpha
+            btnRun3.alpha   = alpha
+            btnRun4.alpha   = alpha
+            btnRun6.alpha   = alpha
+            btnWide.alpha   = alpha
+            btnNoBall.alpha = alpha
+            btnBye.alpha    = alpha
+            btnLegBye.alpha = alpha
+            btnOut.alpha    = alpha
+            btnMore.alpha   = alpha
+            btnUndo.alpha   = alpha
+        }
     }
 
     private fun resetForNewInnings() {
@@ -617,12 +658,15 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnRun6.setOnClickListener { sendBallEvent(6, "6") }
 
             btnUndo.setOnClickListener {
-                JsonConverter.sendScore(ScoreDTO().apply {
-                    this.matchId  = matchResponse?.id
-                    this.inningsId = currentInningsId()
-                    this.undo     = true
-                })
-            }
+             if (isBallPending) return@setOnClickListener
+              isBallPending = true
+              setScoringPanelEnabled(false)
+              JsonConverter.sendScore(ScoreDTO().apply {
+              this.matchId   = matchResponse?.id
+              this.inningsId = currentInningsId()
+              this.undo      = true
+       })
+   }
 
             btnWide.setOnClickListener   { showOnly(binding.layoutWidePanel.root)   }
             btnNoBall.setOnClickListener { showOnly(binding.layoutNoBallPanel.root) }
@@ -643,6 +687,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             requireContext().toastShort("Players not selected!")
             return
         }
+        if (isBallPending) return
+        isBallPending = true
+        setScoringPanelEnabled(false)
         JsonConverter.sendScore(ScoreDTO().apply {
             this.matchId      = matchResponse?.id
             this.teamId       = battingTeamId
@@ -717,6 +764,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             requireContext().toastShort("Select players first!")
             return
         }
+        if (isBallPending) return
+        isBallPending = true
+        setScoringPanelEnabled(false)
         JsonConverter.sendScore(ScoreDTO().apply {
             this.matchId      = matchResponse?.id
             this.teamId       = battingTeamId
@@ -773,7 +823,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             val scoreToSend = lastReceivedScore ?: return@setOnClickListener
 
             if (!isFirstInnings) {
-                loadAndShowSummary()
+                loadAndShowVotingThenSummary()
             } else {
                 JsonConverter.sendScore(scoreToSend.apply {
                     this.eventType = "End_Innings"
@@ -792,13 +842,29 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             this.inningsId    = currentInningsId()
             this.teamId       = battingTeamId
             this.eventType    = "End_Innings"
-            this.comment      = null     // React: comment: null
-            this.undo         = false    // React: undo: false
-            // status bilkul nahi — React mein nahi tha
+            this.comment      = null
+            this.undo         = false
             this.firstInnings = isFirstInnings
         })
         showOnly(binding.layoutMainScoring.root)
         requireContext().toastShort("Innings ended!")
+    }
+
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val prefs = requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+        return prefs.getBoolean("voted_match_$matchId", false)
+    }
+
+    private fun markAsVoted(matchId: Long) {
+        requireActivity()
+            .getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("voted_match_$matchId", true)
+            .apply()
+    }
+    private fun getAccountId(): Long {
+        val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        return prefs.getLong("id", -1L)
     }
     private fun loadAndShowSummary() {
         if (_binding == null || !isAdded) return
@@ -859,6 +925,127 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             }
         }
     }
+    private fun loadAndShowVotingThenSummary() {
+        if (_binding == null || !isAdded) return
+
+        val matchId   = matchResponse?.id ?: run { loadAndShowSummary(); return }
+        val accountId = getAccountId()
+
+        if (hasAlreadyVoted(matchId)) {
+            loadAndShowSummary()
+            return
+        }
+
+        val v = binding.layoutVoting
+        showOnly(v.root)
+
+        v.tvVoteTeam1Name.text    = team1Name.ifEmpty { "Team 1" }
+        v.tvVoteTeam2Name.text    = team2Name.ifEmpty { "Team 2" }
+        selectedVotePlayerId      = null
+        selectedVotePlayerName    = ""
+        v.btnSubmitVote.isEnabled = false
+        v.layoutSelectedPlayerBanner.visibility = View.GONE
+        v.etVoteFeedback.text?.clear()
+
+        lifecycleScope.launch {
+            try {
+                val resp1 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(team1Id) }
+                val resp2 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(team2Id) }
+                val players1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
+                val players2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
+
+                val onPicked: (com.example.fypproject.DTO.TeamPlayerDto, VotePlayerAdapter) -> Unit =
+                    { player, fromAdapter ->
+                        if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
+                        else                               voteAdapter1?.clearSelection()
+                        selectedVotePlayerId   = player.id
+                        selectedVotePlayerName = player.name ?: ""
+                        v.tvSelectedVotePlayer.text = selectedVotePlayerName
+                        v.layoutSelectedPlayerBanner.visibility = View.VISIBLE
+                        v.btnSubmitVote.isEnabled = true
+                    }
+
+                voteAdapter1 = VotePlayerAdapter(players1, onPicked)
+                voteAdapter2 = VotePlayerAdapter(players2, onPicked)
+
+                v.rvVoteTeam1.layoutManager =
+                    LinearLayoutManager(requireContext())
+                v.rvVoteTeam1.adapter = voteAdapter1
+
+                v.rvVoteTeam2.layoutManager =
+                    LinearLayoutManager(requireContext())
+                v.rvVoteTeam2.adapter = voteAdapter2
+
+            } catch (e: Exception) {
+                requireContext().toastShort("Could not load players: ${e.message}")
+            }
+        }
+
+        v.btnSubmitVote.setOnClickListener {
+            val playerId = selectedVotePlayerId ?: return@setOnClickListener
+            submitVote(matchId, accountId, playerId)
+        }
+
+        v.btnSkipVote.setOnClickListener {
+            loadAndShowSummary()
+        }
+    }
+
+    private fun submitVote(matchId: Long, accountId: Long, playerId: Long) {
+        if (accountId == -1L) {
+            requireContext().toastShort("Account not found. Please login again.")
+            loadAndShowSummary()
+            return
+        }
+
+        val v = binding.layoutVoting
+        v.btnSubmitVote.isEnabled = false
+        v.btnSubmitVote.text      = "Submitting…"
+        v.btnSkipVote.isEnabled   = false
+
+        lifecycleScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.api.submitVote(
+                        matchId   = matchId.toLong(),
+                        accountId = accountId,
+                        playerId  = playerId
+                    )
+                }
+
+                when {
+                    response.isSuccessful -> {
+                        markAsVoted(matchId)
+                        requireContext().toastShort("Vote submitted!")
+                        loadAndShowSummary()
+                    }
+                    response.code() == 409 -> {
+                        markAsVoted(matchId)
+                        requireContext().toastShort("You already voted for this match.")
+                        loadAndShowSummary()
+                    }
+                    response.code() == 404 -> {
+                        requireContext().toastShort("Match or player not found.")
+                        v.btnSubmitVote.isEnabled = true
+                        v.btnSubmitVote.text      = "Submit & View Summary"
+                        v.btnSkipVote.isEnabled   = true
+                    }
+                    else -> {
+                        requireContext().toastShort("Vote failed (${response.code()}). Try again.")
+                        v.btnSubmitVote.isEnabled = true
+                        v.btnSubmitVote.text      = "Submit & View Summary"
+                        v.btnSkipVote.isEnabled   = true
+                    }
+                }
+            } catch (e: Exception) {
+                requireContext().toastShort("Network error: ${e.message}")
+                v.btnSubmitVote.isEnabled = true
+                v.btnSubmitVote.text      = "Submit & View Summary"
+                v.btnSkipVote.isEnabled   = true
+            }
+        }
+    }
+
 
 
     private fun bindSummaryData(data: com.example.fypproject.ScoringDTO.MatchSummaryDto) {
@@ -1314,6 +1501,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             requireContext().toastShort("Players not selected!")
             return
         }
+        if (isBallPending) return
+        isBallPending = true
+        setScoringPanelEnabled(false)
         JsonConverter.sendScore(ScoreDTO().apply {
             this.matchId        = matchResponse?.id
             this.teamId         = battingTeamId
@@ -1506,8 +1696,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun showOnly(activePanel: View) {
         binding.layoutScoringHeader.visibility =
-            if (activePanel == binding.layoutMatchSummary.root) View.GONE else View.VISIBLE
-
+           if (activePanel == binding.layoutMatchSummary.root || activePanel == binding.layoutVoting.root)
+              View.GONE else View.VISIBLE
         listOf(
             binding.layoutSelectPlayer.root,
             binding.layoutMainScoring.root,
@@ -1531,6 +1721,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             binding.layoutEndInnings.root,
             binding.layoutPenalty.root,
             binding.layoutDLS.root,
+            binding.layoutVoting.root,
             binding.layoutSuperOver.root,
             binding.layoutAbandon.root,
             binding.layoutMorePanel.root,

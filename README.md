@@ -93,6 +93,11 @@ implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 
 ## 🚀 Recent Improvements
 
+### Completed Match Summary Routing
+- ✅ Completed and abandoned match cards now open the summary screen directly
+- ✅ Live matches continue to open the scoring screen
+- ✅ Status checks are normalized to handle case/spacing differences from the backend
+
 ### Progress Bar Implementation
 - ✅ Added progress bars to all async operations
 - ✅ Consistent E31212 color scheme across all progress indicators

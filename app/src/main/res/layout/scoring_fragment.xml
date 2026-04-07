@@ -492,6 +492,13 @@
             android:visibility="gone" />
 
         <include
+              android:id="@+id/layoutVoting"
+              layout="@layout/layout_voting_screen"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:visibility="gone"/>
+
+        <include
             android:id="@+id/layoutHitWicket"
             layout="@layout/hit_wicket"
             android:layout_width="match_parent"

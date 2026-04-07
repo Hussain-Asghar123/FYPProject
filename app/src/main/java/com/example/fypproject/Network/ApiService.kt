@@ -292,12 +292,18 @@ interface ApiService {
     ): Response<MatchSummaryDto>
 
     @Multipart
-    @POST("media/create")
+    @POST("media")
     suspend fun createMedia(
         @Part("matchId") matchId: RequestBody,
         @Part("ballId") ballId: RequestBody,
         @Part file: MultipartBody.Part
     ): Response<Unit>
 
+    @POST("vote/{matchId}/{accountId}/{playerId}")
+    suspend fun submitVote(
+        @Path("matchId")   matchId:   Long,
+        @Path("accountId") accountId: Long,
+        @Path("playerId")  playerId:  Long
+    ): Response<String>
 
 }
