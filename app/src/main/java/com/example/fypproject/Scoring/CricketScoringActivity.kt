@@ -42,7 +42,7 @@ class CricketScoringActivity : AppCompatActivity() {
 
         buttons = listOf(binding.btnScoring, binding.btnScoreCard, binding.btnBalls, binding.btnInfo)
 
-        // ✅ Fragments hamesha banao
+
         matchResponse?.let { match ->
             scoringFragment   = ScoringFragment.newInstance(match)
             scoreCardFragment = ScoreCardFragment.newInstance(match)
@@ -50,12 +50,15 @@ class CricketScoringActivity : AppCompatActivity() {
             infoFragment      = InfoFragment.newInstance(match)
         }
 
-        // ✅ Sirf fresh launch mein fragment add karo — recreate pe skip karo
+
         if (savedInstanceState == null) {
             selectButton(binding.btnScoring)
-            showFragment(scoringFragment ?: return)
+            if (scoringFragment == null) {
+                finish()
+                return
+            }
+            showFragment(scoringFragment!!)
         } else {
-            // ✅ Recreate ke baad existing fragments wapas lo
             val fm = supportFragmentManager
             scoringFragment   = fm.findFragmentByTag("ScoringFragment")   as? ScoringFragment   ?: scoringFragment
             scoreCardFragment = fm.findFragmentByTag("ScoreCardFragment") as? ScoreCardFragment ?: scoreCardFragment
@@ -64,7 +67,6 @@ class CricketScoringActivity : AppCompatActivity() {
             selectButton(binding.btnScoring)
         }
 
-        // ✅ Button listeners hamesha set honge — COMPLETED ya LIVE dono ke liye
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             showFragment(scoringFragment ?: return@setOnClickListener)
@@ -95,7 +97,7 @@ class CricketScoringActivity : AppCompatActivity() {
             } else {
                 show(existing)
             }
-        }.commitAllowingStateLoss() // ✅ crash se bachao
+        }.commitAllowingStateLoss()
     }
 
     private fun selectButton(active: MaterialButton) {

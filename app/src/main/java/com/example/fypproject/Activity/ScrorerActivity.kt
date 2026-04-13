@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.ScrorerAdapter
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.Scoring.CricketScoringActivity
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -56,9 +57,7 @@ class ScrorerActivity : AppCompatActivity() {
                             val role = sharedPreferences.getString("role", "")
                             val username = sharedPreferences.getString("username", "") ?: ""
                             if (role.equals("ADMIN", true) || match.scorerId.equals(username, true)) {
-                                val intent = Intent(this@ScrorerActivity, CricketScoringActivity::class.java)
-                                intent.putExtra("match", match)
-                                startActivity(intent)
+                                MatchNavigator.navigate(this@ScrorerActivity, match)
                             }
                         }
                     } else {

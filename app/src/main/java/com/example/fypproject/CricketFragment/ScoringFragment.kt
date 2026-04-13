@@ -64,6 +64,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var bowlingTeamId: Long = -1L
     private var battingTeamName: String = ""
 
+    private var bowlingTeamName: String = ""
+
     private var currentStrikerId: Long? = null
     private var currentNonStrikerId: Long? = null
     private var currentBowlerId: Long? = null
@@ -170,16 +172,19 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         team2Name = match.team2Name ?: ""
         isInningsInitialized = true
 
+        val tossWinnerId = match.tossWinnerId ?: -1L
+
         if (match.decision == "BAT") {
-            battingTeamId = match.tossWinnerId ?: -1L
-            battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
+            battingTeamId = tossWinnerId
             bowlingTeamId = if (battingTeamId == team1Id) team2Id else team1Id
         } else {
-            val tossWinnerId = match.tossWinnerId ?: -1L
             battingTeamId = if (tossWinnerId == team1Id) team2Id else team1Id
-            battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
             bowlingTeamId = tossWinnerId
         }
+
+
+        battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
+        bowlingTeamName = if (bowlingTeamId == team1Id) team1Name else team2Name
     }
     private fun setupSocketConnection() {
         matchResponse?.id?.let { _ ->

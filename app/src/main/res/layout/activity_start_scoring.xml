@@ -20,7 +20,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_back"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="@android:color/white"/>
 
         <TextView
             android:layout_width="0dp"
@@ -37,7 +38,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -45,286 +47,237 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- TEAM SELECTION -->
-            <LinearLayout
+            <!-- ── TEAM NAMES CARD ── -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_horizontal"
-                android:layout_marginBottom="24dp">
-
-                <!-- TEAM A -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="#F0F0F0">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="12dp">
-
-                        <TextView
-                            android:id="@+id/teamAName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAlignment="center"
-                            android:text="Team A"
-                            android:textColor="#000000"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-            </LinearLayout>
-
-            <!-- VENUE -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="#F9F9F9"
-                android:padding="14dp"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="16dp">
 
+                    <!-- Team A -->
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/teamAName"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Venue"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
+                        android:layout_weight="1"
+                        android:text="Team A"
+                        android:textColor="#E31212"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="4dp"/>
+                        android:gravity="center"/>
 
+                    <!-- VS -->
                     <TextView
-                        android:id="@+id/venueText"
-                        android:layout_marginTop="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="DPS Rawalpindi"
-                        android:textColor="#000000"
-                        android:textSize="14sp"/>
-                </LinearLayout>
-            </LinearLayout>
+                        android:text="VS"
+                        android:textColor="#888888"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="12dp"/>
 
-            <!-- DATE & TIME -->
-            <LinearLayout
+                    <!-- Team B -->
+                    <TextView
+                        android:id="@+id/teamBName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Team B"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:gravity="center"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ── MATCH DETAILS GRID ── -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
 
-                <!-- DATE -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#F9F9F9">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
+                    <!-- Venue -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="14dp">
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Date"
-                            android:textColor="#000000"
-                            android:textSize="16sp"
+                            android:text="📍 Venue"
+                            android:textColor="#555555"
+                            android:textSize="13sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp"/>
+                            android:minWidth="90dp"/>
+
+                        <TextView
+                            android:id="@+id/venueText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-"
+                            android:textColor="#222222"
+                            android:textSize="13sp"/>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F0F0F0"/>
+
+                    <!-- Date -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📅 Date"
+                            android:textColor="#555555"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:minWidth="90dp"/>
 
                         <TextView
                             android:id="@+id/dateText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="2/12/2025"
-                            android:textColor="#000000"
-                            android:textSize="14sp"/>
+                            android:text="-"
+                            android:textColor="#222222"
+                            android:textSize="13sp"/>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
 
-                <!-- TIME -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#F9F9F9">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F0F0F0"/>
 
+                    <!-- Time -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="14dp">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Time"
-                            android:textColor="#000000"
-                            android:textSize="16sp"
+                            android:text="🕐 Time"
+                            android:textColor="#555555"
+                            android:textSize="13sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp"/>
+                            android:minWidth="90dp"/>
 
                         <TextView
                             android:id="@+id/timeText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="11:30 AM"
-                            android:textColor="#000000"
-                            android:textSize="14sp"/>
+                            android:text="-"
+                            android:textColor="#222222"
+                            android:textSize="13sp"/>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
-            </LinearLayout>
 
-            <!-- OVERS -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#F9F9F9">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F0F0F0"/>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Overs — Cricket mein dikhe, baaki mein hide -->
+                    <LinearLayout
+                        android:id="@+id/oversRow"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Overs"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:layout_marginEnd="12dp"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp"
+                        android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/oversText"
-                        android:layout_width="wrap_content"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏏 Overs"
+                            android:textColor="#555555"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:minWidth="90dp"/>
+
+                        <TextView
+                            android:id="@+id/oversText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-"
+                            android:textColor="#222222"
+                            android:textSize="13sp"/>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F0F0F0"/>
+
+                    <!-- Scorer -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:text="10"
-                        android:textColor="#000000"
-                        android:textSize="14sp"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎙 Scorer"
+                            android:textColor="#555555"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:minWidth="90dp"/>
+
+                        <TextView
+                            android:id="@+id/scorerText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-"
+                            android:textColor="#222222"
+                            android:textSize="13sp"/>
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- SCORER -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#F9F9F9">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Add Scorer"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:layout_marginEnd="12dp"/>
-
-                    <TextView
-                        android:id="@+id/scorerText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:text="22-4336"
-                        android:textColor="#000000"
-                        android:textSize="14sp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ABANDON SECTION -->
+            <!-- ── TOSS SECTION ── -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Do you Want to Abandon the match ?"
+                android:text="Who Won the Toss?"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="20dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/abandonYesBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="Yes"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    app:backgroundTint="#E31212"
-                    app:cornerRadius="8dp"
-                    android:layout_marginEnd="8dp"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/abandonNoBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="No"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    app:backgroundTint="#E31212"
-                    app:cornerRadius="8dp"
-                    android:layout_marginStart="8dp"/>
-            </LinearLayout>
-
-            <!-- TOSS SECTION -->
-            <LinearLayout
-                android:id="@+id/decisionSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Who won the toss ?"
-                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="#222222"
                 android:gravity="center"
-                android:layout_marginBottom="12dp"/>
+                android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -357,49 +310,58 @@
                     android:layout_marginStart="8dp"/>
             </LinearLayout>
 
-            <!-- DECISION -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Decided To ?"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginBottom="12dp"/>
-
+            <!-- ── DECISION SECTION (sport ke hisaab se) ── -->
             <LinearLayout
+                android:id="@+id/decisionSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/decisionOption1Btn"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="Bat"
-                    android:textColor="@android:color/white"
+                <TextView
+                    android:id="@+id/decisionLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Decided To?"
                     android:textStyle="bold"
-                    app:backgroundTint="#E31212"
-                    app:cornerRadius="8dp"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="15sp"
+                    android:textColor="#222222"
+                    android:gravity="center"
+                    android:layout_marginBottom="10dp"/>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/decisionOption2Btn"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="Bowl"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    app:backgroundTint="#E31212"
-                    app:cornerRadius="8dp"
-                    android:layout_marginStart="8dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="20dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/decisionOption1Btn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="Option 1"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        app:backgroundTint="#E31212"
+                        app:cornerRadius="8dp"
+                        android:layout_marginEnd="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/decisionOption2Btn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="Option 2"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        app:backgroundTint="#E31212"
+                        app:cornerRadius="8dp"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
             </LinearLayout>
 
-            </LinearLayout>
-
-            <!-- START SCORING -->
+            <!-- ── START SCORING BUTTON ── -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/startScoringBtn"
                 android:layout_width="match_parent"
@@ -408,15 +370,61 @@
                 android:textAllCaps="true"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
+                android:textSize="16sp"
                 app:backgroundTint="#E31212"
                 app:cornerRadius="12dp"
-                app:elevation="6dp"/>
+                app:elevation="6dp"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- ── ABANDON SECTION ── -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Do you want to Abandon the match?"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:gravity="center"
+                android:layout_marginBottom="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/abandonYesBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="Yes, Abandon"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    app:backgroundTint="#B71C1C"
+                    app:cornerRadius="8dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/abandonNoBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="No, Cancel"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    app:backgroundTint="#757575"
+                    app:cornerRadius="8dp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 
     <!-- FOOTER -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="4dp"
         android:background="#E31212"/>
+
 </LinearLayout>

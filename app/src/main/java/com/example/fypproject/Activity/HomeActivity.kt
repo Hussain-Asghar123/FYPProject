@@ -14,6 +14,7 @@ import com.example.fypproject.Adapter.MatchAdapter
 import com.example.fypproject.Network.RetrofitInstance
 import com.example.fypproject.R
 import com.example.fypproject.Scoring.CricketScoringActivity
+import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
@@ -176,17 +177,12 @@ class HomeActivity : AppCompatActivity() {
         val username = sharedPreferences.getString("username", "") ?: ""
 
         liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
-                val intent = Intent(this@HomeActivity, CricketScoringActivity::class.java)
-                intent.putExtra("match", match)
-                startActivity(intent)
+                MatchNavigator.navigate(this@HomeActivity, match)
         }
 
         upcomingAdapter = MatchAdapter(mutableListOf(), false) { match ->
-                val intent = Intent(this@HomeActivity, StartScoringActivity::class.java)
-                intent.putExtra("match", match)
-                startActivity(intent)
+            MatchNavigator.navigate(this@HomeActivity, match)
         }
-
 
         binding.recyclerLiveMatches.adapter = liveAdapter
         binding.recyclerUpcomingMatches.adapter = upcomingAdapter
@@ -257,7 +253,7 @@ class HomeActivity : AppCompatActivity() {
         sportButtons = listOf(
             binding.btnAllSports,
             binding.btnCricket,
-            binding.btnFootball,
+            binding.btnFutsal,
             binding.btnVolleyball,
             binding.btnBadminton,
             binding.btnTugOfWar,
