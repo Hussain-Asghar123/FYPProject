@@ -4,8 +4,12 @@ import android.content.Context
 import android.content.Intent
 import com.example.fypproject.Activity.StartScoringActivity
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.Scoring.BadmintionScoringActivity
 import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Scoring.FutsalScoringActivity
+import com.example.fypproject.Scoring.TableTennisScoringActivity
+import com.example.fypproject.Scoring.VolleyBallScoringActivity
+import kotlin.jvm.java
 
 object MatchNavigator {
 
@@ -51,6 +55,9 @@ object MatchNavigator {
         val target = when (match.sportId) {
             CRICKET      -> CricketScoringActivity::class.java
             FUTSAL       -> FutsalScoringActivity::class.java
+            VOLLEYBALL   -> VolleyBallScoringActivity::class.java
+            TABLE_TENNIS -> TableTennisScoringActivity::class.java
+            BADMINTON -> BadmintionScoringActivity::class.java
             else         -> {
                 android.util.Log.e("NAV_DEBUG", "sportId null ya unknown: ${match.sportId}")
                 CricketScoringActivity::class.java

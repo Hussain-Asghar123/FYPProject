@@ -23,18 +23,11 @@
                 android:id="@+id/tvPlayerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Syed Hussain"
+                android:text=""
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cricket Player"
-                android:textColor="#FFCDD2"
-                android:textSize="12sp"
-                android:drawablePadding="4dp"/>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

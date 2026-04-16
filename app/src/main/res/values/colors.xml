@@ -4,4 +4,22 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primaryColor">#E31212</color>
     <color name="grayColor">#BDBDBD</color>
+    <!-- Event type label colors -->
+    <color name="color_goal">#E31212</color>
+    <color name="color_yellow_card">#F5A623</color>
+    <color name="color_red_card">#CC0000</color>
+    <color name="color_foul">#FF6B00</color>
+    <color name="color_substitution">#2196F3</color>
+    <color name="color_own_goal">#8B0000</color>
+
+    <!-- Text colors -->
+    <color name="gray_text">#888888</color>
+
+    <!-- Tab colors -->
+    <color name="tab_active">#E31212</color>
+    <color name="tab_inactive">#888888</color>
+
+    <!-- Card background -->
+    <color name="card_bg">#FFFFFF</color>
+
 </resources>

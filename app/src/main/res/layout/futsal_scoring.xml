@@ -3,101 +3,128 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/red_primary"
+    android:background="#E31212"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="20dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnGoal"
-        style="@style/ScoreControlButtonOutlined"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Goal"
-        app:strokeColor="@color/white"
-        app:strokeWidth="1dp"/>
-
+    <!-- ══════════════════════════════ -->
+    <!--       SCORING PANEL           -->
+    <!-- ══════════════════════════════ -->
     <LinearLayout
+        android:id="@+id/panelScoring"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:visibility="visible">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSubstitution"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
+            android:id="@+id/btnGoal"
+            android:layout_width="match_parent"
             android:layout_height="70dp"
-            android:layout_weight="1"
-            android:text="Substitution"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
+            android:layout_marginTop="12dp"
+            android:text="  GOAL"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp"
+            app:cornerRadius="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFoul"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="Foul"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubstitution"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  Substitution"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+            <View android:layout_width="10dp" android:layout_height="match_parent"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFoul"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  Foul"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUndo"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  Undo"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+            <View android:layout_width="10dp" android:layout_height="match_parent"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEndHalf"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  End Half"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
-    <LinearLayout
+    <!-- ══════════════════════════════ -->
+    <!--        EVENTS PANEL           -->
+    <!-- ══════════════════════════════ -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/panelEvents"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnUndo"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:text="Undo"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMedia"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="Media"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStart"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:text="Start"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEndHalf"
-            style="@style/ScoreControlButton"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="End Half"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"/>
-    </LinearLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
+        android:clipToPadding="false"/>
 
 </LinearLayout>

@@ -17,6 +17,8 @@ import com.example.fypproject.databinding.ActivityMatchesDetailBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MatchesDetailActivity : AppCompatActivity() {
 
@@ -24,6 +26,7 @@ class MatchesDetailActivity : AppCompatActivity() {
     private lateinit var adapter: MatchesDetailAdapter
     private var selectedSport: String? = "ALL"
     private var selectedStatus: String = "ALL"
+    private var newestFirst: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +57,13 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnUpcoming.setOnClickListener { onStatusSelected("UPCOMING", it) }
         binding.btnCompleted.setOnClickListener { onStatusSelected("COMPLETED", it) }
 
+        binding.btnSortDate.setOnClickListener {
+            newestFirst = !newestFirst
+            updateSortButtonLabel()
+            fetchMatches(selectedSport, selectedStatus)
+        }
+
+        updateSortButtonLabel()
         fetchMatches(selectedSport, selectedStatus)
     }
 
@@ -76,7 +86,7 @@ class MatchesDetailActivity : AppCompatActivity() {
                 setLoading(false)
                 if (response.isSuccessful) {
                     val list = response.body() ?: emptyList()
-                    adapter.setItems(list)
+                    adapter.setItems(sortMatchesByDate(list))
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
                 }
@@ -87,6 +97,44 @@ class MatchesDetailActivity : AppCompatActivity() {
                 toastLong(NetworkUi.userMessage(t))
             }
         })
+    }
+
+    private fun sortMatchesByDate(matches: List<MatchResponse>): List<MatchResponse> {
+        val comparator = if (newestFirst) {
+            compareByDescending<MatchResponse> { parseMatchDateTime(it) ?: Long.MIN_VALUE }
+                .thenByDescending { it.id ?: Long.MIN_VALUE }
+        } else {
+            compareBy<MatchResponse> { parseMatchDateTime(it) ?: Long.MAX_VALUE }
+                .thenBy { it.id ?: Long.MAX_VALUE }
+        }
+        return matches.sortedWith(comparator)
+    }
+
+    private fun parseMatchDateTime(match: MatchResponse): Long? {
+        val dateText = match.date?.trim().orEmpty()
+        if (dateText.isEmpty()) return null
+
+        val timeText = match.time?.trim().orEmpty().ifEmpty { "00:00:00" }
+        val candidates = listOf(
+            "$dateText $timeText" to "yyyy-MM-dd HH:mm:ss",
+            "$dateText $timeText" to "yyyy-MM-dd HH:mm",
+            dateText to "yyyy-MM-dd"
+        )
+
+        for ((value, pattern) in candidates) {
+            val parsed = try {
+                SimpleDateFormat(pattern, Locale.getDefault()).apply { isLenient = false }.parse(value)
+            } catch (_: Exception) {
+                null
+            }
+            if (parsed != null) return parsed.time
+        }
+
+        return null
+    }
+
+    private fun updateSortButtonLabel() {
+        binding.btnSortDate.text = if (newestFirst) "Newest First" else "Oldest First"
     }
 
     private fun setLoading(isLoading: Boolean) {

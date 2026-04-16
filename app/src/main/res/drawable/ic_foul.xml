@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/ic_foul.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+
+    <!-- Circle background -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M18,18m-18,0a18,18 0,1 1,36 0a18,18 0,1 1,-36 0"/>
+
+    <!-- Whistle body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,16 L22,16 L22,20 L10,20 Z"/>
+    <!-- Whistle mouthpiece -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22,17 L27,15 L27,21 L22,19 Z"/>
+    <!-- Whistle hole -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M14,18m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+
+</vector>

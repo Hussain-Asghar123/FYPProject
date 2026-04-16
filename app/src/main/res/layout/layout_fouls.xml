@@ -1,65 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#E31212">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
-    <!-- Close + Title -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="14dp">
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="#E31212">
 
-        <TextView
-            android:id="@+id/tvClose"
-            android:layout_width="wrap_content"
+        <!-- Close + Title Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✕"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:paddingEnd="12dp"
-            android:clickable="true"
-            android:focusable="true"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="18dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Fouls"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"/>
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tvClose"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:text="✕"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_close_circle"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Foul"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+    <!-- Select Team Spinner -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Team"
+        android:textColor="#FFCCCC"
+        android:textSize="10sp"
+        android:letterSpacing="0.15"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="6dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerTeam"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_spinner_white_outline"
+        android:paddingStart="14dp"
+        android:textColor="#000000"
+        android:paddingEnd="14dp"
+        android:popupBackground="@android:color/white"/>
+
 
     <!-- Row 1: Red Card + Yellow Card -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="12dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRedCard"
             android:layout_width="0dp"
+            android:layout_height="70dp"
             android:layout_weight="1"
-            android:layout_height="44dp"
             android:text="Red Card"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:background="@drawable/bg_btn_white_outline"
+            android:textColor="#ffffff"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="#E31212"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="10dp"
             android:layout_marginEnd="8dp"/>
 
-        <Button
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnYellowCard"
             android:layout_width="0dp"
+            android:layout_height="70dp"
             android:layout_weight="1"
-            android:layout_height="44dp"
             android:text="Yellow Card"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:background="@drawable/bg_btn_white_outline"/>
+            android:textColor="#ffffff"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="#E31212"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="10dp"
+            android:layout_marginEnd="8dp"/>
+
+
+
     </LinearLayout>
 
     <!-- Row 2: Penalty + Free Kick -->
@@ -68,26 +113,58 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnPenalty"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSimpleFoul"
             android:layout_width="0dp"
+            android:layout_height="70dp"
             android:layout_weight="1"
-            android:layout_height="44dp"
-            android:text="Penalty"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:background="@drawable/bg_btn_white_outline"
+            android:text="Simple Foul"
+            android:textColor="#ffffff"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="#E31212"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="10dp"
             android:layout_marginEnd="8dp"/>
 
-        <Button
-            android:id="@+id/btnFreeKick"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="44dp"
-            android:text="Free Kick"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:background="@drawable/bg_btn_white_outline"/>
+
     </LinearLayout>
 
+    <!-- Select Player Spinner -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Player"
+        android:textColor="#FFCCCC"
+        android:textSize="10sp"
+        android:letterSpacing="0.15"
+        android:layout_marginBottom="6dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_spinner_white_outline"
+        android:paddingStart="14dp"
+        android:textColor="#000000"
+        android:paddingEnd="14dp"
+        android:popupBackground="@android:color/white"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_marginTop="20dp"
+        android:text="Award"
+        android:textColor="#ffffff"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:backgroundTint="#E31212"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="1.5dp"
+        app:cornerRadius="10dp"/>
+
+
 </LinearLayout>
+</ScrollView>

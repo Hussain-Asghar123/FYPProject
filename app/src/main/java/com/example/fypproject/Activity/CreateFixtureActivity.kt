@@ -149,57 +149,87 @@ class CreateFixtureActivity : AppCompatActivity() {
             return
         }
 
-        val team1 = binding.spinnerTeam1.selectedItem as TeamDTO
-        val team2 = binding.spinnerTeam2.selectedItem as TeamDTO
+        val team1 = binding.spinnerTeam1.selectedItem as? TeamDTO
+        val team2 = binding.spinnerTeam2.selectedItem as? TeamDTO
+
+        if (team1 == null || team2 == null) {
+            toastShort("Please select teams")
+            return
+        }
 
         if (team1.id == team2.id) {
             toastShort("Team 1 and Team 2 cannot be same")
             return
         }
 
-        if (
-            binding.etDate.text.isNullOrBlank() ||
-            binding.etTime.text.isNullOrBlank()
-        ) {
-            toastShort("All fields are required")
+        val dateText = binding.etDate.text.toString().trim()
+        val timeText = binding.etTime.text.toString().trim()
+
+        if (dateText.isEmpty() || timeText.isEmpty()) {
+            toastShort("Date and time required")
             return
         }
-
-        val dateText = binding.etDate.text.toString()
-
 
         if (!dateText.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
             toastShort("Invalid date format")
             return
         }
 
+        val parsedTime = try {
+            SimpleDateFormat("HH:mm", Locale.getDefault()).parse(timeText)
+        } catch (e: Exception) {
+            null
+        }
+
+        if (parsedTime == null) {
+            toastShort("Invalid time format")
+            return
+        }
+
+        val formattedTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            .format(parsedTime)
+
+        val overs = if (binding.etOvers.visibility == View.VISIBLE) {
+            val text = binding.etOvers.text.toString().trim()
+
+            if (text.isEmpty()) {
+                toastShort("Enter overs")
+                return
+            }
+
+            text.toIntOrNull() ?: run {
+                toastShort("Invalid overs value")
+                return
+            }
+        } else null
+
+        val scorerIdText = binding.etScorerId.text.toString().trim()
+        val scorerId = if (scorerIdText.isEmpty()) null else scorerIdText
+
         val fixtureRequest = FixturesRequest(
             tournamentId = tournamentId,
             team1Id = team1.id,
             team2Id = team2.id,
             venue = binding.spinnerVenue.selectedItem.toString(),
-
             date = dateText,
-
-            time = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(
-                SimpleDateFormat("HH:mm", Locale.getDefault())
-                    .parse(binding.etTime.text.toString())!!
-            ),
-
-            overs = binding.etOvers.text.toString().toInt(),
-            scorerId = binding.etScorerId.text.toString().trim()
+            time = formattedTime,
+            overs = overs ?: 0,
+            scorerId = scorerId
         )
+
         setLoading(true)
+
         lifecycleScope.launch {
             try {
                 val response = api.createFixture(fixtureRequest)
+
                 if (response.isSuccessful) {
                     toastShort("Fixture created successfully")
                     finish()
-
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Fixture creation failed"))
                 }
+
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
             } finally {

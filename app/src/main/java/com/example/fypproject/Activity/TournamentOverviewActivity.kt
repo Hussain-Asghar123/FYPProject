@@ -80,7 +80,7 @@ class TournamentOverviewActivity : AppCompatActivity() {
         binding.btnPoints.setOnClickListener {
             selectButton(binding.btnPoints)
             setMenuVisible(false)
-            loadFragment(PointsTableFragement.newInstance(tournamentId))
+            loadFragment(PointsTableFragement.newInstance(tournamentId, sportName))
         }
         binding.btnMedia.setOnClickListener {
             selectButton(binding.btnMedia)

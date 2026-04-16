@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/ic_add_photo.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+
+    <!-- Camera body -->
+    <path
+        android:fillColor="#888888"
+        android:pathData="M28,24 Q28,26 26,26 L6,26 Q4,26 4,24 L4,12 Q4,10 6,10 L9,10 L11,7 L21,7 L23,10 L26,10 Q28,10 28,12 Z"/>
+
+    <!-- Lens circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,19m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+    <path
+        android:fillColor="#888888"
+        android:pathData="M16,19m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+
+    <!-- Plus sign (top right) -->
+    <path
+        android:fillColor="#E31212"
+        android:pathData="M24,4 L24,4 Q28,4 28,8 Q28,12 24,12 Q20,12 20,8 Q20,4 24,4 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M23,8 L25,8 M24,7 L24,9"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"/>
+
+</vector>

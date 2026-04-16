@@ -1,129 +1,293 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Header -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header"
+    <!-- ════════════════════════════════════════ -->
+    <!--         HEADER + TABS (combined)        -->
+    <!-- ════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/layoutScoringHeader"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="20dp"
+        android:orientation="vertical"
+        android:background="@color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/teamA"
-            android:layout_width="wrap_content"
+        <!-- ════════════════════════════════════════ -->
+        <!--                HEADER                   -->
+        <!-- ════════════════════════════════════════ -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Team A"
-            android:textSize="24sp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/score" />
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp"
+            android:background="@color/white">
 
-        <TextView
-            android:id="@+id/score"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0-0"
-            android:textSize="40sp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            <!-- Team A Name -->
+            <TextView
+                android:id="@+id/teamA"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Team A"
+                android:textSize="18sp"
+                android:textColor="#111111"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="start"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/score"
+                app:layout_constraintTop_toTopOf="@id/score"
+                app:layout_constraintBottom_toBottomOf="@id/score"
+                app:layout_constraintWidth_percent="0.3"/>
 
-        <TextView
-            android:id="@+id/teamB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Team B"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/score" />
+            <!-- Score -->
+            <TextView
+                android:id="@+id/score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 - 0"
+                android:textSize="48sp"
+                android:textColor="#111111"
+                android:textStyle="bold"
+                android:letterSpacing="-0.02"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
-        <TextView
-            android:id="@+id/timer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="00:00"
-            android:textColor="@color/black"
-            android:textSize="32sp"
-            app:layout_constraintTop_toBottomOf="@id/score"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="00:00" />
+            <!-- Team B Name -->
+            <TextView
+                android:id="@+id/teamB"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Team B"
+                android:textColor="#111111"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/score"
+                app:layout_constraintTop_toTopOf="@id/score"
+                app:layout_constraintBottom_toBottomOf="@id/score"
+                app:layout_constraintWidth_percent="0.3"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Timer -->
+            <TextView
+                android:id="@+id/timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="00:00"
+                android:textColor="#E31212"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                app:layout_constraintTop_toBottomOf="@id/score"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="12:34"/>
 
-    <View
-        android:id="@+id/div1"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#000000"
-        app:layout_constraintTop_toBottomOf="@id/header" />
+            <!-- Period -->
+            <TextView
+                android:id="@+id/tvPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="1st Half"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:letterSpacing="0.08"
+                app:layout_constraintTop_toBottomOf="@id/timer"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- Red Divider -->
+        <View
+            android:id="@+id/div1"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#E31212"/>
 
+        <!-- ════════════════════════════════════════ -->
+        <!--              TAB BAR                    -->
+        <!-- ════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/tabBar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:background="@color/white">
+
+            <TextView
+                android:id="@+id/tabScoring"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Scoring"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#E31212"
+                android:background="@drawable/tab_selector"/>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#EEEEEE"/>
+
+            <TextView
+                android:id="@+id/tabEvents"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Events"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#888888"
+                android:background="@drawable/tab_selector"/>
+
+        </LinearLayout>
+
+        <!-- Tab Underline Divider -->
+        <View
+            android:id="@+id/tabDivider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#DDDDDD"/>
+
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════ -->
+    <!--          SCORING TAB CONTENT            -->
+    <!-- ════════════════════════════════════════ -->
     <FrameLayout
-        android:id="@+id/controlPanel"
+        android:id="@+id/scoringTabContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#E31212"
-        app:layout_constraintTop_toBottomOf="@id/header"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/layoutScoringHeader"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Scoring main panel -->
         <include
             android:id="@+id/futsalScoring"
             layout="@layout/futsal_scoring"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="visible"/>
 
-
+        <!-- Goal panel -->
         <include
             android:id="@+id/goal"
             layout="@layout/layout_goal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
 
-        <include
-            android:id="@+id/foulPenalty"
-            layout="@layout/layout_foulspenalty"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
+        <!-- Foul panel -->
         <include
             android:id="@+id/foul"
             layout="@layout/layout_fouls"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
 
+        <!-- Substitution panel -->
         <include
             android:id="@+id/subsitute"
             layout="@layout/layout_subsitute"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
 
+        <!-- Voting panel -->
         <include
-            android:id="@+id/penalty"
-            layout="@layout/layout_penalty"
+            android:id="@+id/layoutVoting"
+            layout="@layout/layout_voting"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <!-- Futsal Summary panel -->
+        <include
+            android:id="@+id/layoutFutsalSummary"
+            layout="@layout/layout_futsal_summary"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/layoutProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:id="@+id/progressBarLoading"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:indeterminateTint="#E31212"/>
+        </LinearLayout>
 
     </FrameLayout>
+
+    <!-- ════════════════════════════════════════ -->
+    <!--          EVENTS TAB CONTENT             -->
+    <!-- ════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/eventsTabContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/layoutScoringHeader"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tvNoEvents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:text="No Event Exists"
+            android:gravity="center"
+            android:textSize="14sp"
+            android:textColor="#AAAAAA"
+            android:visibility="visible"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvEvents"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:background="#ffffff"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,16 +8,23 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.FutsalFragment.FutsalScoringFragment
+import com.example.fypproject.FutsalFragment.FutsalScoreCardFragment
+import com.example.fypproject.FutsalFragment.FutsalHighLightsFragment
+import com.example.fypproject.FutsalFragment.FutsalInfoFragment
 import com.example.fypproject.databinding.ActivityFutsalScoringBinding
 import com.google.android.material.button.MaterialButton
 
 class FutsalScoringActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityFutsalScoringBinding
     private var matchResponse: MatchResponse? = null
+    private lateinit var buttons: List<MaterialButton>
 
     private var futsalScoringFragment: FutsalScoringFragment? = null
+    private var futsalScoreCardFragment: FutsalScoreCardFragment? = null
+    private var futsalHighLightsFragment: FutsalHighLightsFragment? = null
+    private var futsalInfoFragment: FutsalInfoFragment? = null
 
-    private lateinit var buttons: List<MaterialButton>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -28,10 +35,11 @@ class FutsalScoringActivity : AppCompatActivity() {
             ?: getSharedPreferences("MyPrefs", MODE_PRIVATE).getString("role", "USER")
             ?: "USER"
 
-        val isViewerOnly = role.uppercase() == "USER"
-        if (isViewerOnly) {
+        if (role.uppercase() == "USER") {
             binding.btnScoring.text = "Summary"
         }
+
+        binding.btnBack.setOnClickListener { finish() }
 
         matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("match", MatchResponse::class.java)
@@ -40,44 +48,67 @@ class FutsalScoringActivity : AppCompatActivity() {
             intent.getSerializableExtra("match") as? MatchResponse
         }
 
-        binding.btnBack.setOnClickListener { finish() }
-
         buttons = listOf(
             binding.btnScoring,
             binding.btnScoreCard,
             binding.btnBalls,
             binding.btnInfo
         )
-        selectButton(binding.btnScoring)
 
         matchResponse?.let { match ->
-            futsalScoringFragment = FutsalScoringFragment.newInstance(match)
+            futsalScoringFragment    = FutsalScoringFragment.newInstance(match)
+            futsalScoreCardFragment  = FutsalScoreCardFragment.newInstance(match)
+            futsalHighLightsFragment = FutsalHighLightsFragment.newInstance(match)
+            futsalInfoFragment     =   FutsalInfoFragment.newInstance(match)
         }
 
-        selectButton(binding.btnScoring)
-        showFragment(futsalScoringFragment ?: return)
-
+        if (savedInstanceState == null) {
+            selectButton(binding.btnScoring)
+            if (futsalScoringFragment == null) {
+                finish()
+                return
+            }
+            showFragment(futsalScoringFragment!!)
+        } else {
+            val fm = supportFragmentManager
+            futsalScoringFragment    = fm.findFragmentByTag("FutsalScoringFragment")    as? FutsalScoringFragment    ?: futsalScoringFragment
+            futsalScoreCardFragment  = fm.findFragmentByTag("FutsalScoreCardFragment")  as? FutsalScoreCardFragment  ?: futsalScoreCardFragment
+            futsalHighLightsFragment = fm.findFragmentByTag("FutsalHighLightsFragment") as? FutsalHighLightsFragment ?: futsalHighLightsFragment
+            futsalInfoFragment     = fm.findFragmentByTag("FutsalEventsFragment")     as? FutsalInfoFragment     ?: futsalInfoFragment
+            selectButton(binding.btnScoring)
+        }
 
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             showFragment(futsalScoringFragment ?: return@setOnClickListener)
         }
-
+        binding.btnScoreCard.setOnClickListener {
+            selectButton(binding.btnScoreCard)
+            showFragment(futsalScoreCardFragment ?: return@setOnClickListener)
+        }
+        binding.btnBalls.setOnClickListener {
+            selectButton(binding.btnBalls)
+            showFragment(futsalHighLightsFragment ?: return@setOnClickListener)
+        }
+        binding.btnInfo.setOnClickListener {
+            selectButton(binding.btnInfo)
+            showFragment(futsalInfoFragment ?: return@setOnClickListener)
+        }
     }
 
     private fun showFragment(fragment: Fragment) {
-        val fm = supportFragmentManager
+        val fm  = supportFragmentManager
         val tag = fragment::class.java.simpleName
+        val existing = fm.findFragmentByTag(tag)
 
         fm.beginTransaction().apply {
             fm.fragments.forEach { hide(it) }
-
-            if (fm.findFragmentByTag(tag) == null) {
+            if (existing == null) {
                 add(binding.fragmentContainer.id, fragment, tag)
             } else {
-                show(fragment)
+                show(existing)
             }
-        }.commit()
+        }.commitAllowingStateLoss()
     }
 
     private fun selectButton(active: MaterialButton) {
@@ -87,11 +118,5 @@ class FutsalScoringActivity : AppCompatActivity() {
         }
         active.backgroundTintList =
             android.content.res.ColorStateList.valueOf(Color.parseColor("#E31212"))
-    }
-
-    private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainer.id, fragment)
-            .commit()
     }
 }

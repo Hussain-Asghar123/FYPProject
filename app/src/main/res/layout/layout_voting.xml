@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- ── Header ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="12dp"
+            android:paddingBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vote for the best player of this match"
+                android:textSize="13sp"
+                android:textColor="#E31212"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <!-- ── Team 1 Section ── -->
+        <TextView
+            android:id="@+id/tvVoteTeam1Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Team 1"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#E31212"
+            android:paddingBottom="8dp"
+            android:paddingTop="4dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVoteTeam1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+        <!-- ── Team 2 Section ── -->
+        <TextView
+            android:id="@+id/tvVoteTeam2Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Team 2"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#E31212"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVoteTeam2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+        <!-- ── Selected Player Banner ── -->
+        <LinearLayout
+            android:id="@+id/layoutSelectedPlayerBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#1A4CAF50"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp"
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Selected:"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvSelectedVotePlayer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#4CAF50"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- ── Feedback Box ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Feedback"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:paddingTop="18dp"
+            android:paddingBottom="8dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:boxStrokeColor="#000000"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="#000000"
+            app:placeholderTextColor="#000000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etVoteFeedback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Share your thoughts about the match..."
+                android:minLines="3"
+                android:maxLines="5"
+                android:gravity="top"
+                android:inputType="textMultiLine|textCapSentences"
+                android:textColor="#000000"
+                android:textColorHint="#000000"
+                android:padding="12dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ── Submit Button ── -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitVote"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:text="Submit &amp; View Summary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:backgroundTint="#E31212"
+            android:enabled="false" />
+
+        <!-- ── Skip Button ── -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSkipVote"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"
+            android:text="Skip → View Summary"
+            android:textSize="15sp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="#000000"
+            app:strokeWidth="1.5dp"
+            android:textColor="#000000" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

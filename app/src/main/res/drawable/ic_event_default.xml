@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/ic_event_default.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+
+    <!-- Circle background -->
+    <path
+        android:fillColor="#888888"
+        android:pathData="M18,18m-18,0a18,18 0,1 1,36 0a18,18 0,1 1,-36 0"/>
+
+    <!-- Info "i" -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,11 L19,11 L19,13 L17,13 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,15 L19,15 L19,25 L17,25 Z"/>
+
+</vector>

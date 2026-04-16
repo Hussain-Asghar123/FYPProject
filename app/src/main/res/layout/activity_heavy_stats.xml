@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -108,40 +109,30 @@
                         app:chipBackgroundColor="#E31212"
                         android:textColor="@android:color/white"/>
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFutsal"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="FUTSAL" />
+
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chipVolleyball"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="BADMINTON" />
+                        android:text="VOLLETBALL" />
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chipBadminton"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="VOLLEYBALL" />
+                        android:text="BADMINTION" />
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTableTennis"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TABLE TENNIS" />
-                    <com.google.android.material.chip.Chip
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="LUDO" />
-                    <com.google.android.material.chip.Chip
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="CHESS" />
-                    <com.google.android.material.chip.Chip
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="TUGOFWAR" />
+                        android:text="TABLETENNIS" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
@@ -162,6 +153,29 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/tvTournamentSportHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textColor="#777777"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Sport: Cricket" />
+
+            <TextView
+                android:id="@+id/tvTournamentEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Select a tournament to view your stats"
+                android:textColor="#777777"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/statsContainer"
                 android:layout_width="match_parent"
@@ -181,6 +195,18 @@
                 </LinearLayout>
                 <include android:id="@+id/layoutBattingStats" layout="@layout/card_stats_table" />
                 <include android:id="@+id/layoutBowlingStats" layout="@layout/card_stats_table" />
+
+                <TextView
+                    android:id="@+id/tvCrossSportNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="#EAF4FF"
+                    android:padding="12dp"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="This player also has futsal stats. Switch sport to view them." />
             </LinearLayout>
 
         </LinearLayout>

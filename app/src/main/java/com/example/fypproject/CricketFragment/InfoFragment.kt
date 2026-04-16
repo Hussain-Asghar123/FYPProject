@@ -58,7 +58,7 @@ class InfoFragment: Fragment(R.layout.info_fragment) {
             WebSocketManager.socketStateListener = { state ->
                 activity?.runOnUiThread {
                     when (state) {
-                        is SocketState.Connected -> requireContext().toastShort("Live Connected!")
+                        is SocketState.Connected -> requireContext().toastShort("")
                         is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
                         is SocketState.Disconnected -> {}
                     }

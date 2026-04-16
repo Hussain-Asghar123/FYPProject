@@ -518,14 +518,14 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:contentDescription="My Scorer"
+                            android:contentDescription="My Scorer Assignments"
                             android:src="@drawable/ic_scorer" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="16dp"
-                            android:text="My Scorer"
+                            android:text="My Scorer Assignments"
                             android:textColor="#212121"
                             android:textSize="16sp" />
 

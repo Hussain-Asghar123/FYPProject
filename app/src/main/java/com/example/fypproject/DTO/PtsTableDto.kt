@@ -11,5 +11,11 @@ data class PtsTableDto(
     val wins: Int,
     val losses: Int,
     val points: Int,
-    val nrr: Double
+    val nrr: Double,
+
+    val sport: String? = null,       // "futsal" or "cricket"
+    val draws: Int? = null,
+    val goalsFor: Int? = null,
+    val goalsAgainst: Int? = null,
+    val goalDifference: Int? = null
 )
