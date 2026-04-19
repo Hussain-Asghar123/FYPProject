@@ -48,7 +48,7 @@ class MatchesDetailAdapter(
         return when (sportId) {
             1L -> "Cricket"
             2L -> "Futsal"
-            3L -> "Volleyball"
+            3L -> "VolleyBall"
             4L -> "Table Tennis"
             5L -> "Badminton"
             6L -> "Ludo"

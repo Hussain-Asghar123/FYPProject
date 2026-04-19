@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E31212"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- ══════════════════════════════ -->
+    <!--       SCORING PANEL           -->
+    <!-- ══════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/panelScoring"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPoint"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:layout_marginTop="12dp"
+            android:text="  Point"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp"
+            app:cornerRadius="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFoul"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  Foul"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubstitution"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text=" Substitution"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+            <View android:layout_width="10dp" android:layout_height="match_parent"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEndSet"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  EndSet"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUndo"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="70dp"
+                android:text="  Undo"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ══════════════════════════════ -->
+    <!--        EVENTS PANEL           -->
+    <!-- ══════════════════════════════ -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/panelEvents"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
+        android:clipToPadding="false"/>
+
+</LinearLayout>

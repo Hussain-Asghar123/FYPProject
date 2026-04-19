@@ -2,7 +2,6 @@ package com.example.fypproject.DTO
 
 import java.io.Serializable
 
-
 data class MatchResponse(
     val id: Long? = null,
     val tournamentId: Long? = null,
@@ -21,6 +20,17 @@ data class MatchResponse(
     val decision: String? = null,
     val sportId: Long? = null,
     val overs: Int? = null,
+    val inningsId: Long? = null,
+
+    // ── Cricket extras ─────────────────────────────────────────
+    val battingTeamId: Long? = null,
+    val battingTeamName: String? = null,
+
+    // ── Volleyball extras ───────────────────────────────────────
     val sets: Int? = null,
-    val inningsId: Long?=null
-): Serializable
+    val pointsPerSet: Int? = null,      // JS: vbPointsPerSet  (default 25)
+    val finalSetPoints: Int? = null,    // JS: vbFinalSetPoints (default 15)
+
+    // ── Futsal extras ───────────────────────────────────────────
+    val winnerTeamName: String? = null,
+) : Serializable

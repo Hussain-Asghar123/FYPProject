@@ -32,6 +32,7 @@ class FutsalInfoFragment:Fragment(R.layout.info_fragment) {
             }
         }
         setupSocketConnection()
+        binding.tvBallTypeLabel.text="Half Time"
         populateMatchInfo()
     }
     override fun onResume() {
@@ -89,7 +90,7 @@ class FutsalInfoFragment:Fragment(R.layout.info_fragment) {
                 tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
                 tvTournament.text = match.tournamentName
                 tvMatchScorer.text = match.scorerId
-                tvOvers.text = match.overs.toString()
+                tvOvers.text = 25.toString()
                 tvStatus.text = match.status
                 tvVenue.text = match.venue
                 tvDate.text = formatDateTime(match.date)

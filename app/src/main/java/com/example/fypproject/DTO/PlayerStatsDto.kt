@@ -31,6 +31,25 @@ data class PlayerStatsDto(
     val assists: Int = 0,
     val futsalFouls: Int = 0,
     val yellowCards: Int = 0,
-    val redCards: Int = 0
+    val redCards: Int = 0,
+
+    //Volleyball
+    val volleyballMatchesPlayed: Int = 0,
+    val pointsScored: Int = 0,
+    val aces: Int = 0,
+    val blocks: Int = 0,
+    val attackErrors: Int = 0,
+    val serviceErrors: Int = 0,
+
+    //Badminton
+    val badmintonMatchesPlayed: Int = 0,
+    val badmintonPoints: Int = 0,
+    val smashes: Int = 0,
+    val faults: Int = 0,
+    val outShots: Int = 0
+
+
+
+
 )
 

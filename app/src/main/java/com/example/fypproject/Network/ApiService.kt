@@ -9,8 +9,6 @@ import com.example.fypproject.DTO.FixturesRequest
 import com.example.fypproject.DTO.FixturesResponse
 import com.example.fypproject.DTO.LoginRequest
 import com.example.fypproject.DTO.LoginResponse
-import com.example.fypproject.DTO.MatchDTO
-import com.example.fypproject.DTO.MatchDetail
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MediaDto
 import com.example.fypproject.DTO.PlayerDto
@@ -242,7 +240,9 @@ interface ApiService {
 
     @GET("player/{playerId}/stats")
     suspend fun getPlayerStats(
-        @Path("playerId") playerId: Long
+        @Path("playerId") playerId: Long,
+        @Query("tournamentId") tournamentId: Long? = null,
+        @Query("sport") sport: String? = null
     ): PlayerStatsDto
 
     @GET("player/{playerId}/stats")

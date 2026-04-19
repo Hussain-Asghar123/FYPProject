@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.core.graphics.toColorInt
 import com.example.fypproject.Fragment.FixturesFragement
 import com.example.fypproject.Fragment.MediaFragment
 import com.example.fypproject.Fragment.OverviewFragment
@@ -26,7 +27,6 @@ class TournamentOverviewActivity : AppCompatActivity() {
     private var seasonName: String = ""
 
     private lateinit var buttons: List<MaterialButton>
-    private var loadingCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,13 +90,8 @@ class TournamentOverviewActivity : AppCompatActivity() {
         binding.btnStats.setOnClickListener {
             selectButton(binding.btnStats)
             setMenuVisible(false)
-            loadFragment(StatsFragment.newInstance(tournamentId))
+            loadFragment(StatsFragment.newInstance(tournamentId, sportId, sportName))
         }
-    }
-
-    private fun setLoading(isLoading: Boolean) {
-        if (isLoading) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
-        binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
     }
 
     private fun loadFragment(fragment: Fragment) {
@@ -111,7 +106,7 @@ class TournamentOverviewActivity : AppCompatActivity() {
                 android.content.res.ColorStateList.valueOf(Color.DKGRAY)
         }
         active.backgroundTintList =
-            android.content.res.ColorStateList.valueOf(Color.parseColor("#E31212"))
+            android.content.res.ColorStateList.valueOf("#E31212".toColorInt())
     }
 
     private fun setMenuVisible(show: Boolean) {

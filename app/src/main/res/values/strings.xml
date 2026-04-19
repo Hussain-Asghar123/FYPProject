@@ -1,3 +1,46 @@
 <resources>
     <string name="app_name">FYPProject</string>
+    <string name="stats_no_stats_yet">No Stats Yet</string>
+    <string name="stats_tbd">TBD</string>
+    <string name="stats_no_data">No Data</string>
+    <string name="stats_man_of_tournament">Man of the Tournament</string>
+    <string name="stats_outstanding_performance">Outstanding Performance</string>
+
+    <string name="stats_top_batsmen">Top Batsmen</string>
+    <string name="stats_top_bowlers">Top Bowlers</string>
+    <string name="stats_top_players">Top Players</string>
+    <string name="stats_top_scorers">Top Scorers</string>
+    <string name="stats_top_scorers_attack_points">Top Scorers (Attack Points)</string>
+    <string name="stats_top_goal_scorer">Top Goal Scorer</string>
+    <string name="stats_top_assister">Top Assister</string>
+    <string name="stats_top_scorer">Top Scorer</string>
+    <string name="stats_best_server">Best Server</string>
+    <string name="stats_player_of_match_awards">Player of the Match Awards</string>
+    <string name="stats_best_batsman">Best Batsman</string>
+    <string name="stats_best_bowler">Best Bowler</string>
+    <string name="stats_best_fielder">Best Fielder</string>
+
+    <string name="stats_runs">Runs</string>
+    <string name="stats_balls">Balls</string>
+    <string name="stats_fours">4s</string>
+    <string name="stats_sixes">6s</string>
+    <string name="stats_pom">POM</string>
+    <string name="stats_wkts">Wkts</string>
+    <string name="stats_eco">Eco</string>
+
+    <string name="stats_goals">Goals</string>
+    <string name="stats_assists">Asst</string>
+    <string name="stats_ga">G+A</string>
+    <string name="stats_yc">YC</string>
+    <string name="stats_rc">RC</string>
+
+    <string name="stats_pts">Pts</string>
+    <string name="stats_aces">Aces</string>
+    <string name="stats_blk">Blk</string>
+    <string name="stats_atk_err">AErr</string>
+    <string name="stats_svc_err">SErr</string>
+    <string name="stats_fant">Fant</string>
+
+    <string name="stats_value_with_unit">%1$d %2$s</string>
+    <string name="stats_value_float_with_unit">%1$.2f %2$s</string>
 </resources>

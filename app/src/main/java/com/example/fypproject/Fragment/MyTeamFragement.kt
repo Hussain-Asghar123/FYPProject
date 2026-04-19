@@ -191,7 +191,7 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         when (sportId) {
             1L -> { minPlayers = 11; maxPlayers = 15 }
             2L -> { minPlayers = 5; maxPlayers = 11 }
-            3L -> { minPlayers = 8; maxPlayers = 11 }
+            3L -> { minPlayers = 5; maxPlayers = 11 }
             4L, 5L, 6L -> { minPlayers = 1; maxPlayers = 2 }
             7L -> { minPlayers = 8; maxPlayers = 11 }
             8L -> { minPlayers = 1; maxPlayers = 2 }

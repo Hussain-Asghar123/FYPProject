@@ -29,6 +29,8 @@
         android:textSize="11sp"
         android:textStyle="bold"
         android:textColor="#6B7280"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:layout_marginStart="6dp" />
 
     <!-- Runs -->

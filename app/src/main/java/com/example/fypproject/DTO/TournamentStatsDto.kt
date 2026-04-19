@@ -1,28 +1,34 @@
 package com.example.fypproject.DTO
 
+import com.google.gson.annotations.SerializedName
+
 data class TournamentStatsDto(
     val tournamentId: Long,
     val tournamentName: String?,
     val sport: String? = null,
     val sportId: Long? = null,
-    val manOfTournament: PlayerAwardDto?,
-    val bestBatsman: PlayerAwardDto?,
-    val bestBowler: PlayerAwardDto?,
-    val bestFielder: PlayerAwardDto?,
+    val manOfTournament: PlayerAwardDto? = null,
+    val bestBatsman: PlayerAwardDto? = null,
+    val bestBowler: PlayerAwardDto? = null,
+    val bestFielder: PlayerAwardDto? = null,
     val bestGoalScorer: PlayerAwardDto? = null,
-    val mostSixes: SixesStatDto?,
-    val topRunScorers: List<TopBatsmanDto>? = null,          // ✅ nullable
-    val topBowlers: List<TopBowlerDto>? = null,              // ✅ nullable
-    val topGoalScorers: List<TopFutsalScorerDto>? = null,    // ✅ nullable
-    val topAssistants: List<TopFutsalAssistantDto>? = null   // ✅ nullable
+    val topScorer: PlayerAwardDto? = null,        // Futsal + Volleyball card
+    val topAssist: PlayerAwardDto? = null,         // Futsal + Volleyball card
+    val mostSixes: SixesStatDto? = null,
+    val allAwards: List<PlayerAwardDto>? = null,   // ✅ ADD — POM list
+    val topRunScorers: List<TopBatsmanDto>? = null,
+    val topBowlers: List<TopBowlerDto>? = null,
+    val topGoalScorers: List<TopFutsalScorerDto>? = null,
+    @SerializedName(value = "topAssisters", alternate = ["topAssistants"])
+    val topAssistants: List<TopFutsalAssistantDto>? = null
 )
 
 data class PlayerAwardDto(
     val playerId: Long,
     val playerName: String,
-    val awardType: String?,
-    val points: Int?,
-    val reason: String?
+    val awardType: String? = null,
+    val points: Int? = null,
+    val reason: String? = null
 )
 
 data class SixesStatDto(
@@ -56,18 +62,22 @@ data class TopBowlerDto(
 data class TopFutsalScorerDto(
     val playerId: Long,
     val playerName: String,
-    val goals: Int,
+    val goals: Int = 0,
     val assists: Int = 0,
+    val futsalFouls: Int = 0,      // ✅ nullable nahi — default 0
     val yellowCards: Int = 0,
     val redCards: Int = 0,
-    val matches: Int,
-    val playerOfMatchCount: Int
+    val totalPoints: Int = 0,      // ✅ nullable nahi — default 0
+    val matches: Int = 0,
+    val playerOfMatchCount: Int = 0
 )
+
 data class TopFutsalAssistantDto(
     val playerId: Long,
     val playerName: String,
-    val assists: Int,
+    val assists: Int = 0,
     val goals: Int = 0,
-    val matches: Int,
-    val playerOfMatchCount: Int
+    val totalPoints: Int = 0,      // ✅ nullable nahi — default 0
+    val matches: Int = 0,
+    val playerOfMatchCount: Int = 0
 )

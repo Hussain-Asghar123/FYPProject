@@ -429,7 +429,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         WebSocketManager.messageListener = { json ->
             activity?.runOnUiThread {
                 try { handleServerUpdate(JSONObject(json)) }
-                catch (e: Exception) { e.printStackTrace() }
+                catch (e: Exception) {
+                    e.printStackTrace()
+                    isActionPending = false
+                    setScoringButtonsEnabled(true)
+                }
             }
         }
         matchResponse?.id?.let { WebSocketManager.connect(it) }
@@ -479,7 +483,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         if (obj.has("halfStartTime") && !obj.isNull("halfStartTime")) {
             val start = obj.getLong("halfStartTime")
-            if (start != halfStartTime) {
+            if (start > 0) {
                 halfStartTime = start
                 startTimer(start)
             }
@@ -517,6 +521,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             "SUBSTITUTION"     -> obj.optString("inPlayerName", "")
             "YELLOW_CARD"      -> "Yellow Card"
             "RED_CARD"         -> "Red Card"
+            "FOUL"             -> "Foul"
             else               -> ""
         }
 
@@ -702,9 +707,9 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         if (_binding == null || !isAdded) return
         showPanel("summary")
 
-        val s      = binding.layoutFutsalSummary
-        val t1Name = matchResponse?.team1Name ?: "Team A"
-        val t2Name = matchResponse?.team2Name ?: "Team B"
+        val s       = binding.layoutFutsalSummary
+        val t1Name  = matchResponse?.team1Name ?: "Team A"
+        val t2Name  = matchResponse?.team2Name ?: "Team B"
         val t1Score = lastTeam1Score
         val t2Score = lastTeam2Score
 
@@ -721,11 +726,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         val team1Goals = eventsList.filter {
             it.eventType == "GOAL" &&
-                    (it.teamName == t1Name || it.teamName == matchResponse?.team1Name)
+                    it.teamName.equals(t1Name, ignoreCase = true)
         }
         val team2Goals = eventsList.filter {
             it.eventType == "GOAL" &&
-                    (it.teamName == t2Name || it.teamName == matchResponse?.team2Name)
+                    it.teamName.equals(t2Name, ignoreCase = true)
         }
 
         s.layoutTeam1Goals.removeAllViews()
@@ -748,12 +753,24 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             }
         }
 
-        val t1Yellow = eventsList.count { it.eventType == "YELLOW_CARD" && it.teamName == t1Name }
-        val t2Yellow = eventsList.count { it.eventType == "YELLOW_CARD" && it.teamName == t2Name }
-        val t1Red    = eventsList.count { it.eventType == "RED_CARD"    && it.teamName == t1Name }
-        val t2Red    = eventsList.count { it.eventType == "RED_CARD"    && it.teamName == t2Name }
-        val t1Fouls  = eventsList.count { it.eventType == "FOUL"        && it.teamName == t1Name }
-        val t2Fouls  = eventsList.count { it.eventType == "FOUL"        && it.teamName == t2Name }
+        val t1Yellow = eventsList.count {
+            it.eventType == "YELLOW_CARD" && it.teamName.equals(t1Name, ignoreCase = true)
+        }
+        val t2Yellow = eventsList.count {
+            it.eventType == "YELLOW_CARD" && it.teamName.equals(t2Name, ignoreCase = true)
+        }
+        val t1Red = eventsList.count {
+            it.eventType == "RED_CARD" && it.teamName.equals(t1Name, ignoreCase = true)
+        }
+        val t2Red = eventsList.count {
+            it.eventType == "RED_CARD" && it.teamName.equals(t2Name, ignoreCase = true)
+        }
+        val t1Fouls = eventsList.count {
+            it.eventType == "FOUL" && it.teamName.equals(t1Name, ignoreCase = true)
+        }
+        val t2Fouls = eventsList.count {
+            it.eventType == "FOUL" && it.teamName.equals(t2Name, ignoreCase = true)
+        }
 
         s.tvTeam1Stats.text = "🟨 $t1Yellow   🟥 $t1Red   ⚠️ $t1Fouls fouls"
         s.tvTeam2Stats.text = "🟨 $t2Yellow   🟥 $t2Red   ⚠️ $t2Fouls fouls"

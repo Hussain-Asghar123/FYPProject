@@ -108,6 +108,7 @@
                         android:checked="true"
                         app:chipBackgroundColor="#E31212"
                         android:textColor="@android:color/white"/>
+
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipFutsal"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
@@ -120,19 +121,22 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="VOLLETBALL" />
+                        android:text="VOLLEY BALL" />
+
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipBadminton"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="BADMINTION" />
+
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipTableTennis"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TABLETENNIS" />
+                        android:text="TABLE TENNIS" />
+
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 

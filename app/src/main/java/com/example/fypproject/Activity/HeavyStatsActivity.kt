@@ -1,6 +1,7 @@
 package com.example.fypproject.Activity
 
 import android.content.res.ColorStateList
+import android.graphics.Color.DKGRAY
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +30,9 @@ class HeavyStatsActivity : AppCompatActivity() {
 
         private const val SPORT_CRICKET = "cricket"
         private const val SPORT_FUTSAL = "futsal"
+        private const val SPORT_VOLLEYBALL = "volleyball"
+
+        private const val SPORT_BADMINTON = "badminton"
     }
 
     private lateinit var binding: ActivityHeavyStatsBinding
@@ -38,10 +42,8 @@ class HeavyStatsActivity : AppCompatActivity() {
 
     private var overallStats: PlayerStatsDto? = null
     private var tournamentStats: PlayerStatsDto? = null
-    private var selectedTournamentName: String? = null
     private var selectedTournamentId: Long? = null
-
-    private var selectedTournamentSport: String? = null
+    private var selectedTournamentName: String? = null
 
     private var activeView: String = VIEW_OVERALL
     private var manualSport: String? = null
@@ -65,15 +67,17 @@ class HeavyStatsActivity : AppCompatActivity() {
         setupTournamentSelector()
 
         updateToggleState(isOverall = true)
-        loadOverallStats()
+        loadOverallStats(sport = null)
         fetchTournaments()
     }
+
 
     private fun setupViewToggle() {
         binding.btnOverallStats.setOnClickListener {
             activeView = VIEW_OVERALL
             updateToggleState(isOverall = true)
-            if (overallStats == null) loadOverallStats() else renderCurrentStats()
+            if (overallStats == null) loadOverallStats(sport = manualSport)
+            else renderCurrentStats()
         }
 
         binding.btnByTournament.setOnClickListener {
@@ -83,30 +87,51 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
     }
 
+
     private fun setupSportSelector() {
         applySelectedSportChip(SPORT_CRICKET)
 
         binding.chipGroupSports.setOnCheckedStateChangeListener { group, checkedIds ->
+
             for (i in 0 until group.childCount) {
-                val chip = group.getChildAt(i) as Chip
-                styleChip(chip, false)
+                styleChip(group.getChildAt(i) as Chip, false)
             }
 
             if (checkedIds.isNotEmpty()) {
                 val selectedChip = findViewById<Chip>(checkedIds.first())
                 styleChip(selectedChip, true)
 
-                manualSport = when (selectedChip.id) {
-                    R.id.chipFutsal -> SPORT_FUTSAL
-                    else -> SPORT_CRICKET
-                }
 
-                if (activeView == VIEW_OVERALL) {
-                    renderCurrentStats()
-                }
+                val newSport = chipToSport(selectedChip.id)
+                handleSportChange(newSport)
             }
         }
     }
+
+
+    private fun handleSportChange(sport: String) {
+        manualSport = sport
+        if (activeView == VIEW_OVERALL) {
+            loadOverallStats(sport = sport)
+        }
+    }
+
+    // ✅ Naya sport add karna ho to sirf yahan ek jagah add karo
+    private fun chipToSport(chipId: Int): String = when (chipId) {
+        R.id.chipFutsal -> SPORT_FUTSAL
+        R.id.chipVolleyball-> SPORT_VOLLEYBALL
+        R.id.chipBadminton-> SPORT_BADMINTON
+        else -> SPORT_CRICKET
+    }
+
+    // ✅ Naya sport add karna ho to sirf yahan ek jagah add karo
+    private fun sportToChipId(sport: String): Int = when (sport) {
+        SPORT_FUTSAL -> R.id.chipFutsal
+        SPORT_VOLLEYBALL -> R.id.chipVolleyball
+        SPORT_BADMINTON -> R.id.chipBadminton
+        else -> R.id.chipCricket
+    }
+
 
     private fun setupTournamentSelector() {
         binding.spinnerTournaments.setOnItemClickListener { parent, _, position, _ ->
@@ -119,35 +144,29 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateToggleState(isOverall: Boolean) {
-        val primaryColor = ContextCompat.getColor(this, R.color.primaryColor)
-        val grayColor = ContextCompat.getColor(this, android.R.color.darker_gray)
-        val white = ContextCompat.getColor(this, android.R.color.white)
-        val black = ContextCompat.getColor(this, android.R.color.black)
+    private fun loadOverallStats(sport: String?) {
+        lifecycleScope.launch {
+            showProgress(true)
+            try {
+                val stats = api.getPlayerStats(playerId, tournamentId = null, sport = sport)
 
-        if (isOverall) {
-            binding.btnOverallStats.backgroundTintList = ColorStateList.valueOf(primaryColor)
-            binding.btnByTournament.backgroundTintList = ColorStateList.valueOf(grayColor)
-            binding.btnOverallStats.setTextColor(white)
-            binding.btnByTournament.setTextColor(black)
+                overallStats = stats
 
-            binding.sportSelectorContainer.visibility = View.VISIBLE
-            binding.tournamentDropdownLayout.visibility = View.GONE
-            binding.tvTournamentSportHint.visibility = View.GONE
-            binding.tvTournamentEmptyState.visibility = View.GONE
-            binding.statsContainer.visibility = if (overallStats != null) View.VISIBLE else View.GONE
-        } else {
-            binding.btnByTournament.backgroundTintList = ColorStateList.valueOf(primaryColor)
-            binding.btnOverallStats.backgroundTintList = ColorStateList.valueOf(grayColor)
-            binding.btnByTournament.setTextColor(white)
-            binding.btnOverallStats.setTextColor(black)
+                if (manualSport == null) {
+                    manualSport = detectSport(stats)
+                    applySelectedSportChip(manualSport!!)
+                }
 
-            binding.sportSelectorContainer.visibility = View.GONE
-            binding.tournamentDropdownLayout.visibility = View.VISIBLE
-            binding.statsContainer.visibility = if (tournamentStats != null) View.VISIBLE else View.GONE
-            binding.tvTournamentSportHint.visibility = if (tournamentStats != null) View.VISIBLE else View.GONE
-            binding.tvTournamentEmptyState.visibility =
-                if (selectedTournamentId == null) View.VISIBLE else View.GONE
+                renderCurrentStats()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@HeavyStatsActivity,
+                    "API Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                showProgress(false)
+            }
         }
     }
 
@@ -155,9 +174,8 @@ class HeavyStatsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             showProgress(true)
             try {
-                val stats = api.getPlayerTournamentStats(playerId, tournamentId)
+                val stats = api.getPlayerStats(playerId, tournamentId = tournamentId, sport = null)
                 tournamentStats = stats
-                selectedTournamentSport = detectSport(stats)
                 renderCurrentStats()
             } catch (_: Exception) {
                 tournamentStats = null
@@ -169,26 +187,31 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadOverallStats() {
+    private fun fetchTournaments() {
         lifecycleScope.launch {
-            showProgress(true)
             try {
-                val stats = api.getPlayerStats(playerId)
-                overallStats = stats
-
-                if (manualSport == null) {
-                    manualSport = detectSport(stats)
-                    applySelectedSportChip(manualSport!!)
+                val response = api.getTournamentNamesAndIds()
+                val names = mutableListOf<String>()
+                response.forEach { map ->
+                    map.forEach { (id, name) ->
+                        tournamentMap[name] = id
+                        names.add(name)
+                    }
                 }
-
-                renderCurrentStats()
-            } catch (e: Exception) {
-                Toast.makeText(this@HeavyStatsActivity, "API Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            } finally {
-                showProgress(false)
+                val adapter = ArrayAdapter(
+                    this@HeavyStatsActivity,
+                    android.R.layout.simple_dropdown_item_1line,
+                    names
+                )
+                binding.spinnerTournaments.setAdapter(adapter)
+            } catch (_: Exception) {
             }
         }
     }
+
+    // ─────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────
 
     private fun renderCurrentStats() {
         val stats = if (activeView == VIEW_OVERALL) overallStats else tournamentStats
@@ -204,10 +227,10 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
 
         val detectedSport = detectSport(stats)
-        val activeSport = if (activeView == VIEW_OVERALL) {
-            manualSport ?: detectedSport
+        val activeSport = if (activeView == VIEW_OVERALL && manualSport != null) {
+            manualSport!!
         } else {
-            selectedTournamentSport ?: detectedSport
+            detectedSport
         }
 
         binding.tvTournamentSportHint.visibility =
@@ -221,6 +244,38 @@ class HeavyStatsActivity : AppCompatActivity() {
         populateUI(stats, activeSport)
     }
 
+    private fun updateToggleState(isOverall: Boolean) {
+        val primaryColor = ContextCompat.getColor(this, R.color.primaryColor)
+        val grayColor = ContextCompat.getColor(this, android.R.color.darker_gray)
+        val white = ContextCompat.getColor(this, android.R.color.white)
+        val black = ContextCompat.getColor(this, android.R.color.black)
+
+        if (isOverall) {
+            binding.btnOverallStats.backgroundTintList = ColorStateList.valueOf(primaryColor)
+            binding.btnByTournament.backgroundTintList = ColorStateList.valueOf(DKGRAY)
+            binding.btnOverallStats.setTextColor(white)
+            binding.btnByTournament.setTextColor(black)
+
+            binding.sportSelectorContainer.visibility = View.VISIBLE
+            binding.tournamentDropdownLayout.visibility = View.GONE
+            binding.tvTournamentSportHint.visibility = View.GONE
+            binding.tvTournamentEmptyState.visibility = View.GONE
+            binding.statsContainer.visibility = if (overallStats != null) View.VISIBLE else View.GONE
+        } else {
+            binding.btnByTournament.backgroundTintList = ColorStateList.valueOf(primaryColor)
+            binding.btnOverallStats.backgroundTintList = ColorStateList.valueOf(DKGRAY)
+            binding.btnByTournament.setTextColor(white)
+            binding.btnOverallStats.setTextColor(black)
+
+            binding.sportSelectorContainer.visibility = View.GONE
+            binding.tournamentDropdownLayout.visibility = View.VISIBLE
+            binding.statsContainer.visibility = if (tournamentStats != null) View.VISIBLE else View.GONE
+            binding.tvTournamentSportHint.visibility = if (tournamentStats != null) View.VISIBLE else View.GONE
+            binding.tvTournamentEmptyState.visibility =
+                if (selectedTournamentId == null) View.VISIBLE else View.GONE
+        }
+    }
+
     private fun styleChip(chip: Chip, isSelected: Boolean) {
         if (isSelected) {
             chip.chipBackgroundColor =
@@ -228,29 +283,43 @@ class HeavyStatsActivity : AppCompatActivity() {
             chip.setTextColor(ContextCompat.getColor(this, android.R.color.white))
         } else {
             chip.chipBackgroundColor =
-                ColorStateList.valueOf(ContextCompat.getColor(this, android.R.color.darker_gray))
+                ColorStateList.valueOf  (DKGRAY)
             chip.setTextColor(ContextCompat.getColor(this, android.R.color.black))
         }
     }
 
     private fun applySelectedSportChip(sport: String) {
-        when (sport) {
-            SPORT_FUTSAL -> binding.chipGroupSports.check(R.id.chipFutsal)
-            else -> binding.chipGroupSports.check(R.id.chipCricket)
-        }
-
+        val chipId = sportToChipId(sport)
+        binding.chipGroupSports.check(chipId)
         styleChip(binding.chipCricket, sport == SPORT_CRICKET)
         styleChip(binding.chipFutsal, sport == SPORT_FUTSAL)
+        styleChip(binding.chipVolleyball, sport == SPORT_VOLLEYBALL)
+        styleChip(binding.chipBadminton, sport == SPORT_BADMINTON)
     }
+
+
+    private fun detectSport(stats: PlayerStatsDto): String {
+        val responseSport = stats.sport?.lowercase(Locale.US)
+        return when {
+            responseSport?.contains(SPORT_FUTSAL) == true -> SPORT_FUTSAL
+            responseSport?.contains(SPORT_CRICKET) == true -> SPORT_CRICKET
+            responseSport?.contains(SPORT_VOLLEYBALL) == true -> SPORT_VOLLEYBALL
+            responseSport?.contains(SPORT_BADMINTON) == true -> SPORT_BADMINTON
+            else -> SPORT_CRICKET // default cricket, JS jaisa
+        }
+    }
+
 
     private fun populateUI(stats: PlayerStatsDto, sport: String) {
         val headerBinding = CardPlayerStatsHeaderBinding.bind(binding.playerHeader.root)
         headerBinding.tvPlayerName.text = stats.playerName ?: "Player"
 
-        if (sport == SPORT_FUTSAL) {
-            bindFutsalStats(stats)
-        } else {
-            bindCricketStats(stats)
+        // ✅ Naya sport add karna ho to sirf yahan ek jagah add karo
+        when (sport) {
+            SPORT_FUTSAL -> bindFutsalStats(stats)
+            SPORT_VOLLEYBALL->bindVolleyballStats(stats)
+            SPORT_BADMINTON->bindBadmintonStats(stats)
+            else -> bindCricketStats(stats)
         }
     }
 
@@ -273,8 +342,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
 
         setupGrid(
-            binding.layoutBattingStats.root,
-            "Batting Stats",
+            binding.layoutBattingStats.root, "Batting Stats",
             listOf(
                 "Runs" to stats.totalRuns.toString(),
                 "Balls Faced" to stats.ballsFaced.toString(),
@@ -288,8 +356,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         )
 
         setupGrid(
-            binding.layoutBowlingStats.root,
-            "Bowling Stats",
+            binding.layoutBowlingStats.root, "Bowling Stats",
             listOf(
                 "Wickets" to stats.wickets.toString(),
                 "Balls" to stats.ballsBowled.toString(),
@@ -298,7 +365,6 @@ class HeavyStatsActivity : AppCompatActivity() {
                 "Average" to formatDouble(stats.bowlingAverage)
             )
         )
-
     }
 
     private fun bindFutsalStats(stats: PlayerStatsDto) {
@@ -320,8 +386,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         }
 
         setupGrid(
-            binding.layoutBattingStats.root,
-            "Scoring",
+            binding.layoutBattingStats.root, "Scoring",
             listOf(
                 "Goals" to stats.goals.toString(),
                 "Assists" to stats.assists.toString(),
@@ -330,21 +395,100 @@ class HeavyStatsActivity : AppCompatActivity() {
         )
 
         setupGrid(
-            binding.layoutBowlingStats.root,
-            "Discipline",
+            binding.layoutBowlingStats.root, "Discipline",
             listOf(
                 "Fouls" to stats.futsalFouls.toString(),
                 "Yellow Cards" to stats.yellowCards.toString(),
                 "Red Cards" to stats.redCards.toString()
             )
         )
+    }
+    private fun bindVolleyballStats(stats: PlayerStatsDto) {
+        val points  = stats.pointsScored.takeIf { it > 0 } ?: stats.goals
+        val aces    = stats.aces.takeIf { it > 0 } ?: stats.assists
+        val blocks  = stats.blocks.takeIf { it > 0 } ?: stats.futsalFouls
+        val atkErr  = stats.attackErrors.takeIf { it > 0 } ?: stats.yellowCards
+        val svcErr  = stats.serviceErrors.takeIf { it > 0 } ?: stats.redCards
 
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = (stats.volleyballMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed).toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Points"
+            tvBoxValue.text = points.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Aces"
+            tvBoxValue.text = aces.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Attacking & Serving",
+            listOf(
+                "Points Scored" to points.toString(),
+                "Aces"          to aces.toString(),
+                "Blocks"        to blocks.toString()
+            )
+        )
+        setupGrid(
+            binding.layoutBowlingStats.root, "Errors",
+            listOf(
+                "Attack Errors"  to atkErr.toString(),
+                "Service Errors" to svcErr.toString()
+            )
+        )
+    }
+
+    private fun bindBadmintonStats(stats: PlayerStatsDto) {
+
+        val matches   = stats.badmintonMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        val points    = stats.goals
+        val smashesAces = stats.assists
+        val faults    = stats.futsalFouls
+        val outShots  = stats.yellowCards
+
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Points"
+            tvBoxValue.text = points.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Smashes"
+            tvBoxValue.text = smashesAces.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Points Scored" to points.toString(),
+                "Smashes + Aces" to smashesAces.toString()
+            )
+        )
+
+        setupGrid(
+            binding.layoutBowlingStats.root, "Faults",
+            listOf(
+                "Faults (Net/Foot)" to faults.toString(),
+                "Out Shots" to outShots.toString()
+            )
+        )
     }
 
     private fun setupGrid(root: View, title: String, dataList: List<Pair<String, String>>) {
         root.findViewById<TextView>(R.id.tvTableHeaderTitle)?.text = title
         val grid = root.findViewById<ViewGroup>(R.id.statsGrid)
-
         grid?.let {
             it.removeAllViews()
             dataList.forEach { (label, value) ->
@@ -352,41 +496,6 @@ class HeavyStatsActivity : AppCompatActivity() {
                 itemBinding.tvGridLabel.text = label
                 itemBinding.tvGridValue.text = value
                 it.addView(itemBinding.root)
-            }
-        }
-    }
-
-    private fun detectSport(stats: PlayerStatsDto): String {
-        val responseSport = stats.sport?.lowercase(Locale.US)
-        return when {
-            responseSport?.contains(SPORT_FUTSAL) == true -> SPORT_FUTSAL
-            responseSport?.contains(SPORT_CRICKET) == true -> SPORT_CRICKET
-            stats.futsalMatchesPlayed > 0 || stats.goals > 0 || stats.assists > 0 ||
-                stats.futsalFouls > 0 || stats.yellowCards > 0 || stats.redCards > 0 -> SPORT_FUTSAL
-            else -> SPORT_CRICKET
-        }
-    }
-
-    private fun fetchTournaments() {
-        lifecycleScope.launch {
-            try {
-                val response = api.getTournamentNamesAndIds()
-                val names = mutableListOf<String>()
-
-                response.forEach { map ->
-                    map.forEach { (id, name) ->
-                        tournamentMap[name] = id
-                        names.add(name)
-                    }
-                }
-
-                val adapter = ArrayAdapter(
-                    this@HeavyStatsActivity,
-                    android.R.layout.simple_dropdown_item_1line,
-                    names
-                )
-                binding.spinnerTournaments.setAdapter(adapter)
-            } catch (_: Exception) {
             }
         }
     }

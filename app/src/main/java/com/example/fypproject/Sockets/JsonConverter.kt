@@ -3,6 +3,7 @@ package com.example.fypproject.Sockets
 
 import android.util.Log
 import com.example.fypproject.ScoringDTO.ScoreDTO
+import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 
@@ -27,6 +28,15 @@ object JsonConverter {
             gson.fromJson(jsonString, ScoreDTO::class.java)
         } catch (e: Exception) {
             Log.e("JsonConverter", "Error parsing JSON: ${e.message}")
+            null
+        }
+    }
+
+    fun fromJsonVolleyball(jsonString: String): VollayBallScoreDTO? {
+        return try {
+            gson.fromJson(jsonString, VollayBallScoreDTO::class.java)
+        } catch (e: Exception) {
+            Log.e("JsonConverter", "Error parsing Volleyball JSON: ${e.message}")
             null
         }
     }

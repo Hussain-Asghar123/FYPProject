@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="5dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:background="@color/white">
+
+        <!-- Left: Event info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvEventType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏐 POINT"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#E31212"/>
+
+            <TextView
+                android:id="@+id/tvTeamName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Team A"
+                android:textSize="13sp"
+                android:textColor="#555555"
+                android:layout_marginTop="2dp"/>
+
+            <TextView
+                android:id="@+id/tvPlayerName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Player Name"
+                android:textSize="12sp"
+                android:textColor="#888888"/>
+
+        </LinearLayout>
+
+        <!-- Right: Time + Set -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5'"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#333333"/>
+
+            <TextView
+                android:id="@+id/tvSetNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S1"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:layout_marginTop="2dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

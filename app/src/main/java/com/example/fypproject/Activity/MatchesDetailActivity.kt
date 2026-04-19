@@ -1,5 +1,6 @@
 package com.example.fypproject.Activity
 
+import android.graphics.Color.DKGRAY
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -45,7 +46,7 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnAllSports.setOnClickListener { onSportSelected("All", it) }
         binding.btnCricket.setOnClickListener { onSportSelected("Cricket", it) }
         binding.btnFootball.setOnClickListener { onSportSelected("Futsal", it) }
-        binding.btnVolleyball.setOnClickListener { onSportSelected("Volleyball", it) }
+        binding.btnVolleyball.setOnClickListener { onSportSelected("VolleyBall", it) }
         binding.btnBadminton.setOnClickListener { onSportSelected("Badminton", it) }
         binding.btnTugOfWar.setOnClickListener { onSportSelected("Tug of War", it) }
         binding.btnLudo.setOnClickListener { onSportSelected("Ludo", it) }
@@ -148,7 +149,7 @@ class MatchesDetailActivity : AppCompatActivity() {
             binding.btnBadminton, binding.btnTugOfWar, binding.btnLudo, binding.btnChess, binding.btnTableTennis
         )
         for (btn in allButtons) {
-            btn.setBackgroundColor(ContextCompat.getColor(this, R.color.grayColor))
+            btn.setBackgroundColor(DKGRAY)
         }
         selected.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
     }
@@ -156,7 +157,7 @@ class MatchesDetailActivity : AppCompatActivity() {
     private fun highlightSelectedStatus(selected: View) {
         val allButtons = listOf(binding.btnAllMatches, binding.btnLive, binding.btnUpcoming, binding.btnCompleted)
         for (btn in allButtons) {
-            btn.setBackgroundColor(ContextCompat.getColor(this, R.color.grayColor))
+            btn.setBackgroundColor(DKGRAY)
         }
         selected.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
     }

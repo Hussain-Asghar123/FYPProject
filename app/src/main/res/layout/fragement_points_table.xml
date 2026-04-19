@@ -49,7 +49,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- FUTSAL: ONE HorizontalScrollView wrapping BOTH header + RecyclerView -->
+        <!-- FUTSAL -->
         <HorizontalScrollView
             android:id="@+id/futsalScrollView"
             android:layout_width="match_parent"
@@ -63,7 +63,6 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <!-- FUTSAL HEADER -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/headerFutsal"
                     android:layout_width="wrap_content"
@@ -110,7 +109,6 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- FUTSAL RecyclerView (same width as header) -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvLeaderboard"
                     android:layout_width="610dp"
@@ -120,7 +118,116 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- CRICKET RecyclerView (outside scroll, full width) -->
+        <!-- VOLLEYBALL -->
+        <HorizontalScrollView
+            android:id="@+id/volleyballScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="horizontal"
+            android:fillViewport="true"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/headerVolleyball"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#059669"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <TextView android:layout_width="140dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="Team"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="P"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="W"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="L"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="SW"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="SL"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="SD"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content"
+                            android:gravity="center" android:text="Pts"
+                            android:textColor="@android:color/white" android:textStyle="bold"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvLeaderboardVolleyball"
+                    android:layout_width="610dp"
+                    android:layout_height="match_parent"
+                    android:padding="4dp"/>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- BADMINTON: Simple — P | W | L | Pts only (no HorizontalScroll needed) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/headerBadminton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#7C3AED"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="2.5" android:gravity="center" android:text="Team"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="P"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="W"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="L"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="Pts"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboardBadminton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"/>
+
+        <!-- CRICKET RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvLeaderboardCricket"
             android:layout_width="match_parent"

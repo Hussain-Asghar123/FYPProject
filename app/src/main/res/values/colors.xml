@@ -22,4 +22,7 @@
     <!-- Card background -->
     <color name="card_bg">#FFFFFF</color>
 
+    <!-- Purple color for volleyball config -->
+    <color name="purple_500">#9C27B0</color>
+
 </resources>

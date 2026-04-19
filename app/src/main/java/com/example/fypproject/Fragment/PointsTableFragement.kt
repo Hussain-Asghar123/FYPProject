@@ -20,7 +20,6 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
     private val binding get() = _binding!!
     private var tournamentId: Long = -1L
     private var fallbackSport: String = "cricket"
-    private lateinit var ptsTableAdapter: PtsTableAdapter
     private lateinit var emptyStateView: View
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,7 +32,6 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
 
         setLoading(false)
         setEmptyState(false)
-        updateHeaderVisibility(isFutsal = isFutsalSport(fallbackSport))
 
         fetchPointsTable()
     }
@@ -45,18 +43,21 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
                 val response = api.getPtsTablesByTournament(tournamentId)
                 if (response.isSuccessful) {
                     val ptsTable = response.body().orEmpty()
-                    val detectedSport = resolveSport(ptsTable.firstOrNull()?.sport, fallbackSport)
-                    val isFutsal = isFutsalSport(detectedSport)
+                    val detectedSport = resolveSport(
+                        ptsTable.firstOrNull()?.sport, fallbackSport
+                    )
 
-                    updateHeaderVisibility(isFutsal)
+                    updateHeaderVisibility(detectedSport)
 
-                    if (isFutsal) {
-                        binding.rvLeaderboard.layoutManager = LinearLayoutManager(requireContext())
-                        binding.rvLeaderboard.adapter = PtsTableAdapter(ptsTable, detectedSport)
-                    } else {
-                        binding.rvLeaderboardCricket.layoutManager = LinearLayoutManager(requireContext())
-                        binding.rvLeaderboardCricket.adapter = PtsTableAdapter(ptsTable, detectedSport)
+                    val recyclerView = when (detectedSport) {
+                        "futsal" -> binding.rvLeaderboard
+                        "volleyball" -> binding.rvLeaderboardVolleyball
+                        "badminton" -> binding.rvLeaderboardBadminton
+                        else -> binding.rvLeaderboardCricket
                     }
+
+                    recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    recyclerView.adapter = PtsTableAdapter(ptsTable, detectedSport)
 
                     setEmptyState(ptsTable.isEmpty())
                 }
@@ -69,10 +70,13 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         }
     }
 
-    private fun updateHeaderVisibility(isFutsal: Boolean) {
-        binding.headerCricket.isVisible = !isFutsal
-        binding.futsalScrollView.isVisible = isFutsal
-        binding.rvLeaderboardCricket.isVisible = !isFutsal
+    private fun updateHeaderVisibility(sport: String) {
+        binding.headerCricket.isVisible         = sport == "cricket"
+        binding.rvLeaderboardCricket.isVisible  = sport == "cricket"
+        binding.futsalScrollView.isVisible      = sport == "futsal"
+        binding.volleyballScrollView.isVisible  = sport == "volleyball"
+        binding.headerBadminton.isVisible       = sport == "badminton"
+        binding.rvLeaderboardBadminton.isVisible = sport == "badminton"
     }
 
     private fun setLoading(isLoading: Boolean) {
@@ -88,13 +92,15 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         return normalizeSport(fallback) ?: normalizeSport(primary) ?: "cricket"
     }
 
-    private fun isFutsalSport(sport: String?): Boolean = normalizeSport(sport) == "futsal"
 
+    //naya sport ka lia yahan changes required han
     private fun normalizeSport(sport: String?): String? {
         val normalized = sport?.trim()?.lowercase()
         return when (normalized) {
             "futsal", "football" -> "futsal"
             "cricket" -> "cricket"
+            "volleyball" -> "volleyball"
+            "badminton" -> "badminton"
             else -> null
         }
     }

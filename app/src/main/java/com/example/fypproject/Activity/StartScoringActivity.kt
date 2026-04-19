@@ -3,6 +3,7 @@ package com.example.fypproject.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -26,10 +27,19 @@ class StartScoringActivity : AppCompatActivity() {
     private var selectedTossWinnerId: Long? = null
     private var selectedDecision: String? = null
 
+    private var vbSets: Int = 3
+    private var vbPointsPerSet: Int = 25
+    private var vbFinalSetPoints: Int = 15
+    private var scorerUsername: String = ""
+
     private val colorSelected = Color.parseColor("#4CAF50")
     private val colorDefault  = Color.parseColor("#E31212")
 
-    // Har sport ke liye decision options
+    private val isCricket    get() = sportId == 1L
+    private val isFutsal     get() = sportId == 2L
+    private val isVolleyball get() = sportId == 3L
+    private val isBadminton   get() = sportId == 4L
+
     private val sportDecisions = mapOf(
         1L to Pair("Bat",            "Bowl"),
         2L to Pair("Kickoff",        "Choose Side"),
@@ -45,7 +55,6 @@ class StartScoringActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityStartScoringBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
 
         matchData = intent.getSerializableExtra("match") as? MatchResponse
         matchId   = matchData?.id      ?: intent.getLongExtra("matchId", -1L)
@@ -68,23 +77,71 @@ class StartScoringActivity : AppCompatActivity() {
         setupSportUI()
     }
 
-
     private fun setupSportUI() {
-        val decisions = sportDecisions[sportId]
+        binding.oversRow.visibility = if (isCricket) View.VISIBLE else View.GONE
+        binding.volleyballConfigSection.visibility =
+            if (isVolleyball) View.VISIBLE else View.GONE
 
+        if (isVolleyball) {
+            refreshVolleyballLabels()
+            setupVolleyballSteppers()
+        }
 
-        binding.oversRow.visibility = if (sportId == 1L) View.VISIBLE else View.GONE
-
+        val decisions = if (isBadminton) null else sportDecisions[sportId]
         if (decisions != null) {
-
             binding.decisionSection.visibility   = View.VISIBLE
-            binding.decisionOption1Btn.text       = decisions.first
-            binding.decisionOption2Btn.text       = decisions.second
+            binding.decisionOption1Btn.text      = decisions.first
+            binding.decisionOption2Btn.text      = decisions.second
             updateDecisionLabel()
         } else {
-
             binding.decisionSection.visibility = View.GONE
         }
+
+        binding.tossLabel.text = when {
+            isCricket    -> "Who Won The Toss?"
+            isFutsal     -> "Who Kicks Off?"
+            isVolleyball -> "Who Serves First?"
+            isBadminton  -> "Who Serves First?"
+            else         -> "Who Won The Toss?"
+        }
+
+        binding.startScoringBtn.text = when {
+            isCricket    -> "Start Match"
+            isFutsal     -> "⚽ Start Futsal Match"
+            isVolleyball -> "🏐 Start Volleyball Match"
+            isBadminton  -> "🏸 Start Badminton Match"
+            else         -> "Start Match"
+        }
+    }
+
+    private fun setupVolleyballSteppers() {
+        // Sets to Win stepper
+        binding.btnSetsDecrement.setOnClickListener {
+            if (vbSets > 1) { vbSets--; refreshVolleyballLabels() }
+        }
+        binding.btnSetsIncrement.setOnClickListener {
+            vbSets++; refreshVolleyballLabels()
+        }
+
+        binding.btnPointsDecrement.setOnClickListener {
+            if (vbPointsPerSet > 5) { vbPointsPerSet--; refreshVolleyballLabels() }
+        }
+        binding.btnPointsIncrement.setOnClickListener {
+            vbPointsPerSet++; refreshVolleyballLabels()
+        }
+        binding.btnFinalPtsDecrement.setOnClickListener {
+            if (vbFinalSetPoints > 5) { vbFinalSetPoints--; refreshVolleyballLabels() }
+        }
+        binding.btnFinalPtsIncrement.setOnClickListener {
+            vbFinalSetPoints++; refreshVolleyballLabels()
+        }
+    }
+    private fun refreshVolleyballLabels() {
+        binding.tvSetsValue.text       = vbSets.toString()
+        binding.tvPointsValue.text     = vbPointsPerSet.toString()
+        binding.tvFinalPtsValue.text   = vbFinalSetPoints.toString()
+        binding.tvVbSummary.text       =
+            "Best of ${vbSets * 2 - 1} sets · $vbPointsPerSet pts each · $vbFinalSetPoints pts tiebreak"
     }
 
     private fun updateDecisionLabel() {
@@ -117,26 +174,23 @@ class StartScoringActivity : AppCompatActivity() {
     private fun bindDataToUI() {
         val match = matchData ?: return
 
-
         binding.teamAName.text  = match.team1Name ?: "Team A"
         binding.teamBName.text  = match.team2Name ?: "Team B"
-
 
         binding.venueText.text  = match.venue ?: "-"
         binding.dateText.text   = match.date?.split("T")?.get(0) ?: "-"
         binding.timeText.text   = match.time ?: "-"
-        binding.oversText.text  = if (match.overs != null) "${match.overs} Overs" else "-"
         binding.scorerText.text = match.scorerId ?: "-"
 
+        if (isCricket) {
+            binding.oversText.text = if (match.overs != null) "${match.overs} Overs" else "-"
+        }
 
         binding.tossTeamABtn.text = match.team1Name ?: "Team A"
         binding.tossTeamBBtn.text = match.team2Name ?: "Team B"
 
-
         when (match.status?.uppercase()) {
-
             "COMPLETED", "ABANDONED" -> {
-
                 binding.startScoringBtn.isEnabled    = false
                 binding.startScoringBtn.alpha         = 0.5f
                 binding.abandonYesBtn.isEnabled      = false
@@ -146,20 +200,15 @@ class StartScoringActivity : AppCompatActivity() {
                 binding.decisionOption1Btn.isEnabled  = false
                 binding.decisionOption2Btn.isEnabled  = false
             }
-
             "LIVE" -> {
-
                 binding.startScoringBtn.isEnabled = false
                 binding.startScoringBtn.alpha      = 0.5f
                 binding.abandonYesBtn.text         = "Abandon (Live)"
             }
-
-
         }
     }
 
     private fun setupButtons() {
-
         binding.backButton.setOnClickListener { finish() }
 
         binding.tossTeamABtn.setOnClickListener {
@@ -167,7 +216,6 @@ class StartScoringActivity : AppCompatActivity() {
             highlightButton(binding.tossTeamABtn, binding.tossTeamBBtn)
             updateDecisionLabel()
         }
-
         binding.tossTeamBBtn.setOnClickListener {
             selectedTossWinnerId = matchData?.team2Id
             highlightButton(binding.tossTeamBBtn, binding.tossTeamABtn)
@@ -178,14 +226,13 @@ class StartScoringActivity : AppCompatActivity() {
             selectedDecision = binding.decisionOption1Btn.text.toString()
             highlightButton(binding.decisionOption1Btn, binding.decisionOption2Btn)
         }
-
         binding.decisionOption2Btn.setOnClickListener {
             selectedDecision = binding.decisionOption2Btn.text.toString()
             highlightButton(binding.decisionOption2Btn, binding.decisionOption1Btn)
         }
 
         binding.startScoringBtn.setOnClickListener {
-            val decisionNeeded   = sportDecisions[sportId] != null
+            val decisionNeeded = !isBadminton && sportDecisions[sportId] != null
             val tossSelected     = selectedTossWinnerId != null
             val decisionSelected = selectedDecision != null || !decisionNeeded
 
@@ -204,10 +251,21 @@ class StartScoringActivity : AppCompatActivity() {
         binding.startScoringBtn.isEnabled = false
         binding.startScoringBtn.alpha     = 0.7f
 
+        val decisionToSend = when {
+            isFutsal     -> "KICKOFF"
+            isVolleyball -> "SERVE"
+            isBadminton-> "SERVE"
+            else         -> selectedDecision
+        }
+
         val payload = matchData?.copy(
-            tossWinnerId = selectedTossWinnerId,
-            decision     = selectedDecision,
-            status       = "LIVE"
+            tossWinnerId   = selectedTossWinnerId,
+            decision       = decisionToSend,
+            scorerId       = scorerUsername.ifBlank { matchData?.scorerId },
+            status         = "LIVE",
+            sets           = if (isVolleyball) vbSets          else matchData?.sets,
+            pointsPerSet   = if (isVolleyball) vbPointsPerSet  else matchData?.pointsPerSet,
+            finalSetPoints = if (isVolleyball) vbFinalSetPoints else matchData?.finalSetPoints,
         ) ?: run {
             toastShort("Match data missing")
             return
@@ -231,7 +289,6 @@ class StartScoringActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun showAbandonDialog() {
         AlertDialog.Builder(this)
             .setTitle("Are you sure?")
@@ -263,7 +320,6 @@ class StartScoringActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun highlightButton(selected: MaterialButton, unselected: MaterialButton) {
         selected.setBackgroundColor(colorSelected)
         unselected.setBackgroundColor(colorDefault)

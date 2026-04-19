@@ -21,7 +21,8 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_back"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="@android:color/white"/>
+            android:contentDescription="Back"
+            app:tint="@android:color/white"/>
 
         <TextView
             android:layout_width="0dp"
@@ -268,16 +269,18 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+
             <!-- ── TOSS SECTION ── -->
             <TextView
-                android:layout_width="match_parent"
+                android:id="@+id/tossLabel"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Who Won the Toss?"
+                android:text="Who Won The Toss?"
                 android:textStyle="bold"
-                android:textSize="15sp"
-                android:textColor="#222222"
-                android:gravity="center"
-                android:layout_marginBottom="10dp"/>
+                android:textSize="12sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -309,6 +312,217 @@
                     app:cornerRadius="8dp"
                     android:layout_marginStart="8dp"/>
             </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/volleyballConfigSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Match Configuration"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textAllCaps="true"
+                android:textColor="@color/purple_500"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:gravity="center">
+
+                <!-- Sets to Win stepper -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:background="@drawable/rounded_card_bg"
+                    android:layout_marginEnd="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sets to Win"
+                        android:textSize="9sp"
+                        android:textAllCaps="true"
+                        android:textColor="@android:color/darker_gray"
+                        android:layout_marginBottom="6dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/btnSetsDecrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="−"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+
+                        <TextView
+                            android:id="@+id/tvSetsValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="3"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/purple_500"
+                            android:gravity="center" />
+
+                        <Button
+                            android:id="@+id/btnSetsIncrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Points per Set stepper -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:background="@drawable/rounded_card_bg"
+                    android:layout_marginHorizontal="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Points/Set"
+                        android:textSize="9sp"
+                        android:textAllCaps="true"
+                        android:textColor="@android:color/darker_gray"
+                        android:layout_marginBottom="6dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/btnPointsDecrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="−"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+
+                        <TextView
+                            android:id="@+id/tvPointsValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="25"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/purple_500"
+                            android:gravity="center" />
+
+                        <Button
+                            android:id="@+id/btnPointsIncrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Final Set Points stepper -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:background="@drawable/rounded_card_bg"
+                    android:layout_marginStart="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Final Set Pts"
+                        android:textSize="9sp"
+                        android:textAllCaps="true"
+                        android:textColor="@android:color/darker_gray"
+                        android:layout_marginBottom="6dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/btnFinalPtsDecrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="−"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+
+                        <TextView
+                            android:id="@+id/tvFinalPtsValue"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="15"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/purple_500"
+                            android:gravity="center" />
+
+                        <Button
+                            android:id="@+id/btnFinalPtsIncrement"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="16sp"
+                            android:padding="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvVbSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Best of 5 sets · 25 pts each · 15 pts tiebreak"
+                android:textSize="10sp"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="center"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
 
             <!-- ── DECISION SECTION (sport ke hisaab se) ── -->
             <LinearLayout
