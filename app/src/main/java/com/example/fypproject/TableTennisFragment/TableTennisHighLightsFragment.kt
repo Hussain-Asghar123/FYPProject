@@ -1,6 +1,5 @@
 package com.example.fypproject.TableTennisFragment
 
-
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -11,15 +10,16 @@ import com.example.fypproject.Sockets.JsonConverter
 import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.Utils.toastShort
+import com.example.fypproject.databinding.TabletennisHighlightsFragmentBinding
 import com.example.fypproject.databinding.TabletennisScoringFragmentBinding
 
-class TableTennisScoringFragment:Fragment(R.layout.tabletennis_scoring_fragment) {
-    private var _binding: TabletennisScoringFragmentBinding? = null
+class TableTennisHighLightsFragment: Fragment(R.layout.tabletennis_highlights_fragment) {
+    private var _binding: TabletennisHighlightsFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = TabletennisScoringFragmentBinding.bind(view)
+        _binding = TabletennisHighlightsFragmentBinding.bind(view)
         arguments?.let { bundle ->
             matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 bundle.getSerializable("match_response", MatchResponse::class.java)
@@ -73,8 +73,8 @@ class TableTennisScoringFragment:Fragment(R.layout.tabletennis_scoring_fragment)
     }
 
     companion object {
-        fun newInstance(match: MatchResponse): TableTennisScoringFragment {
-            return TableTennisScoringFragment().apply {
+        fun newInstance(match: MatchResponse): TableTennisHighLightsFragment {
+            return TableTennisHighLightsFragment().apply {
                 arguments = Bundle().apply {
                     putSerializable("match_response", match)
                 }
