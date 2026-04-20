@@ -31,8 +31,9 @@ class HeavyStatsActivity : AppCompatActivity() {
         private const val SPORT_CRICKET = "cricket"
         private const val SPORT_FUTSAL = "futsal"
         private const val SPORT_VOLLEYBALL = "volleyball"
-
         private const val SPORT_BADMINTON = "badminton"
+        private const val SPORT_TABLETENNIS = "table tennis"
+        private const val SPORT_TUGOFWAR = "tug of war"
     }
 
     private lateinit var binding: ActivityHeavyStatsBinding
@@ -121,15 +122,39 @@ class HeavyStatsActivity : AppCompatActivity() {
         R.id.chipFutsal -> SPORT_FUTSAL
         R.id.chipVolleyball-> SPORT_VOLLEYBALL
         R.id.chipBadminton-> SPORT_BADMINTON
+        R.id.chipTableTennis-> SPORT_TABLETENNIS
+        R.id.chipTugofwar-> SPORT_TUGOFWAR
         else -> SPORT_CRICKET
     }
 
     // ✅ Naya sport add karna ho to sirf yahan ek jagah add karo
-    private fun sportToChipId(sport: String): Int = when (sport) {
+    private fun sportToChipId(sport: String): Int = when (normalizeSportKey(sport)) {
         SPORT_FUTSAL -> R.id.chipFutsal
         SPORT_VOLLEYBALL -> R.id.chipVolleyball
         SPORT_BADMINTON -> R.id.chipBadminton
+        SPORT_TABLETENNIS -> R.id.chipTableTennis
+        SPORT_TUGOFWAR-> R.id.chipTugofwar
         else -> R.id.chipCricket
+    }
+
+    private fun normalizeSportKey(rawSport: String?): String {
+        val compact = rawSport
+            ?.lowercase(Locale.US)
+            ?.replace("_", " ")
+            ?.replace("-", " ")
+            ?.replace("\\s+".toRegex(), " ")
+            ?.trim()
+            ?: return SPORT_CRICKET
+
+        return when (compact.replace(" ", "")) {
+            "futsal" -> SPORT_FUTSAL
+            "cricket" -> SPORT_CRICKET
+            "volleyball" -> SPORT_VOLLEYBALL
+            "badminton" -> SPORT_BADMINTON
+            "tabletennis" -> SPORT_TABLETENNIS
+            "tugofwar" -> SPORT_TUGOFWAR
+            else -> SPORT_CRICKET
+        }
     }
 
 
@@ -295,18 +320,13 @@ class HeavyStatsActivity : AppCompatActivity() {
         styleChip(binding.chipFutsal, sport == SPORT_FUTSAL)
         styleChip(binding.chipVolleyball, sport == SPORT_VOLLEYBALL)
         styleChip(binding.chipBadminton, sport == SPORT_BADMINTON)
+        styleChip(binding.chipTableTennis, sport == SPORT_TABLETENNIS)
+        styleChip(binding.chipTugofwar, sport == SPORT_TUGOFWAR)
     }
 
 
     private fun detectSport(stats: PlayerStatsDto): String {
-        val responseSport = stats.sport?.lowercase(Locale.US)
-        return when {
-            responseSport?.contains(SPORT_FUTSAL) == true -> SPORT_FUTSAL
-            responseSport?.contains(SPORT_CRICKET) == true -> SPORT_CRICKET
-            responseSport?.contains(SPORT_VOLLEYBALL) == true -> SPORT_VOLLEYBALL
-            responseSport?.contains(SPORT_BADMINTON) == true -> SPORT_BADMINTON
-            else -> SPORT_CRICKET // default cricket, JS jaisa
-        }
+        return normalizeSportKey(stats.sport)
     }
 
 
@@ -314,11 +334,17 @@ class HeavyStatsActivity : AppCompatActivity() {
         val headerBinding = CardPlayerStatsHeaderBinding.bind(binding.playerHeader.root)
         headerBinding.tvPlayerName.text = stats.playerName ?: "Player"
 
+        // Reset section visibility before applying sport-specific layout behavior.
+        binding.layoutBattingStats.root.visibility = View.VISIBLE
+        binding.layoutBowlingStats.root.visibility = View.VISIBLE
+
         // ✅ Naya sport add karna ho to sirf yahan ek jagah add karo
         when (sport) {
             SPORT_FUTSAL -> bindFutsalStats(stats)
             SPORT_VOLLEYBALL->bindVolleyballStats(stats)
             SPORT_BADMINTON->bindBadmintonStats(stats)
+            SPORT_TABLETENNIS->bindTableTennisStats(stats)
+            SPORT_TUGOFWAR->bindTugOfWarStats(stats)
             else -> bindCricketStats(stats)
         }
     }
@@ -484,6 +510,92 @@ class HeavyStatsActivity : AppCompatActivity() {
                 "Out Shots" to outShots.toString()
             )
         )
+    }
+
+    private fun bindTableTennisStats(stats: PlayerStatsDto) {
+        val matches = stats.tableTennisMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        val points    = stats.goals
+        val smashesAces = stats.assists
+        val faults    = stats.futsalFouls
+        val outShots  = stats.yellowCards
+
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Points"
+            tvBoxValue.text = points.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Smashes"
+            tvBoxValue.text = smashesAces.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        val attackRatio = if (stats.goals > 0)
+            "${((stats.assists.toDouble() / stats.goals) * 100).toInt()}%"
+        else "—"
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Points Scored"  to points.toString(),
+                "Smashes + Aces" to smashesAces.toString(),
+                "Attack Ratio"   to attackRatio
+            )
+        )
+        setupGrid(
+            binding.layoutBowlingStats.root, "Faults",
+            listOf(
+                "Net/Service Faults" to faults.toString(),
+                "Out Shots"          to outShots.toString()
+            )
+        )
+    }
+
+    private fun bindTugOfWarStats(stats: PlayerStatsDto) {
+        val matches = stats.tugOfWarMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        val points    = stats.goals
+        val smashesAces = stats.assists
+        val faults    = stats.futsalFouls
+
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Match Won"
+            tvBoxValue.text = smashesAces.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Rounds Won"
+            tvBoxValue.text = points.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        val winRate = if (matches > 0)
+            "${((stats.assists.toDouble() / matches) * 100).toInt()}%"
+        else "—"
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Matches Played" to matches.toString(),
+                "Matches Won"    to smashesAces.toString(),
+                "Matches Lost"   to faults.toString(),
+                "Rounds Won"     to points.toString(),
+                "Win Rate"       to winRate
+            )
+        )
+
+        binding.layoutBowlingStats.root.visibility = View.GONE
     }
 
     private fun setupGrid(root: View, title: String, dataList: List<Pair<String, String>>) {

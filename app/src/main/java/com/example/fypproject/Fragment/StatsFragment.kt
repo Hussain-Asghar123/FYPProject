@@ -48,6 +48,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             SPORT_FUTSAL     -> populateFutsalUI(stats)
             SPORT_VOLLEYBALL -> populateVolleyballUI(stats)
             SPORT_BADMINTON->populateBadmintonUI(stats)
+            SPORT_TABLE_TENNIS->populateTableTennisUI(stats)
+            SPORT_TUG_OF_WAR->populateTugOfWarUI(stats)
             else             -> populateCricketUI(stats)
         }
     }
@@ -107,7 +109,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
         binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
 
-        // ✅ topScorer/topAssist pehle, phir list se — JS jaisa
         binding.cardBestBatsman.tvLabel.text      = "Top Scorer"
         binding.cardBestBatsman.tvPlayerName.text =
             stats.topScorer?.playerName
@@ -273,6 +274,98 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
+    private fun populateTableTennisUI(stats: TournamentStatsDto) {
+        hideCardHighestScore()
+        hideBowlersSection()
+
+        val scorers = stats.topGoalScorers.orEmpty()
+
+        binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
+
+        binding.cardBestBatsman.tvLabel.text      = "Top Scorer"
+        binding.cardBestBatsman.tvPlayerName.text =
+            stats.topScorer?.playerName
+                ?: scorers.maxByOrNull { it.goals }?.playerName
+                        ?: "TBD"
+        binding.cardBestBatsman.tvValue.text      =
+            stats.topScorer?.reason
+                ?: scorers.maxByOrNull { it.goals }?.let { "${it.goals} pts" }
+                        ?: "No Data"
+
+        binding.cardBestBowler.tvLabel.text       = "Top Attacker"
+        binding.cardBestBowler.tvPlayerName.text  =
+            stats.topAssist?.playerName
+                ?: scorers.maxByOrNull { it.assists }?.playerName
+                        ?: "TBD"
+        binding.cardBestBowler.tvValue.text       =
+            stats.topAssist?.reason
+                ?: scorers.maxByOrNull { it.assists }?.let { "${it.assists} smashes" }
+                        ?: "No Data"
+
+        binding.tvTopBatsmenTitle.text = "Top Scorers"
+        binding.headerBatsmen.apply {
+            tvRuns.text  = "Pts"
+            tvBalls.text = "Smash+Ace"
+            tvFours.text = "Faults"
+            tvSixes.visibility = View.GONE
+            tvPom.visibility   = View.GONE
+        }
+        binding.rvTopBatsmen.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = TournamentStatsAdapter(
+                sportType       = TournamentStatsAdapter.SPORT_TABLETENNIS,
+                isBatting       = true,
+                goalScorerItems = scorers
+            )
+        }
+    }
+
+    private fun populateTugOfWarUI(stats: TournamentStatsDto) {
+        hideCardHighestScore()
+        hideBowlersSection()
+
+        val scorers = stats.topGoalScorers.orEmpty()
+
+        binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
+
+        binding.cardBestBatsman.tvLabel.text      = "Best Team"
+        binding.cardBestBatsman.tvPlayerName.text =
+            stats.topScorer?.playerName
+                ?: scorers.maxByOrNull { it.goals }?.playerName
+                        ?: "TBD"
+        binding.cardBestBatsman.tvValue.text      =
+            stats.topScorer?.reason
+                ?: scorers.maxByOrNull { it.goals }?.let { "${it.goals} rounds won" }
+                        ?: "No Data"
+
+        binding.cardBestBowler.tvLabel.text       = "Most Dominant"
+        binding.cardBestBowler.tvPlayerName.text  =
+            stats.topAssist?.playerName
+                ?: scorers.maxByOrNull { it.assists }?.playerName
+                        ?: "TBD"
+        binding.cardBestBowler.tvValue.text       =
+            stats.topAssist?.reason
+                ?: scorers.maxByOrNull { it.assists }?.let { "${it.assists} matches won" }
+                        ?: "No Data"
+
+        binding.tvTopBatsmenTitle.text = "Top Performers"
+        binding.headerBatsmen.apply {
+            tvRuns.text  = "Rounds Won"
+            tvBalls.text = "Matches Won"
+            tvFours.text = "POM"
+            tvSixes.visibility = View.GONE
+            tvPom.visibility   = View.GONE
+        }
+        binding.rvTopBatsmen.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = TournamentStatsAdapter(
+                sportType       = TournamentStatsAdapter.SPORT_TUG_OF_WAR,
+                isBatting       = true,
+                goalScorerItems = scorers
+            )
+        }
+    }
+
     // ── HELPERS ─────────────────────────────────────────────────────
     private fun showBowlersSection() {
         binding.tvTopBowlersTitle.visibility  = View.VISIBLE
@@ -306,6 +399,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             2L -> SPORT_FUTSAL
             3L -> SPORT_VOLLEYBALL
             4L -> SPORT_BADMINTON
+            5L-> SPORT_TABLE_TENNIS
+            6L-> SPORT_TUG_OF_WAR
             else -> null
         }
         if (fromId != null) return fromId
@@ -316,6 +411,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             name.contains(SPORT_VOLLEYBALL) -> SPORT_VOLLEYBALL
             name.contains(SPORT_CRICKET)    -> SPORT_CRICKET
             name.contains(SPORT_BADMINTON)   -> SPORT_BADMINTON
+            name.contains(SPORT_TABLE_TENNIS)   -> SPORT_TABLE_TENNIS
+            name.contains(SPORT_TUG_OF_WAR) -> SPORT_TUG_OF_WAR
             stats.topGoalScorers.orEmpty().isNotEmpty()
                     || stats.topAssistants.orEmpty().isNotEmpty() -> SPORT_FUTSAL
             else -> SPORT_CRICKET
@@ -341,7 +438,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         private const val SPORT_CRICKET    = "cricket"
         private const val SPORT_FUTSAL     = "futsal"
         private const val SPORT_VOLLEYBALL = "volleyball"
-
         private const val SPORT_BADMINTON  = "badminton"
+        private const val SPORT_TABLE_TENNIS  = "table_tennis"
+        private const val SPORT_TUG_OF_WAR  = "tug_of_war"
     }
 }

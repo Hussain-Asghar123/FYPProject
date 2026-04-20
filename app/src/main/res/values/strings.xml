@@ -43,4 +43,12 @@
 
     <string name="stats_value_with_unit">%1$d %2$s</string>
     <string name="stats_value_float_with_unit">%1$.2f %2$s</string>
+
+    <!-- Tug of War strings -->
+    <string name="team_won_round">%1$s %2$s Won Round</string>
+    <string name="confirm_round_win">Confirm: %1$s won this round?</string>
+    <string name="round_score">%1$d – %2$d</string>
+    <string name="round_label">Round %1$d of %2$d</string>
+    <string name="submitting">Submitting…</string>
+    <string name="submit_vote">Submit &amp; View Summary</string>
 </resources>

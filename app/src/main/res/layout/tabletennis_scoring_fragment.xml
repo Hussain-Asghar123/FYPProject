@@ -65,6 +65,19 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
+            <TextView
+                android:id="@+id/tvDeuce"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚔️ DEUCE — Lead by 2 to win"
+                android:textColor="#1D4ED8"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:background="#DBEAFE"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"/>
+
             <!-- Team B Name -->
             <TextView
                 android:id="@+id/teamB"
@@ -98,6 +111,44 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 tools:text="12:34"/>
+
+            <LinearLayout
+                android:id="@+id/layoutTeamASetIndicators"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/teamA"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/score">
+
+                <View
+                    android:id="@+id/viewTeamASetDot1"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:background="@drawable/bg_set_indicator_empty"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutTeamBSetIndicators"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/teamB"
+                app:layout_constraintStart_toEndOf="@id/score"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <View
+                    android:id="@+id/viewTeamBSetDot1"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:background="@drawable/bg_set_indicator_empty"/>
+            </LinearLayout>
+
+
 
             <!-- Period -->
             <TextView
@@ -189,7 +240,7 @@
         <!-- Scoring main panel -->
         <include
             android:id="@+id/futsalScoring"
-            layout="@layout/futsal_scoring"
+            layout="@layout/tenis_scoring"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="visible"/>
@@ -197,7 +248,7 @@
         <!-- Goal panel -->
         <include
             android:id="@+id/goal"
-            layout="@layout/layout_goal"
+            layout="@layout/layout_point"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>
@@ -205,15 +256,7 @@
         <!-- Foul panel -->
         <include
             android:id="@+id/foul"
-            layout="@layout/layout_fouls"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
-
-        <!-- Substitution panel -->
-        <include
-            android:id="@+id/subsitute"
-            layout="@layout/layout_subsitute"
+            layout="@layout/layout_sets_foul"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>
@@ -229,7 +272,7 @@
         <!-- Futsal Summary panel -->
         <include
             android:id="@+id/layoutFutsalSummary"
-            layout="@layout/layout_futsal_summary"
+            layout="@layout/layout_badmintion_summary"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>

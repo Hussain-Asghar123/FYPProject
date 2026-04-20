@@ -48,7 +48,7 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnFootball.setOnClickListener { onSportSelected("Futsal", it) }
         binding.btnVolleyball.setOnClickListener { onSportSelected("VolleyBall", it) }
         binding.btnBadminton.setOnClickListener { onSportSelected("Badminton", it) }
-        binding.btnTugOfWar.setOnClickListener { onSportSelected("Tug of War", it) }
+        binding.btnTugOfWar.setOnClickListener { onSportSelected("TugOfWar", it) }
         binding.btnLudo.setOnClickListener { onSportSelected("Ludo", it) }
         binding.btnChess.setOnClickListener { onSportSelected("Chess", it) }
         binding.btnTableTennis.setOnClickListener { onSportSelected("Table Tennis", it) }

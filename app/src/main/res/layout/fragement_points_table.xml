@@ -65,16 +65,16 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/headerFutsal"
-                    android:layout_width="wrap_content"
+                    android:layout_width="610dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="8dp"
                     app:cardCornerRadius="8dp"
                     app:cardElevation="2dp">
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#059669"
+                        android:background="#E31212"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="12dp">
@@ -134,16 +134,16 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/headerVolleyball"
-                    android:layout_width="wrap_content"
+                    android:layout_width="610dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="8dp"
                     app:cardCornerRadius="8dp"
                     app:cardElevation="2dp">
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#059669"
+                        android:background="#E31212"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="12dp">
@@ -197,7 +197,52 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#7C3AED"
+                android:background="#E31212"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="2.5" android:gravity="center" android:text="Team"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="P"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="W"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="L"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="Pts"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboardBadminton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"/>
+
+
+        <!-- TABLETENNIS: Simple — P | W | L | Pts only (no HorizontalScroll needed) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/headerTableTennis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E31212"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="12dp">
@@ -221,7 +266,139 @@
         </androidx.cardview.widget.CardView>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLeaderboardBadminton"
+            android:id="@+id/rvLeaderboardTableTennis"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"/>
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/headerLudo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E31212"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="2.5" android:gravity="center" android:text="Team"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="P"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="W"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="L"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="Pts"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboardLudo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"/>
+
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/headerChess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E31212"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="2.5" android:gravity="center" android:text="Team"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="P"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="W"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="L"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="Pts"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboardChess"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"/>
+
+
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/headerTugOfWar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E31212"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="2.5" android:gravity="center" android:text="Team"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="P"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="W"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="L"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:gravity="center" android:text="Pts"
+                    android:textColor="@android:color/white" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboardTugOfWar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="4dp"

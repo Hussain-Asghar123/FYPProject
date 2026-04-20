@@ -107,12 +107,13 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
 
     private fun loadAvailablePlayers() {
         if (currentTeamId == null) return
-
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = api.getAllPlayerAccounts(currentTeamId!!)
                 if (response.isSuccessful && response.body() != null) {
+                    val currentPlayerIds = currentTeamPlayers.map { it.id.toLong() }.toSet()
                     allAvailablePlayers = response.body()!!
+                        .filter { it.playerId !in currentPlayerIds }
                     setupDropdownFilter()
                 }
             } catch (e: Exception) {
@@ -128,7 +129,7 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         }
 
         val names = allAvailablePlayers.map {
-            "${it.username} (-${it.name})"
+            "${it.name} (${it.username})"
         }
 
         val adapter = ArrayAdapter(
@@ -214,8 +215,13 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val response =
-                    api.createTeamRequest(TeamRequest(currentTeamId!!, playerId))
+                val response = api.createTeamRequest(
+                    TeamRequest(
+                        teamId       = currentTeamId!!,
+                        playerId     = playerId,
+                        tournamentId = tournamentId   // ✅ JS se match
+                    )
+                )
                 if (response.isSuccessful) {
                     toastShort("Team submitted")
                     checkTeamExists()

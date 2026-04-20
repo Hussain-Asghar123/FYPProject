@@ -12,6 +12,7 @@ import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.TabletennisScorecardFragmentBinding
+import org.json.JSONObject
 
 class TableTennisScoreCardFragment :Fragment(R.layout.tabletennis_scorecard_fragment) {
     private var _binding: TabletennisScorecardFragmentBinding? = null
@@ -28,7 +29,34 @@ class TableTennisScoreCardFragment :Fragment(R.layout.tabletennis_scorecard_frag
                 bundle.getSerializable("match_response") as? MatchResponse
             }
         }
+        binding.tvTeam1Name.text = matchResponse?.team1Name ?: "Team 1"
+        binding.tvTeam2Name.text = matchResponse?.team2Name ?: "Team 2"
         setupSocketConnection()
+    }
+
+    private fun updateUI(obj: JSONObject) {
+        if (_binding == null) return
+        binding.apply {
+            val team1Games = obj.optInt("team1Games",
+                obj.optInt("gamesTeam1", 0))
+            val team2Games = obj.optInt("team2Games",
+                obj.optInt("gamesTeam2", 0))
+
+            val team1Points = obj.optInt("team1Points",
+                obj.optInt("team1Score",
+                    obj.optInt("scoreTeam1", 0)))
+            val team2Points = obj.optInt("team2Points",
+                obj.optInt("team2Score",
+                    obj.optInt("scoreTeam2", 0)))
+
+            tvTeam1Goals.text = team1Games.toString()
+            tvTeam2Goals.text = team2Games.toString()
+
+            tvTeam1Fouls.text = team1Points.toString()
+            tvTeam2Fouls.text = team2Points.toString()
+
+            android.util.Log.d("BADMINTON_SCORECARD", "Games: $team1Games-$team2Games, Points: $team1Points-$team2Points")
+        }
     }
     override fun onResume() {
         super.onResume()
@@ -62,13 +90,17 @@ class TableTennisScoreCardFragment :Fragment(R.layout.tabletennis_scorecard_frag
                 }
             }
             WebSocketManager.messageListener = { jsonString ->
-                val updatedScore = JsonConverter.fromJson(jsonString)
-                updatedScore?.let {
-                    activity?.runOnUiThread {
+                activity?.runOnUiThread {
+                    try {
+                        val obj = JSONObject(jsonString)
+                        updateUI(obj)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
             }
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
+
+            WebSocketManager.connect(id)
         }
     }
 

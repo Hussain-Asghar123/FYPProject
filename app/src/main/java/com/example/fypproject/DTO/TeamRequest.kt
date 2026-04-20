@@ -30,7 +30,8 @@ data class PlayerRequest(
 )
 data class TeamRequest(
     val teamId: Long,
-    val playerId: Long
+    val playerId: Long,
+    val tournamentId: Long
 )
 
 data class PlayerResponse(

@@ -822,7 +822,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private fun List<TeamPlayerDto>.toScoringPlayers() = mapNotNull { dto ->
         val id   = dto.id?.toInt()
         val name = dto.name
-        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name)
+        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name,status="")
     }
 
     override fun onResume() {

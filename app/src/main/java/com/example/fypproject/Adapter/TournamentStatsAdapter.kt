@@ -28,7 +28,7 @@ class TournamentStatsAdapter(
         RecyclerView.ViewHolder(binding.root)
 
     override fun getItemCount(): Int = when (sportType) {
-        SPORT_FUTSAL, SPORT_VOLLEYBALL,SPORT_BADMINTON ->
+        SPORT_FUTSAL, SPORT_VOLLEYBALL,SPORT_BADMINTON,SPORT_TABLETENNIS,SPORT_TUG_OF_WAR ->
             if (isBatting) goalScorerItems.size else assistantItems.size
         else ->
             if (isBatting) battingItems.size else bowlingItems.size
@@ -61,6 +61,14 @@ class TournamentStatsAdapter(
             SPORT_BADMINTON -> {
                 if (isBatting && holder is BattingViewHolder)
                     bindBadmintonScorers(holder.binding, goalScorerItems[position], rank, rankBg)
+            }
+            SPORT_TABLETENNIS -> {
+                if (isBatting && holder is BattingViewHolder)
+                    bindTableTennisScorers(holder.binding, goalScorerItems[position], rank, rankBg)
+            }
+            SPORT_TUG_OF_WAR -> {
+                if (isBatting && holder is BattingViewHolder)
+                    bindTugOfWarScorers(holder.binding, goalScorerItems[position], rank, rankBg)
             }
             else -> {
                 if (isBatting && holder is BattingViewHolder)
@@ -141,6 +149,27 @@ class TournamentStatsAdapter(
         b.tvFours.text = p.futsalFouls.toString()    // Faults
     }
 
+    private fun bindTableTennisScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
+        showCricketBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
+        b.tvPlayerName.text = p.playerName
+        b.tvRuns.text  = p.goals.toString()
+        b.tvBalls.text = p.assists.toString()
+        b.tvFours.text = p.futsalFouls.toString()
+    }
+
+    private fun bindTugOfWarScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
+        b.tvPlayerName.text = p.playerName
+        b.tvRuns.text  = p.goals.toString()
+        b.tvBalls.text = p.assists.toString()
+        b.tvFours.text = p.playerOfMatchCount.toString()
+        b.tvSixes.visibility = View.GONE
+        b.tvPom.visibility   = View.GONE
+    }
+
 
     private fun showCricketBowlingColumns(b: RowBowlersStatsBinding) {
         b.tvBalls.visibility = View.VISIBLE
@@ -170,5 +199,7 @@ class TournamentStatsAdapter(
         const val SPORT_FUTSAL     = "futsal"
         const val SPORT_VOLLEYBALL = "volleyball"
         const val SPORT_BADMINTON  = "badminton"
+        const val SPORT_TABLETENNIS = "table_tennis"
+        const val SPORT_TUG_OF_WAR = "tug_of_war"
     }
 }

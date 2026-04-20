@@ -12,10 +12,10 @@ data class TournamentStatsDto(
     val bestBowler: PlayerAwardDto? = null,
     val bestFielder: PlayerAwardDto? = null,
     val bestGoalScorer: PlayerAwardDto? = null,
-    val topScorer: PlayerAwardDto? = null,        // Futsal + Volleyball card
-    val topAssist: PlayerAwardDto? = null,         // Futsal + Volleyball card
+    val topScorer: PlayerAwardDto? = null,
+    val topAssist: PlayerAwardDto? = null,
     val mostSixes: SixesStatDto? = null,
-    val allAwards: List<PlayerAwardDto>? = null,   // ✅ ADD — POM list
+    val allAwards: List<PlayerAwardDto>? = null,
     val topRunScorers: List<TopBatsmanDto>? = null,
     val topBowlers: List<TopBowlerDto>? = null,
     val topGoalScorers: List<TopFutsalScorerDto>? = null,
@@ -64,10 +64,10 @@ data class TopFutsalScorerDto(
     val playerName: String,
     val goals: Int = 0,
     val assists: Int = 0,
-    val futsalFouls: Int = 0,      // ✅ nullable nahi — default 0
+    val futsalFouls: Int = 0,
     val yellowCards: Int = 0,
     val redCards: Int = 0,
-    val totalPoints: Int = 0,      // ✅ nullable nahi — default 0
+    val totalPoints: Int = 0,
     val matches: Int = 0,
     val playerOfMatchCount: Int = 0
 )
@@ -77,7 +77,7 @@ data class TopFutsalAssistantDto(
     val playerName: String,
     val assists: Int = 0,
     val goals: Int = 0,
-    val totalPoints: Int = 0,      // ✅ nullable nahi — default 0
+    val totalPoints: Int = 0,
     val matches: Int = 0,
     val playerOfMatchCount: Int = 0
 )

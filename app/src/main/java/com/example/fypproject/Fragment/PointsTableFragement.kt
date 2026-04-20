@@ -53,6 +53,11 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
                         "futsal" -> binding.rvLeaderboard
                         "volleyball" -> binding.rvLeaderboardVolleyball
                         "badminton" -> binding.rvLeaderboardBadminton
+                        "tabletennis" -> binding.rvLeaderboardTableTennis
+                        "tugofwar"-> binding.rvLeaderboardTugOfWar
+                        "ludo"-> binding.rvLeaderboardLudo
+                        "chess"-> binding.rvLeaderboardChess
+
                         else -> binding.rvLeaderboardCricket
                     }
 
@@ -77,6 +82,15 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         binding.volleyballScrollView.isVisible  = sport == "volleyball"
         binding.headerBadminton.isVisible       = sport == "badminton"
         binding.rvLeaderboardBadminton.isVisible = sport == "badminton"
+        binding.headerTableTennis.isVisible       = sport == "tabletennis"
+        binding.rvLeaderboardTableTennis.isVisible = sport == "tabletennis"
+        binding.headerTugOfWar.isVisible       = sport == "tugofwar"
+        binding.rvLeaderboardTugOfWar.isVisible = sport == "tugofwar"
+        binding.headerLudo.isVisible       = sport == "ludo"
+        binding.rvLeaderboardLudo.isVisible = sport == "ludo"
+        binding.headerChess.isVisible       = sport == "chess"
+        binding.rvLeaderboardChess.isVisible = sport == "chess"
+
     }
 
     private fun setLoading(isLoading: Boolean) {
@@ -101,6 +115,10 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
             "cricket" -> "cricket"
             "volleyball" -> "volleyball"
             "badminton" -> "badminton"
+            "table tennis", "tabletennis" -> "tabletennis"
+            "tug of war", "tugofwar" -> "tugofwar"
+            "ludo" -> "ludo"
+            "chess" -> "chess"
             else -> null
         }
     }

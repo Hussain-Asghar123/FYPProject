@@ -8,19 +8,13 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="1dp">
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="610dp"
         android:layout_height="wrap_content"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="560dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="10dp"
-            android:paddingHorizontal="8dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
 
             <!-- Team col: rank dot + name (fixed 140dp) -->
             <LinearLayout
@@ -34,7 +28,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:gravity="center"
-                    android:textSize="9sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
                     android:background="@drawable/bg_rank_circle"
@@ -116,6 +110,5 @@
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-        </LinearLayout>
-    </HorizontalScrollView>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

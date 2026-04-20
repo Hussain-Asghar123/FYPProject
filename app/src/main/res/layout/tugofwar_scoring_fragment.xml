@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- ════════════════════════════════════════ -->
+    <!--         HEADER + TABS                   -->
+    <!-- ════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/layoutScoringHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- HEADER -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="16dp"
+            android:background="@color/white">
+
+            <!-- Team A -->
+            <TextView
+                android:id="@+id/teamA"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Team A"
+                android:textSize="16sp"
+                android:textColor="#3B82F6"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="start"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tvVs"
+                app:layout_constraintTop_toTopOf="@id/tvVs"
+                app:layout_constraintBottom_toBottomOf="@id/tvVs"
+                app:layout_constraintWidth_percent="0.38"/>
+
+            <!-- VS -->
+            <TextView
+                android:id="@+id/tvVs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VS"
+                android:textSize="20sp"
+                android:textColor="#AAAAAA"
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <!-- Team B -->
+            <TextView
+                android:id="@+id/teamB"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Team B"
+                android:textSize="16sp"
+                android:textColor="#F43F5E"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/tvVs"
+                app:layout_constraintTop_toTopOf="@id/tvVs"
+                app:layout_constraintBottom_toBottomOf="@id/tvVs"
+                app:layout_constraintWidth_percent="0.38"/>
+
+            <!-- Round Score -->
+            <TextView
+                android:id="@+id/tvRoundScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 – 0"
+                android:textSize="42sp"
+                android:textColor="#111111"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/tvVs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <!-- Round Label -->
+            <TextView
+                android:id="@+id/tvRoundLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Round 1 of 5"
+                android:textSize="13sp"
+                android:textColor="#888888"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvRoundScore"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <!-- Timer -->
+            <TextView
+                android:id="@+id/tvTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textSize="28sp"
+                android:textColor="#D97706"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvRoundLabel"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Red Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#E31212"/>
+
+        <!-- TAB BAR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:background="@color/white">
+
+            <TextView
+                android:id="@+id/tabScoring"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Scoring"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#E31212"
+                android:background="@drawable/tab_selector"/>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#EEEEEE"/>
+
+            <TextView
+                android:id="@+id/tabEvents"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Events"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#888888"
+                android:background="@drawable/tab_selector"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#DDDDDD"/>
+
+    </LinearLayout>
+
+    <!-- SCORING TAB CONTENT -->
+    <FrameLayout
+        android:id="@+id/scoringTabContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#E31212"
+        app:layout_constraintTop_toBottomOf="@id/layoutScoringHeader"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Main Scoring Panel -->
+        <include
+            android:id="@+id/layoutScoring"
+            layout="@layout/tug_of_war_scoring_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"/>
+
+        <!-- Confirm Panel -->
+        <include
+            android:id="@+id/layoutConfirm"
+            layout="@layout/tug_of_war_confirm_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <!-- Voting panel -->
+        <include
+            android:id="@+id/layoutVoting"
+            layout="@layout/layout_voting"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <!-- Summary panel -->
+        <include
+            android:id="@+id/layoutSummary"
+            layout="@layout/tug_of_war_summary"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <!-- Progress Bar -->
+        <LinearLayout
+            android:id="@+id/layoutProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:id="@+id/progressBarLoading"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:indeterminateTint="#E31212"/>
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- EVENTS TAB CONTENT -->
+    <LinearLayout
+        android:id="@+id/eventsTabContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/layoutScoringHeader"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tvNoEvents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:text="No Events Yet"
+            android:gravity="center"
+            android:textSize="14sp"
+            android:textColor="#AAAAAA"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvEvents"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:background="#ffffff"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

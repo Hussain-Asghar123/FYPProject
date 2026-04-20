@@ -7,8 +7,12 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.PtsTableDto
 import com.example.fypproject.databinding.ItemBadmintonRowBinding
+import com.example.fypproject.databinding.ItemChessRowBinding
 import com.example.fypproject.databinding.ItemCricketRowBinding
 import com.example.fypproject.databinding.ItemFutsalRowBinding
+import com.example.fypproject.databinding.ItemLudoRowBinding
+import com.example.fypproject.databinding.ItemTabletennisRowBinding
+import com.example.fypproject.databinding.ItemTugofwarRowBinding
 import com.example.fypproject.databinding.ItemVolleyballRowBinding
 
 class PtsTableAdapter(
@@ -22,8 +26,11 @@ class PtsTableAdapter(
         private const val TYPE_CRICKET = 0
         private const val TYPE_FUTSAL  = 1
         private const val TYPE_VOLLEYBALL = 2
-
         private const val TYPE_BADMINTON = 3
+        private const val TYPE_TABLETENNIS=4
+        private const val TYPE_TUGOFWAR = 5
+        private const val TYPE_LUDO = 6
+        private const val TYPE_CHESS = 7
     }
 
     private var tableSport: String? = normalizeSport(forcedSport)
@@ -37,6 +44,10 @@ class PtsTableAdapter(
             "cricket" -> "cricket"
             "volleyball" -> "volleyball"
             "badminton" -> "badminton"
+            "table tennis", "tabletennis" -> "tabletennis"
+            "tug of war", "tugofwar" -> "tugofwar"
+            "ludo" -> "ludo"
+            "chess" -> "chess"
             else -> null
         }
     }
@@ -45,6 +56,10 @@ class PtsTableAdapter(
         "futsal"     -> TYPE_FUTSAL
         "volleyball" -> TYPE_VOLLEYBALL
         "badminton" -> TYPE_BADMINTON
+        "tabletennis" -> TYPE_TABLETENNIS
+        "tugofwar" -> TYPE_TUGOFWAR
+        "ludo" -> TYPE_LUDO
+        "chess" -> TYPE_CHESS
         else         -> TYPE_CRICKET
     }
 
@@ -185,6 +200,90 @@ class PtsTableAdapter(
         }
     }
 
+    inner class TableTennisVH(private val b: ItemTabletennisRowBinding) :
+        RecyclerView.ViewHolder(b.root) {
+        fun bind(item: PtsTableDto, position: Int) {
+            b.apply {
+                setRankDot(tvRank, position + 1)
+                tvTeamName.text = item.teamName
+                tvMatches.text  = item.played.toString()
+
+                tvWins.text = item.wins.toString()
+                tvWins.setTextColor(Color.parseColor("#16A34A"))
+
+                tvLosses.text = item.losses.toString()
+                tvLosses.setTextColor(Color.parseColor("#EF4444"))
+
+                tvPoints.text = item.points.toString()
+
+                root.setCardBackgroundColor(rowBg(position))
+            }
+        }
+    }
+    inner class TugOfWarVH(private val b: ItemTugofwarRowBinding) :
+        RecyclerView.ViewHolder(b.root) {
+        fun bind(item: PtsTableDto, position: Int) {
+            b.apply {
+                setRankDot(tvRank, position + 1)
+                tvTeamName.text = item.teamName
+                tvMatches.text  = item.played.toString()
+
+                tvWins.text = item.wins.toString()
+                tvWins.setTextColor(Color.parseColor("#16A34A"))
+
+                tvLosses.text = item.losses.toString()
+                tvLosses.setTextColor(Color.parseColor("#EF4444"))
+
+                tvPoints.text = item.points.toString()
+
+                root.setCardBackgroundColor(rowBg(position))
+            }
+        }
+    }
+    inner class LudoVH(private val b: ItemLudoRowBinding) :
+        RecyclerView.ViewHolder(b.root) {
+        fun bind(item: PtsTableDto, position: Int) {
+            b.apply {
+                setRankDot(tvRank, position + 1)
+                tvTeamName.text = item.teamName
+                tvMatches.text  = item.played.toString()
+
+                tvWins.text = item.wins.toString()
+                tvWins.setTextColor(Color.parseColor("#16A34A"))
+
+                tvLosses.text = item.losses.toString()
+                tvLosses.setTextColor(Color.parseColor("#EF4444"))
+
+                tvPoints.text = item.points.toString()
+
+                root.setCardBackgroundColor(rowBg(position))
+            }
+        }
+    }
+
+    inner class ChessVH(private val b: ItemChessRowBinding) :
+        RecyclerView.ViewHolder(b.root) {
+        fun bind(item: PtsTableDto, position: Int) {
+            b.apply {
+                setRankDot(tvRank, position + 1)
+                tvTeamName.text = item.teamName
+                tvMatches.text  = item.played.toString()
+
+                tvWins.text = item.wins.toString()
+                tvWins.setTextColor(Color.parseColor("#16A34A"))
+
+                tvLosses.text = item.losses.toString()
+                tvLosses.setTextColor(Color.parseColor("#EF4444"))
+
+                tvPoints.text = item.points.toString()
+
+                root.setCardBackgroundColor(rowBg(position))
+            }
+        }
+    }
+
+
+
     private fun setRankDot(tv: android.widget.TextView, rank: Int) {
         tv.text = rank.toString()
         val color = when (rank) {
@@ -211,6 +310,11 @@ class PtsTableAdapter(
             TYPE_FUTSAL     -> FutsalVH(ItemFutsalRowBinding.inflate(inflater, parent, false))
             TYPE_VOLLEYBALL -> VolleyballVH(ItemVolleyballRowBinding.inflate(inflater, parent, false))
             TYPE_BADMINTON -> BadmintonVH(ItemBadmintonRowBinding.inflate(inflater, parent, false))
+            TYPE_TABLETENNIS -> TableTennisVH(ItemTabletennisRowBinding.inflate(inflater, parent, false))
+            TYPE_TUGOFWAR -> TugOfWarVH(ItemTugofwarRowBinding.inflate(inflater, parent, false))
+            TYPE_LUDO -> LudoVH(ItemLudoRowBinding.inflate(inflater, parent, false))
+            TYPE_CHESS -> ChessVH(ItemChessRowBinding.inflate(inflater, parent, false))
+
             else            -> CricketVH(ItemCricketRowBinding.inflate(inflater, parent, false))
         }
     }
@@ -221,6 +325,11 @@ class PtsTableAdapter(
             is FutsalVH     -> holder.bind(items[position], position)
             is VolleyballVH -> holder.bind(items[position], position)
             is BadmintonVH -> holder.bind(items[position], position)
+            is TableTennisVH -> holder.bind(items[position], position)
+            is TugOfWarVH -> holder.bind(items[position], position)
+            is LudoVH-> holder.bind(items[position], position)
+            is ChessVH-> holder.bind(items[position], position)
+
         }
     }
 

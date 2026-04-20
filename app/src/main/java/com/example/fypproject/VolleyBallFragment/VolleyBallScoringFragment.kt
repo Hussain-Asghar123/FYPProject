@@ -457,13 +457,11 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         }
     }
 
-    // FIX 3: Timer sirf tab show ho jab actually start ho — visibility bhi toggle karein
     private fun startSetTimer(startTime: Long) {
         timerTask?.cancel()
         setStartTimeMs = startTime
         timerEverStarted = true
 
-        // Timer view show karein jab startTime mile
         activity?.runOnUiThread {
             if (_binding != null) {
                 binding.tvSetTimer.visibility = View.VISIBLE
@@ -491,12 +489,10 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
                     is SocketState.Connected    -> toast("Connected")
                     is SocketState.Error        -> {
                         toast("Socket Error")
-                        // FIX 2: Socket error par bhi isActionPending reset karein
                         isActionPending = false
                         if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE) {
                             setScoringButtonsEnabled(true)
                         }
-                        // Agar point/timeout/sub panel mein hain tab bhi scoring panel par wapas aayein
                         if (_binding != null && (
                                     binding.layoutPoint.root.visibility == View.VISIBLE ||
                                             binding.timeout.root.visibility == View.VISIBLE ||
@@ -505,8 +501,6 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
                         }
                     }
                     is SocketState.Disconnected -> {
-                        // FIX 2: Disconnect par bhi pending state reset karein
-                        // taake reconnect ke baad panel disable na rahe
                         isActionPending = false
                         if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE) {
                             setScoringButtonsEnabled(true)
@@ -881,7 +875,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     private fun List<TeamPlayerDto>.toScoringPlayers() = mapNotNull { dto ->
         val id   = dto.id?.toInt()
         val name = dto.name
-        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name)
+        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name,status="")
     }
 
     companion object {
