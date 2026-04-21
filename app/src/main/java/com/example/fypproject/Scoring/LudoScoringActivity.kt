@@ -10,13 +10,19 @@ import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.LudoFragment.LudoHighlightsFragment
 import com.example.fypproject.LudoFragment.LudoInfoFragment
 import com.example.fypproject.LudoFragment.LudoScoringFragment
+import com.example.fypproject.ScoringDTO.LudoScoreDTO
+import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.databinding.ActivityLudoScoringBinding
 import com.google.android.material.button.MaterialButton
+import com.google.gson.Gson
 
 class LudoScoringActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLudoScoringBinding
     private var matchResponse: MatchResponse? = null
     private lateinit var buttons: List<MaterialButton>
+    var latestScore: LudoScoreDTO? = null
+        private set
+    private val ACTIVITY_SOCKET_KEY = "LudoScoringActivity"
 
     private var ludoScoringFragment: LudoScoringFragment? = null
     private var ludoHighlightsFragment: LudoHighlightsFragment? = null
@@ -71,7 +77,16 @@ class LudoScoringActivity : AppCompatActivity() {
             ludoInfoFragment       = fm.findFragmentByTag("LudoInfoFragment")       as? LudoInfoFragment       ?: ludoInfoFragment
             selectButton(binding.btnScoring)
         }
-
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        WebSocketManager.addMessageListener(ACTIVITY_SOCKET_KEY) { jsonString ->
+            val score = runCatching {
+                Gson().fromJson(jsonString, LudoScoreDTO::class.java)
+            }.getOrNull() ?: return@addMessageListener
+            latestScore = score
+            runOnUiThread {
+                ludoHighlightsFragment?.onScoreUpdated(score)
+            }
+        }
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             showFragment(ludoScoringFragment ?: return@setOnClickListener)
@@ -84,6 +99,23 @@ class LudoScoringActivity : AppCompatActivity() {
             selectButton(binding.btnInfo)
             showFragment(ludoInfoFragment ?: return@setOnClickListener)
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isChangingConfigurations) {
+            WebSocketManager.disconnect()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WebSocketManager.disconnect()
+        WebSocketManager.removeMessageListener(ACTIVITY_SOCKET_KEY)
     }
 
     private fun showFragment(fragment: Fragment) {

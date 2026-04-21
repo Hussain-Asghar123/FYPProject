@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.VolleyBallEventsAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.VolleyBallScoringActivity
 import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
 import com.example.fypproject.ScoringDTO.VolleyballEvent
 import com.example.fypproject.Sockets.SocketState
@@ -21,6 +22,7 @@ class VolleyBallHighLightsFragment : Fragment(R.layout.volleyball_highlights_fra
     private var _binding: VolleyballHighlightsFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private val SOCKET_KEY = "VolleyBallHighLightsFragment"
 
     private val eventsList = mutableListOf<VolleyballEvent>()
     private lateinit var eventsAdapter: VolleyBallEventsAdapter
@@ -37,13 +39,21 @@ class VolleyBallHighLightsFragment : Fragment(R.layout.volleyball_highlights_fra
         }
 
         setupRecyclerView()
-        setupSocketConnection()
+        registerSocketListeners()
+        (activity as? VolleyBallScoringActivity)?.latestScore?.let {
+            it.volleyballEvents?.let { events -> updateEvents(events) }
+        }
+
     }
 
     private fun setupRecyclerView() {
         eventsAdapter = VolleyBallEventsAdapter(eventsList) { _ -> }
         binding.rvMatchEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvMatchEvents.adapter = eventsAdapter
+    }
+    fun onScoreUpdated(score: VollayBallScoreDTO) {
+        if (_binding == null) return
+        score.volleyballEvents?.let { updateEvents(it) }
     }
 
     private fun updateEvents(newEvents: List<VolleyballEvent>) {
@@ -56,52 +66,48 @@ class VolleyBallHighLightsFragment : Fragment(R.layout.volleyball_highlights_fra
             if (eventsList.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { id ->
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Error -> context?.toastShort("Socket Error")
-                        else -> {}
-                    }
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Error -> context?.toastShort("Socket Error")
+                    else -> {}
                 }
             }
-
-            WebSocketManager.messageListener = { jsonString ->
-                activity?.runOnUiThread {
-                    try {
-                        val score = Gson().fromJson(jsonString, VollayBallScoreDTO::class.java)
-                        val events = score?.volleyballEvents
-                        if (!events.isNullOrEmpty()) {
-                            updateEvents(events)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            WebSocketManager.connect(id)
         }
+        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
     }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
 
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        registerSocketListeners()
     }
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            registerSocketListeners()
+            (activity as? VolleyBallScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
+        } else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
+
 
     companion object {
         fun newInstance(match: MatchResponse) = VolleyBallHighLightsFragment().apply {

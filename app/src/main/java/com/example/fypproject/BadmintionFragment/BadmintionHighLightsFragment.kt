@@ -9,6 +9,7 @@ import com.example.fypproject.Adapter.BadmintionEventAdapter
 import com.example.fypproject.Adapter.VolleyBallEventsAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.BadmintionScoringActivity
 import com.example.fypproject.ScoringDTO.BadmintionScoreDTO
 import com.example.fypproject.ScoringDTO.BadmintonEvent
 import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
@@ -26,6 +27,8 @@ class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_frag
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
 
+    private val SOCKET_KEY = "BadmintionHighLightsFragment"
+
     private val eventsList = mutableListOf<BadmintonEvent>()
     private lateinit var eventsAdapter: BadmintionEventAdapter
 
@@ -41,7 +44,10 @@ class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_frag
             }
         }
         setupRecyclerView()
-        setupSocketConnection()
+        (activity as? BadmintionScoringActivity)?.latestScore?.let {
+            it.badmintonEvents?.let { events -> updateEvents(events) }
+        }
+
     }
     private fun setupRecyclerView() {
         eventsAdapter = BadmintionEventAdapter(eventsList) { _ -> }
@@ -58,53 +64,49 @@ class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_frag
         binding.rvMatchEvents.visibility =
             if (eventsList.isEmpty()) View.GONE else View.VISIBLE
     }
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Connected -> { /* silent */ }
+                    is SocketState.Error -> context?.toastShort("Socket Error")
+                    is SocketState.Disconnected -> {}
+                }
+            }
+        }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { id ->
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
-        }
+        registerSocketListeners()
     }
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
+    }
+
+    fun onScoreUpdated(score: BadmintionScoreDTO) {
+        if (_binding == null) return
+        score.badmintonEvents?.let { updateEvents(it) }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            (activity as? BadmintionScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
-    }
-
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { id ->
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Connected -> requireContext().toastShort("")
-                        is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
-                        is SocketState.Disconnected -> {}
-                    }
-                }
-            }
-            WebSocketManager.messageListener = { jsonString ->
-                activity?.runOnUiThread {
-                    try {
-                        val score = Gson().fromJson(jsonString, BadmintionScoreDTO::class.java)
-                        val events = score?.badmintonEvents
-                        if (!events.isNullOrEmpty()) {
-                            updateEvents(events)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            WebSocketManager.connect(id)
-        }
     }
 
     companion object {

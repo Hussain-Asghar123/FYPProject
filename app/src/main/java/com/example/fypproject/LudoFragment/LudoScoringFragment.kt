@@ -39,6 +39,8 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
 
+    private val SOCKET_KEY = "LudoScoringFragment"
+
     private var team1HomeRuns   = 0
     private var team2HomeRuns   = 0
     private var team1Captures   = 0
@@ -413,7 +415,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     }
 
     private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
                     is SocketState.Connected -> { /* silent */ }
@@ -421,22 +423,19 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
                         toast("Socket Error")
                         isActionPending = false
                         if (_binding != null &&
-                            binding.layoutScoring.root.visibility == View.VISIBLE) {
+                            binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                     is SocketState.Disconnected -> {
                         isActionPending = false
                         if (_binding != null &&
-                            binding.layoutScoring.root.visibility == View.VISIBLE) {
+                            binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                 }
             }
         }
-
-        WebSocketManager.messageListener = { jsonString ->
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
             android.util.Log.d("LUDO_SOCKET", "Raw: $jsonString")
             activity?.runOnUiThread {
                 try {
@@ -450,9 +449,19 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         }
     }
 
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+    // 3. onHiddenChanged ADD karo:
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners()
+        else unregisterSocketListeners()
+    }
     private fun setupSocketConnection() {
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
@@ -686,21 +695,17 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     override fun onResume() {
         super.onResume()
         setupSocketListeners()
-        if (!WebSocketManager.isConnected()) {
-            matchResponse?.id?.let { WebSocketManager.connect(it) }
-        }
     }
 
     override fun onPause() {
         super.onPause()
+        unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         timerTask?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 

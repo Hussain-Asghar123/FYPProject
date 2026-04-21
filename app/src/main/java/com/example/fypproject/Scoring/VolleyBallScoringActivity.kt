@@ -7,18 +7,24 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
+import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.VolleyBallFragment.VolleyBallHighLightsFragment
 import com.example.fypproject.VolleyBallFragment.VolleyBallInfoFragment
 import com.example.fypproject.VolleyBallFragment.VolleyBallScoreCardFragment
 import com.example.fypproject.VolleyBallFragment.VolleyBallScoringFragment
 import com.example.fypproject.databinding.ActivityVolleyBallScoringBinding
 import com.google.android.material.button.MaterialButton
+import com.google.gson.Gson
 
 class VolleyBallScoringActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityVolleyBallScoringBinding
     private var matchResponse: MatchResponse? = null
     private lateinit var buttons: List<MaterialButton>
+    var latestScore: VollayBallScoreDTO? = null
+        private set
+    private val ACTIVITY_SOCKET_KEY = "VolleyBallScoringActivity"
 
     private var volleyBallScoringFragment: VolleyBallScoringFragment? = null
     private var volleyBallScoreCardFragment: VolleyBallScoreCardFragment? = null
@@ -78,6 +84,17 @@ class VolleyBallScoringActivity : AppCompatActivity() {
             selectButton(binding.btnScoring)
         }
 
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        WebSocketManager.addMessageListener(ACTIVITY_SOCKET_KEY) { jsonString ->
+            val score = runCatching {
+                Gson().fromJson(jsonString, VollayBallScoreDTO::class.java)
+            }.getOrNull() ?: return@addMessageListener
+            latestScore = score
+            runOnUiThread {
+                volleyBallScoreCardFragment?.onScoreUpdated(score)
+                volleyBallHighLightsFragment?.onScoreUpdated(score)
+            }
+        }
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
             showFragment(volleyBallScoringFragment ?: return@setOnClickListener)
@@ -94,6 +111,24 @@ class VolleyBallScoringActivity : AppCompatActivity() {
             selectButton(binding.btnInfo)
             showFragment(volleyBallInfoFragment ?: return@setOnClickListener)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isChangingConfigurations) {
+            WebSocketManager.disconnect()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WebSocketManager.disconnect()
+        WebSocketManager.removeMessageListener(ACTIVITY_SOCKET_KEY)
     }
 
     private fun showFragment(fragment: Fragment) {

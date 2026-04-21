@@ -19,6 +19,7 @@ class LudoInfoFragment  :Fragment(R.layout.info_fragment) {
 
     private var _binding: InfoFragmentBinding? = null
     private val binding get() = _binding!!
+    private val SOCKET_KEY = "LudoInfoFragment"
     private var matchResponse: MatchResponse? = null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -31,50 +32,49 @@ class LudoInfoFragment  :Fragment(R.layout.info_fragment) {
                 bundle.getSerializable("match_response") as? MatchResponse
             }
         }
-        setupSocketConnection()
         populateMatchInfo()
     }
+
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Connected -> { /* silent */ }
+                    is SocketState.Error -> { /* handle if needed */ }
+                    is SocketState.Disconnected -> {}
+                }
+            }
+        }
+        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { id ->
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
-        }
+        registerSocketListeners()
     }
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { id ->
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Connected -> requireContext().toastShort("")
-                        is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
-                        is SocketState.Disconnected -> {}
-                    }
-                }
-            }
-            WebSocketManager.messageListener = { jsonString ->
-                val updatedScore = JsonConverter.fromJson(jsonString)
-                updatedScore?.let {
-                    activity?.runOnUiThread {
-                    }
-                }
-            }
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
-        }
-    }
 
     private fun populateMatchInfo() {
         matchResponse?.let { match ->

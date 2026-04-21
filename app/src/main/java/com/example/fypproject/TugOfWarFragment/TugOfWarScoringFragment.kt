@@ -13,7 +13,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.fypproject.Adapter.LudoEventAdapter
 import com.example.fypproject.Adapter.TugOfWarEventAdapter
 import com.example.fypproject.Adapter.VotePlayerAdapter
 import com.example.fypproject.DTO.MatchResponse
@@ -42,18 +41,19 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
 
-    private var team1Rounds    = 0
-    private var team2Rounds    = 0
-    private var currentRound   = 1
-    private var roundsToWin    = 3
-    private var totalRounds    = 5
-    private var matchStatus    = "LIVE"
+    private val SOCKET_KEY = "TugOfWarScoringFragment"
+
+    private var team1Rounds = 0
+    private var team2Rounds = 0
+    private var currentRound = 1
+    private var roundsToWin = 3
+    private var totalRounds = 5
+    private var matchStatus = "LIVE"
     private var roundStartTimeMs = 0L
-    private var isActionPending  = false
+    private var isActionPending = false
     private var timerEverStarted = false
 
     private var confirmTeamId: Long? = null
-
     private var canEdit = false
 
     private var votingAlreadyTriggered = false
@@ -69,8 +69,8 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private val timer = Timer()
 
     private var pendingEventId: Long? = null
-    private var cameraImageUri: Uri?  = null
-    private var isUploading           = false
+    private var cameraImageUri: Uri? = null
+    private var isUploading = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -88,7 +88,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         computeCanEdit()
         setupEventsRecycler()
         setupBottomTabs()
-        setupSocketConnection()
+        registerSocketListeners()
         showTab("scoring")
 
         val status = matchResponse?.status?.uppercase().orEmpty()
@@ -99,6 +99,72 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         } else {
             showPanel("scoring")
         }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            registerSocketListeners()
+        } else {
+            unregisterSocketListeners()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerSocketListeners()
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        timerTask?.cancel()
+        unregisterSocketListeners()
+        _binding = null
+    }
+
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Connected -> { /* silent */ }
+                    is SocketState.Error -> {
+                        toast("Socket Error")
+                        isActionPending = false
+                        if (_binding != null && binding.layoutScoring.root.isVisible) {
+                            setScoringButtonsEnabled(true)
+                        }
+                    }
+                    is SocketState.Disconnected -> {
+                        isActionPending = false
+                        if (_binding != null && binding.layoutScoring.root.isVisible) {
+                            setScoringButtonsEnabled(true)
+                        }
+                    }
+                }
+            }
+        }
+
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
+            android.util.Log.d("TOW_SOCKET", "Raw: $jsonString")
+            activity?.runOnUiThread {
+                try {
+                    handleServerUpdate(JSONObject(jsonString))
+                } catch (e: Exception) {
+                    android.util.Log.e("TOW_SOCKET", "Parse error: ${e.message}")
+                    isActionPending = false
+                    if (_binding != null) setScoringButtonsEnabled(true)
+                }
+            }
+        }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
     private fun getBundleData() {
@@ -113,24 +179,24 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     }
 
     private fun computeCanEdit() {
-        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role     = prefs.getString("role", "")?.trim().orEmpty()
+        val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role = prefs.getString("role", "")?.trim().orEmpty()
         val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer   = matchResponse?.scorerId?.trim().orEmpty()
+        val scorer = matchResponse?.scorerId?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true) || scorer.equals(username, true)
     }
 
     private fun setupBottomTabs() {
         binding.tabScoring.setOnClickListener { showTab("scoring") }
-        binding.tabEvents.setOnClickListener  { showTab("events")  }
+        binding.tabEvents.setOnClickListener { showTab("events") }
     }
 
     private fun showTab(tab: String) {
         val isScoring = tab == "scoring"
         binding.scoringTabContent.visibility = if (isScoring) View.VISIBLE else View.GONE
-        binding.eventsTabContent.visibility  = if (isScoring) View.GONE    else View.VISIBLE
-        binding.tabScoring.isSelected        = isScoring
-        binding.tabEvents.isSelected         = !isScoring
+        binding.eventsTabContent.visibility = if (isScoring) View.GONE else View.VISIBLE
+        binding.tabScoring.isSelected = isScoring
+        binding.tabEvents.isSelected = !isScoring
         binding.tabScoring.setTextColor(
             ContextCompat.getColor(requireContext(), if (isScoring) R.color.tab_active else R.color.tab_inactive)
         )
@@ -146,16 +212,21 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private fun showMediaDialog(eventId: Long?) {
         pendingEventId = eventId
-        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
+        val dialog = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
-        val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
+        val btnCamera = dialogView.findViewById<View>(R.id.btnOpenCamera)
         val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
-        val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
-        val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
+        val tvGallery = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
         if (isUploading) tvGallery.text = "Uploading"
-        btnCamera.setOnClickListener  { dialog.dismiss(); openCamera() }
-        btnGallery.setOnClickListener { if (!isUploading) { dialog.dismiss(); galleryLauncher.launch("image/*") } }
-        btnCancel.setOnClickListener  { dialog.dismiss() }
+        btnCamera.setOnClickListener { dialog.dismiss(); openCamera() }
+        btnGallery.setOnClickListener {
+            if (!isUploading) {
+                dialog.dismiss()
+                galleryLauncher.launch("image/*")
+            }
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
         dialog.setView(dialogView)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
@@ -164,32 +235,34 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private fun openCamera() {
         val imageFile = File(requireContext().cacheDir, "camera_${System.currentTimeMillis()}.jpg")
         cameraImageUri = FileProvider.getUriForFile(
-            requireContext(), "${requireContext().packageName}.provider", imageFile)
+            requireContext(), "${requireContext().packageName}.provider", imageFile
+        )
         cameraLauncher.launch(cameraImageUri!!)
     }
 
     private fun setupEventsRecycler() {
-        eventsAdapter = TugOfWarEventAdapter(eventsList)
+        eventsAdapter = TugOfWarEventAdapter(eventsList) { event ->
+            showMediaDialog(event.id)
+        }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvEvents.adapter       = eventsAdapter
+        binding.rvEvents.adapter = eventsAdapter
     }
 
     private fun uploadMediaFile(uri: Uri) {
         val matchId = matchResponse?.id ?: return
-        val eventId = pendingEventId   ?: return
+        val eventId = pendingEventId ?: return
         isUploading = true
         toast("Uploading")
         lifecycleScope.launch {
             try {
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
-                val tempFile    =
-                    File(requireContext().cacheDir, "upload_${System.currentTimeMillis()}.jpg")
+                val tempFile = File(requireContext().cacheDir, "upload_${System.currentTimeMillis()}.jpg")
                 tempFile.outputStream().use { out -> inputStream?.copyTo(out) }
                 val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
-                val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
+                val filePart = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
                 val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                val response    = withContext(Dispatchers.IO) {
+                val response = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
                 }
                 if (response.isSuccessful) toast("Upload Successful!")
@@ -197,18 +270,18 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             } catch (e: Exception) {
                 toast("Upload failed: ${e.message}")
             } finally {
-                isUploading    = false
+                isUploading = false
                 pendingEventId = null
             }
         }
     }
 
     private fun showPanel(panel: String) {
-        binding.layoutScoring.root.visibility  = View.GONE
-        binding.layoutConfirm.root.visibility  = View.GONE
-        binding.layoutVoting.root.visibility   = View.GONE
-        binding.layoutSummary.root.visibility  = View.GONE
-        binding.layoutProgressBar.visibility   = View.GONE
+        binding.layoutScoring.root.visibility = View.GONE
+        binding.layoutConfirm.root.visibility = View.GONE
+        binding.layoutVoting.root.visibility = View.GONE
+        binding.layoutSummary.root.visibility = View.GONE
+        binding.layoutProgressBar.visibility = View.GONE
 
         binding.layoutScoringHeader.visibility = when (panel) {
             "voting", "summary", "loading" -> View.GONE
@@ -218,9 +291,9 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         when (panel) {
             "scoring" -> { binding.layoutScoring.root.visibility = View.VISIBLE; setupScoringPanel() }
             "confirm" -> { binding.layoutConfirm.root.visibility = View.VISIBLE; setupConfirmPanel() }
-            "voting"  ->   binding.layoutVoting.root.visibility  = View.VISIBLE
-            "summary" ->   binding.layoutSummary.root.visibility = View.VISIBLE
-            "loading" ->   binding.layoutProgressBar.visibility  = View.VISIBLE
+            "voting" -> binding.layoutVoting.root.visibility = View.VISIBLE
+            "summary" -> binding.layoutSummary.root.visibility = View.VISIBLE
+            "loading" -> binding.layoutProgressBar.visibility = View.VISIBLE
         }
     }
 
@@ -231,7 +304,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         if (!canEdit) {
             binding.layoutScoring.btnTeam1Win.visibility = View.GONE
             binding.layoutScoring.btnTeam2Win.visibility = View.GONE
-            binding.layoutScoring.btnUndo.visibility     = View.GONE
+            binding.layoutScoring.btnUndo.visibility = View.GONE
             binding.layoutScoring.btnEndMatch.visibility = View.GONE
             return
         }
@@ -284,9 +357,11 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             if (isActionPending) return@setOnClickListener
             isActionPending = true
             setScoringButtonsEnabled(false)
-            sendEvent(JSONObject()
-                .put("eventType", "ROUND_WIN")
-                .put("winnerTeamId", tId))
+            sendEvent(
+                JSONObject()
+                    .put("eventType", "ROUND_WIN")
+                    .put("winnerTeamId", tId)
+            )
             confirmTeamId = null
             showPanel("scoring")
         }
@@ -307,14 +382,14 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             binding.layoutScoring.btnEndMatch
         ).forEach {
             it.isEnabled = enabled
-            it.alpha     = alpha
+            it.alpha = alpha
         }
     }
 
     private fun updateScoreUI() {
         if (_binding == null) return
-        binding.tvRoundScore.text  = getString(R.string.round_score, team1Rounds, team2Rounds)
-        binding.tvRoundLabel.text  = getString(R.string.round_label, currentRound, totalRounds)
+        binding.tvRoundScore.text = getString(R.string.round_score, team1Rounds, team2Rounds)
+        binding.tvRoundLabel.text = getString(R.string.round_label, currentRound, totalRounds)
     }
 
     private fun updateRopeVisualization() {
@@ -346,54 +421,12 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
                 activity?.runOnUiThread {
                     if (_binding == null || roundStartTimeMs == 0L) return@runOnUiThread
                     val elapsed = (System.currentTimeMillis() - roundStartTimeMs) / 1000
-                    binding.tvTimer.text = String.format(Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60)
+                    binding.tvTimer.text =
+                        String.format(Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60)
                 }
             }
         }
         timer.schedule(timerTask, 0, 1000)
-    }
-
-    private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
-            activity?.runOnUiThread {
-                when (state) {
-                    is SocketState.Connected -> { /* silent */ }
-                    is SocketState.Error -> {
-                        toast("Socket Error")
-                        isActionPending = false
-                        if (_binding != null &&
-                            binding.layoutScoring.root.isVisible) {
-                            setScoringButtonsEnabled(true)
-                        }
-                    }
-                    is SocketState.Disconnected -> {
-                        isActionPending = false
-                        if (_binding != null &&
-                            binding.layoutScoring.root.isVisible) {
-                            setScoringButtonsEnabled(true)
-                        }
-                    }
-                }
-            }
-        }
-
-        WebSocketManager.messageListener = { jsonString ->
-            android.util.Log.d("TOW_SOCKET", "Raw: $jsonString")
-            activity?.runOnUiThread {
-                try {
-                    handleServerUpdate(JSONObject(jsonString))
-                } catch (e: Exception) {
-                    android.util.Log.e("TOW_SOCKET", "Parse error: ${e.message}")
-                    isActionPending = false
-                    if (_binding != null) setScoringButtonsEnabled(true)
-                }
-            }
-        }
-    }
-
-    private fun setupSocketConnection() {
-        setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
@@ -401,11 +434,11 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
         isActionPending = false
 
-        team1Rounds  = obj.optInt("team1Rounds",  team1Rounds)
-        team2Rounds  = obj.optInt("team2Rounds",  team2Rounds)
+        team1Rounds = obj.optInt("team1Rounds", team1Rounds)
+        team2Rounds = obj.optInt("team2Rounds", team2Rounds)
         currentRound = obj.optInt("currentRound", currentRound)
-        roundsToWin  = obj.optInt("roundsToWin",  roundsToWin)
-        totalRounds  = obj.optInt("totalRounds",  totalRounds)
+        roundsToWin = obj.optInt("roundsToWin", roundsToWin)
+        totalRounds = obj.optInt("totalRounds", totalRounds)
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
@@ -417,14 +450,16 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
                 val ev = eventsArray.getJSONObject(i)
                 val eventType = ev.optString("eventType", "")
                 if (eventType.isEmpty()) continue
-                eventsList.add(0, TugOfWarEvent(
-                    id                  = ev.optLong("id", System.currentTimeMillis()),
-                    eventType           = eventType,
-                    winnerTeamName      = ev.optString("winnerTeamName", "").ifEmpty { null },
-                    roundNumber         = ev.optInt("roundNumber", currentRound),
-                    roundDurationSeconds = ev.optInt("roundDurationSeconds", 0)
-                        .takeIf { it > 0 }
-                ))
+                eventsList.add(
+                    0, TugOfWarEvent(
+                        id = ev.optLong("id", System.currentTimeMillis()),
+                        eventType = eventType,
+                        winnerTeamName = ev.optString("winnerTeamName", "").ifEmpty { null },
+                        roundNumber = ev.optInt("roundNumber", currentRound),
+                        roundDurationSeconds = ev.optInt("roundDurationSeconds", 0)
+                            .takeIf { it > 0 }
+                    )
+                )
             }
             binding.tvNoEvents.visibility =
                 if (eventsList.isEmpty()) View.VISIBLE else View.GONE
@@ -465,31 +500,32 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private fun showTugOfWarSummary() {
         if (_binding == null || !isAdded) return
         showPanel("summary")
-        val s      = binding.layoutSummary
+        val s = binding.layoutSummary
         val t1Name = matchResponse?.team1Name ?: "Team A"
         val t2Name = matchResponse?.team2Name ?: "Team B"
-        s.tvTeam1Name.text   = t1Name
-        s.tvTeam2Name.text   = t2Name
+        s.tvTeam1Name.text = t1Name
+        s.tvTeam2Name.text = t2Name
         s.tvTeam1Rounds.text = team1Rounds.toString()
         s.tvTeam2Rounds.text = team2Rounds.toString()
         s.tvMatchResult.text = when {
             team1Rounds > team2Rounds -> "💪 $t1Name Wins!"
             team2Rounds > team1Rounds -> "💪 $t2Name Wins!"
-            else                      -> "🤝 Match Draw!"
+            else -> "🤝 Match Draw!"
         }
     }
+
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
-        val matchId   = matchResponse?.id ?: run { showTugOfWarSummary(); return }
+        val matchId = matchResponse?.id ?: run { showTugOfWarSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) { showTugOfWarSummary(); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
-        v.tvVoteTeam1Name.text              = matchResponse?.team1Name ?: "Team 1"
-        v.tvVoteTeam2Name.text              = matchResponse?.team2Name ?: "Team 2"
-        selectedVotePlayerId                = null
-        v.btnSubmitVote.isEnabled           = false
+        v.tvVoteTeam1Name.text = matchResponse?.team1Name ?: "Team 1"
+        v.tvVoteTeam2Name.text = matchResponse?.team2Name ?: "Team 2"
+        selectedVotePlayerId = null
+        v.btnSubmitVote.isEnabled = false
         v.layoutSelectedPlayerBanner.visibility = View.GONE
         v.etVoteFeedback.text?.clear()
 
@@ -504,19 +540,19 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
                 val onPicked: (TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
-                    else                              voteAdapter1?.clearSelection()
-                    selectedVotePlayerId   = player.id
+                    else voteAdapter1?.clearSelection()
+                    selectedVotePlayerId = player.id
                     selectedVotePlayerName = player.name ?: ""
-                    v.tvSelectedVotePlayer.text             = selectedVotePlayerName
+                    v.tvSelectedVotePlayer.text = selectedVotePlayerName
                     v.layoutSelectedPlayerBanner.visibility = View.VISIBLE
-                    v.btnSubmitVote.isEnabled               = true
+                    v.btnSubmitVote.isEnabled = true
                 }
                 voteAdapter1 = VotePlayerAdapter(players1, onPicked)
                 voteAdapter2 = VotePlayerAdapter(players2, onPicked)
                 v.rvVoteTeam1.layoutManager = LinearLayoutManager(requireContext())
-                v.rvVoteTeam1.adapter       = voteAdapter1
+                v.rvVoteTeam1.adapter = voteAdapter1
                 v.rvVoteTeam2.layoutManager = LinearLayoutManager(requireContext())
-                v.rvVoteTeam2.adapter       = voteAdapter2
+                v.rvVoteTeam2.adapter = voteAdapter2
             } catch (_: Exception) {
                 toast("Could not load players")
             } finally {
@@ -535,31 +571,36 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         if (accountId == -1L) { toast("Login again"); showTugOfWarSummary(); return }
         val v = binding.layoutVoting
         v.btnSubmitVote.isEnabled = false
-        v.btnSubmitVote.text      = getString(R.string.submitting)
-        v.btnSkipVote.isEnabled   = false
+        v.btnSubmitVote.text = getString(R.string.submitting)
+        v.btnSkipVote.isEnabled = false
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.submitVote(matchId, accountId, playerId)
                 }
                 when {
-                    response.isSuccessful   -> { markAsVoted(matchId); toast("Vote submitted!"); showTugOfWarSummary() }
-                    response.code() == 409  -> { markAsVoted(matchId); toast("Already voted!"); showTugOfWarSummary() }
+                    response.isSuccessful -> {
+                        markAsVoted(matchId); toast("Vote submitted!"); showTugOfWarSummary()
+                    }
+                    response.code() == 409 -> {
+                        markAsVoted(matchId); toast("Already voted!"); showTugOfWarSummary()
+                    }
                     else -> {
                         toast("Vote failed")
                         v.btnSubmitVote.isEnabled = true
-                        v.btnSubmitVote.text      = getString(R.string.submit_vote)
-                        v.btnSkipVote.isEnabled   = true
+                        v.btnSubmitVote.text = getString(R.string.submit_vote)
+                        v.btnSkipVote.isEnabled = true
                     }
                 }
             } catch (_: Exception) {
                 toast("Network error")
                 v.btnSubmitVote.isEnabled = true
-                v.btnSubmitVote.text      = getString(R.string.submit_vote)
-                v.btnSkipVote.isEnabled   = true
+                v.btnSubmitVote.text = getString(R.string.submit_vote)
+                v.btnSkipVote.isEnabled = true
             }
         }
     }
+
     private fun hasAlreadyVoted(matchId: Long) =
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
             .getBoolean("voted_match_$matchId", false)
@@ -573,27 +614,6 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             .getLong("id", -1L)
 
     private fun toast(msg: String) = context?.toastShort(msg)
-
-    override fun onResume() {
-        super.onResume()
-        setupSocketListeners()
-        if (!WebSocketManager.isConnected()) {
-            matchResponse?.id?.let { WebSocketManager.connect(it) }
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        timerTask?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
-        _binding = null
-    }
 
     companion object {
         fun newInstance(match: MatchResponse) = TugOfWarScoringFragment().apply {

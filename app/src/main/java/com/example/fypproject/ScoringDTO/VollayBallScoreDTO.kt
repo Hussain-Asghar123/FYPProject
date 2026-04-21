@@ -1,8 +1,8 @@
 package com.example.fypproject.ScoringDTO
 
 data class VollayBallScoreDTO(
-    val team1Score: Int?    = null,
-    val team2Score: Int?    = null,
+    val team1Points: Int?    = null,
+    val team2Points: Int?    = null,
     val team1Sets: Int?     = null,
     val team2Sets: Int?     = null,
     val currentSet: Int?    = null,

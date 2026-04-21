@@ -42,6 +42,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri?  = null
     private var isUploading           = false
+    private val SOCKET_KEY = "VolleyBallScoringFragment"
 
     private var isActionPending = false
 
@@ -122,20 +123,25 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     override fun onResume() {
         super.onResume()
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners()
+        else unregisterSocketListeners()
+    }
+
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
         timerTask?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 
@@ -483,34 +489,25 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     }
 
     private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
-                    is SocketState.Connected    -> toast("Connected")
-                    is SocketState.Error        -> {
+                    is SocketState.Connected -> toast("Connected")
+                    is SocketState.Error -> {
                         toast("Socket Error")
                         isActionPending = false
-                        if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE) {
+                        if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
-                        if (_binding != null && (
-                                    binding.layoutPoint.root.visibility == View.VISIBLE ||
-                                            binding.timeout.root.visibility == View.VISIBLE ||
-                                            binding.subsitute.root.visibility == View.VISIBLE)) {
-                            showPanel("scoring")
-                        }
                     }
                     is SocketState.Disconnected -> {
                         isActionPending = false
-                        if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE) {
+                        if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                 }
             }
         }
-
-        WebSocketManager.messageListener = { jsonString ->
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
             android.util.Log.d("VB_SOCKET", "Raw: $jsonString")
             activity?.runOnUiThread {
                 try {
@@ -522,6 +519,11 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
                 }
             }
         }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
@@ -629,7 +631,6 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
     private fun setupSocketConnection() {
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
 
     private fun sendEvent(json: JSONObject) {

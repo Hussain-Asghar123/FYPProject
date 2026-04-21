@@ -10,13 +10,19 @@ import com.example.fypproject.ChessFragment.ChessHighlightsFragment
 import com.example.fypproject.ChessFragment.ChessInfoFragment
 import com.example.fypproject.ChessFragment.ChessScoringFragment
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.ScoringDTO.ChessScoreDTO
+import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.databinding.ActivityChessScoringBinding
 import com.google.android.material.button.MaterialButton
+import com.google.gson.Gson
 
 class ChessScoringActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChessScoringBinding
     private var matchResponse: MatchResponse? = null
     private lateinit var buttons: List<MaterialButton>
+    var latestScore: ChessScoreDTO? = null
+        private set
+    private val ACTIVITY_SOCKET_KEY = "ChessScoringActivity"
 
     private var chessScoringFragment: ChessScoringFragment? = null
     private var chessHighlightsFragment: ChessHighlightsFragment? = null
@@ -71,6 +77,20 @@ class ChessScoringActivity : AppCompatActivity() {
             chessInfoFragment       = fm.findFragmentByTag("ChessInfoFragment")       as? ChessInfoFragment       ?: chessInfoFragment
             selectButton(binding.btnScoring)
         }
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        WebSocketManager.addMessageListener(ACTIVITY_SOCKET_KEY) { jsonString ->
+            val score = runCatching {
+                Gson().fromJson(jsonString, ChessScoreDTO::class.java)
+            }.getOrNull() ?: return@addMessageListener
+
+            latestScore = score
+
+            runOnUiThread {
+                chessHighlightsFragment?.onScoreUpdated(score)
+
+            }
+        }
+
 
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
@@ -84,6 +104,23 @@ class ChessScoringActivity : AppCompatActivity() {
             selectButton(binding.btnInfo)
             showFragment(chessInfoFragment ?: return@setOnClickListener)
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isChangingConfigurations) {
+            WebSocketManager.disconnect()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WebSocketManager.disconnect()
+        WebSocketManager.removeMessageListener(ACTIVITY_SOCKET_KEY)
     }
 
     private fun showFragment(fragment: Fragment) {

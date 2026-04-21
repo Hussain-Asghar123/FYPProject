@@ -6,12 +6,9 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.FutsalScoringActivity
 import com.example.fypproject.ScoringDTO.FutsalScoreDTO
-import com.example.fypproject.Sockets.SocketState
-import com.example.fypproject.Sockets.WebSocketManager
-import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.FutsalScorecardFragmentBinding
-import com.google.gson.Gson
 
 class FutsalScoreCardFragment : Fragment(R.layout.futsal_scorecard_fragment) {
 
@@ -32,12 +29,25 @@ class FutsalScoreCardFragment : Fragment(R.layout.futsal_scorecard_fragment) {
             }
         }
 
-        setupSocketConnection()
+        // Team names set karo
+        binding.tvTeam1Name.text = matchResponse?.team1Name ?: "Team 1"
+        binding.tvTeam2Name.text = matchResponse?.team2Name ?: "Team 2"
+
+        // ── JS ki tarah: jo data already aa chuka hai wo dikhao ──
+        // Jab fragment pehli baar bane ya tab switch karo — cached data dikhao
+        (activity as? FutsalScoringActivity)?.latestScore?.let { updateUI(it) }
+    }
+
+    // Activity is function ko call karegi jab naya data aaye
+    fun onScoreUpdated(score: FutsalScoreDTO) {
+        if (_binding == null) return
+        updateUI(score)
     }
 
     private fun updateUI(score: FutsalScoreDTO) {
-        binding.tvTeam1Name.text  = matchResponse?.team1Name ?: "Team 1"
-        binding.tvTeam2Name.text  = matchResponse?.team2Name ?: "Team 2"
+        if (_binding == null) return
+        binding.tvTeam1Name.text        = matchResponse?.team1Name ?: "Team 1"
+        binding.tvTeam2Name.text        = matchResponse?.team2Name ?: "Team 2"
         binding.tvTeam1Goals.text       = score.team1Score.toString()
         binding.tvTeam2Goals.text       = score.team2Score.toString()
         binding.tvTeam1Fouls.text       = score.team1Fouls.toString()
@@ -48,46 +58,16 @@ class FutsalScoreCardFragment : Fragment(R.layout.futsal_scorecard_fragment) {
         binding.tvTeam2RedCards.text    = score.team2RedCards.toString()
     }
 
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let {
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Connected    -> {}
-                        is SocketState.Error        -> requireContext().toastShort("Socket Error: ${state.message}")
-                        is SocketState.Disconnected -> {}
-                    }
-                }
-            }
-
-            WebSocketManager.messageListener = { jsonString ->
-                val updatedScore = runCatching {
-                    Gson().fromJson(jsonString, FutsalScoreDTO::class.java)
-                }.getOrNull()
-                updatedScore?.let { score ->
-                    activity?.runOnUiThread {
-                        updateUI(score)
-                    }
-                }
-            }
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        // Tab switch pe cached data refresh karo
+        if (!hidden) {
+            (activity as? FutsalScoringActivity)?.latestScore?.let { updateUI(it) }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.disconnect()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
         _binding = null
     }
 

@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.TableTennisEventAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.TableTennisScoringActivity
 import com.example.fypproject.ScoringDTO.TableTennisEvent
 import com.example.fypproject.ScoringDTO.TableTennisScoringDTO
 import com.example.fypproject.Sockets.SocketState
@@ -22,6 +23,7 @@ class TableTennisHighLightsFragment : Fragment(R.layout.tabletennis_highlights_f
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
     private val eventsList = mutableListOf<TableTennisEvent>()
+    private val SOCKET_KEY = "TableTennisHighLightsFragment"
     private lateinit var eventsAdapter: TableTennisEventAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -36,6 +38,13 @@ class TableTennisHighLightsFragment : Fragment(R.layout.tabletennis_highlights_f
             }
         }
         setupRecyclerView()
+        (activity as? TableTennisScoringActivity)?.latestScore?.let {
+            it.tableTennisEvents?.let { events -> updateEvents(events) }
+        }
+    }
+    fun onScoreUpdated(score: TableTennisScoringDTO) {
+        if (_binding == null) return
+        score.tableTennisEvents?.let { updateEvents(it) }
     }
 
     private fun setupRecyclerView() {
@@ -53,50 +62,50 @@ class TableTennisHighLightsFragment : Fragment(R.layout.tabletennis_highlights_f
             if (eventsList.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    override fun onResume() {
-        super.onResume()
-        setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
-        _binding = null
-    }
-
-    private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
-                    is SocketState.Connected -> requireContext().toastShort("Connected")
-                    is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
+                    is SocketState.Connected -> { /* silent */ }
+                    is SocketState.Error -> context?.toastShort("Socket Error")
                     is SocketState.Disconnected -> {}
                 }
             }
         }
-        WebSocketManager.messageListener = { jsonString ->
-            activity?.runOnUiThread {
-                try {
-                    val score = Gson().fromJson(jsonString, TableTennisScoringDTO::class.java)
-                    val events = score?.tableTennisEvents
-                    if (!events.isNullOrEmpty()) {
-                        updateEvents(events)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        registerSocketListeners()
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        unregisterSocketListeners()
+    }
+
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            registerSocketListeners()
+            (activity as? TableTennisScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
+        } else unregisterSocketListeners()
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        unregisterSocketListeners()
+        _binding = null
     }
 
     companion object {

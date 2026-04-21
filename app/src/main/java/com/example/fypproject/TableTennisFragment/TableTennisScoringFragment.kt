@@ -42,6 +42,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri?  = null
     private var isUploading           = false
+    private val SOCKET_KEY = "TableTennisScoringFragment"
 
     private var team1Points    = 0
     private var team2Points    = 0
@@ -65,15 +66,12 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     private var voteAdapter1: VotePlayerAdapter? = null
     private var voteAdapter2: VotePlayerAdapter? = null
 
-    // ── Events ──
     private val eventsList = mutableListOf<TableTennisEvent>()
     private lateinit var eventsAdapter: TableTennisEventAdapter
 
-    // ── Timer ──
     private var timerTask: TimerTask? = null
     private val timer = Timer()
 
-    // ── JS SCORE_TYPES se match ──
     private val scoreTypes = listOf(
         "POINT"       to "🏓 Rally Point",
         "SMASH"       to "💥 Smash",
@@ -81,20 +79,17 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         "EDGE_BALL"   to "🎱 Edge Ball"
     )
 
-    // ── JS FAULT_TYPES se match ──
     private val faultTypes = listOf(
         "NET_FAULT"     to "🔴 Net Fault",
         "OUT"           to "⚡ Ball Out",
         "SERVICE_FAULT" to "🟠 Service Fault"
     )
 
-    // ── Wizard state ──
     private var selectedPointType: String?  = null
     private var selectedPointTeamId: Long?  = null
     private var selectedFoulType: String?   = null
     private var selectedFoulTeamId: Long?   = null
 
-    // ── Camera / Gallery ──
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? -> uri?.let { uploadMediaFile(it) } }
@@ -124,7 +119,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Bundle ──────────────────────────────────────────────────
     private fun getBundleData() {
         matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getSerializable("match_response", MatchResponse::class.java)
@@ -144,7 +138,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         canEdit = role.equals("ADMIN", true) || scorer.equals(username, true)
     }
 
-    // ── Tabs ────────────────────────────────────────────────────
     private fun setupBottomTabs() {
         binding.tabScoring.setOnClickListener { showTab("scoring") }
         binding.tabEvents.setOnClickListener  { showTab("events")  }
@@ -171,7 +164,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Events Recycler ─────────────────────────────────────────
     private fun setupEventsRecycler() {
         eventsAdapter = TableTennisEventAdapter(eventsList) { event ->
             showMediaDialog(event.id)
@@ -179,15 +171,13 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter       = eventsAdapter
     }
-
-    // ── Panel system ─────────────────────────────────────────────
     private fun showPanel(panel: String) {
-        binding.futsalScoring.root.visibility      = View.GONE
-        binding.goal.root.visibility               = View.GONE
-        binding.foul.root.visibility               = View.GONE
-        binding.layoutVoting.root.visibility       = View.GONE
+        binding.futsalScoring.root.visibility = View.GONE
+        binding.goal.root.visibility = View.GONE
+        binding.foul.root.visibility = View.GONE
+        binding.layoutVoting.root.visibility = View.GONE
         binding.layoutFutsalSummary.root.visibility = View.GONE
-        binding.layoutProgressBar.visibility       = View.GONE
+        binding.layoutProgressBar.visibility = View.GONE
 
         binding.layoutScoringHeader.visibility = when (panel) {
             "voting", "summary", "loading" -> View.GONE
@@ -195,16 +185,24 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
 
         when (panel) {
-            "scoring" -> { binding.futsalScoring.root.visibility       = View.VISIBLE; setupScoringPanel() }
-            "point"   -> { binding.goal.root.visibility                = View.VISIBLE; setupPointPanel()   }
-            "foul"    -> { binding.foul.root.visibility                = View.VISIBLE; setupFoulPanel()    }
-            "voting"  ->   binding.layoutVoting.root.visibility        = View.VISIBLE
-            "summary" ->   binding.layoutFutsalSummary.root.visibility = View.VISIBLE
-            "loading" ->   binding.layoutProgressBar.visibility        = View.VISIBLE
+            "scoring" -> {
+                binding.futsalScoring.root.visibility = View.VISIBLE; setupScoringPanel()
+            }
+
+            "point" -> {
+                binding.goal.root.visibility = View.VISIBLE; setupPointPanel()
+            }
+
+            "foul" -> {
+                binding.foul.root.visibility = View.VISIBLE; setupFoulPanel()
+            }
+
+            "voting" -> binding.layoutVoting.root.visibility = View.VISIBLE
+            "summary" -> binding.layoutFutsalSummary.root.visibility = View.VISIBLE
+            "loading" -> binding.layoutProgressBar.visibility = View.VISIBLE
         }
     }
 
-    // ── Scoring Panel ────────────────────────────────────────────
     private fun setupScoringPanel() {
         updateScoreUI()
         updateGameCircles()
@@ -262,7 +260,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Point Panel ──────────────────────────────────────────────
     private fun setupPointPanel() {
         val p = binding.goal
         p.tvClose.setOnClickListener { showPanel("scoring") }
@@ -302,7 +299,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Foul Panel ───────────────────────────────────────────────
     private fun setupFoulPanel() {
         val f = binding.foul
         f.tvClose.setOnClickListener { showPanel("scoring") }
@@ -342,7 +338,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Score UI ─────────────────────────────────────────────────
     private fun updateScoreUI() {
         if (_binding == null) return
         binding.score.text = "$team1Points - $team2Points"
@@ -356,7 +351,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         binding.tvDeuce.visibility = if (isDeuce) View.VISIBLE else View.GONE
     }
 
-    // ── Game Circles ─────────────────────────────────────────────
     private fun updateGameCircles() {
         if (_binding == null) return
         drawCircles(binding.layoutTeamASetIndicators,
@@ -386,13 +380,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Timer — Volleyball latest pattern ────────────────────────
     private fun startGameTimer(startTime: Long) {
         timerTask?.cancel()
         gameStartTimeMs  = startTime
         timerEverStarted = true
 
-        // ✅ Timer visible karo
         activity?.runOnUiThread {
             if (_binding != null) binding.timer.visibility = View.VISIBLE
         }
@@ -409,34 +401,28 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         timer.scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
-    // ── WebSocket — Volleyball latest pattern ─────────────────────
     private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
                     is SocketState.Connected -> { /* silent */ }
                     is SocketState.Error -> {
                         toast("Socket Error")
-                        // ✅ Error par pending reset
                         isActionPending = false
                         if (_binding != null &&
-                            binding.futsalScoring.root.visibility == View.VISIBLE) {
+                            binding.futsalScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                     is SocketState.Disconnected -> {
-                        // ✅ Disconnect par pending reset
                         isActionPending = false
                         if (_binding != null &&
-                            binding.futsalScoring.root.visibility == View.VISIBLE) {
+                            binding.futsalScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                 }
             }
         }
-
-        WebSocketManager.messageListener = { jsonString ->
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
             android.util.Log.d("TT_SOCKET", "Raw: $jsonString")
             activity?.runOnUiThread {
                 try {
@@ -450,19 +436,20 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    private fun setupSocketConnection() {
-        setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
-    // ── handleServerUpdate — Volleyball latest pattern ───────────
+    private fun setupSocketConnection() {
+        setupSocketListeners()
+    }
+
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
 
-        // ✅ Response aaya — pending reset
         isActionPending = false
 
-        // ✅ THEEK — JS se match
         team1Points = obj.optInt("team1Points", team1Points)
         team2Points = obj.optInt("team2Points", team2Points)
         team1Games  = obj.optInt("team1Games",  team1Games)
@@ -474,7 +461,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
 
-        // ✅ tableTennisEvents — JS se match
         val eventsArray = obj.optJSONArray("tableTennisEvents")
         if (eventsArray != null) {
             eventsList.clear()
@@ -500,7 +486,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         updateScoreUI()
         updateGameCircles()
 
-        // ✅ Buttons enable karo
         if (binding.futsalScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
@@ -513,7 +498,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ✅ tableTennisEvents parser — JS se match
     private fun parseTableTennisEvent(obj: JSONObject) {
         val eventType = obj.optString("eventType", "").ifEmpty { return }
         if (eventType == "END_GAME") return
@@ -556,7 +540,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         WebSocketManager.send(json.toString())
     }
 
-    // ── Summary ───────────────────────────────────────────────────
     private fun showTableTennisSummary() {
         if (_binding == null || !isAdded) return
         showPanel("summary")
@@ -574,7 +557,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Voting ────────────────────────────────────────────────────
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showTableTennisSummary(); return }
@@ -658,7 +640,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Players ──────────────────────────────────────────────────
     private fun fetchPlayers() {
         val t1 = matchResponse?.team1Id ?: return
         val t2 = matchResponse?.team2Id ?: return
@@ -675,7 +656,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    // ── Media Dialog ─────────────────────────────────────────────
     private fun showMediaDialog(eventId: Long?) {
         pendingEventId = eventId
         val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
@@ -780,23 +760,25 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     }
 
 
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.disconnect()
-    }
-
     override fun onResume() {
         super.onResume()
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners()
+        else unregisterSocketListeners()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         timerTask?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 

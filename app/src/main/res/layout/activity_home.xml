@@ -156,6 +156,17 @@
                             app:cornerRadius="18dp" />
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTableTennis"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:backgroundTint="#212121"
+                            android:paddingHorizontal="16dp"
+                            android:text="Table Tennis"
+                            android:textAllCaps="false"
+                            android:textColor="@android:color/white"
+                            app:cornerRadius="18dp" />
+
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnTugOfWar"
                             android:layout_width="wrap_content"
                             android:layout_height="40dp"
@@ -190,18 +201,6 @@
                             android:textAllCaps="false"
                             android:textColor="@android:color/white"
                             app:cornerRadius="18dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTableTennis"
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:backgroundTint="#212121"
-                            android:paddingHorizontal="16dp"
-                            android:text="Table Tennis"
-                            android:textAllCaps="false"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="18dp" />
-
                     </LinearLayout>
 
                 </HorizontalScrollView>

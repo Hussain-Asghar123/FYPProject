@@ -702,6 +702,85 @@
                     android:layout_marginTop="6dp"/>
             </LinearLayout>
 
+            <!-- ══ CHESS CONFIG SECTION ══ -->
+            <LinearLayout
+                android:id="@+id/chessConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Match Configuration"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:textColor="#455A64"
+                    android:layout_marginBottom="8dp"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <!-- Chess piece icon -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♟️"
+                            android:textSize="40sp"
+                            android:layout_marginEnd="16dp"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Chess Match"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#1C1C1C"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Toss winner chooses White or Black pieces"
+                                android:textSize="12sp"
+                                android:textColor="#888888"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <TextView
+                    android:id="@+id/tvChessSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="♟️ Classic Chess · Toss winner picks color"
+                    android:textSize="10sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:gravity="center"
+                    android:layout_marginTop="6dp"/>
+
+            </LinearLayout>
+
             <!-- ── DECISION SECTION ── -->
             <LinearLayout
                 android:id="@+id/decisionSection"

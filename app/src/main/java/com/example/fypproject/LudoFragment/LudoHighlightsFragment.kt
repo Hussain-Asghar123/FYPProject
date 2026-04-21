@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.LudoEventAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.LudoScoringActivity
 import com.example.fypproject.ScoringDTO.LudoEvent
 import com.example.fypproject.ScoringDTO.LudoScoreDTO
 import com.example.fypproject.Sockets.SocketState
@@ -21,6 +22,7 @@ class LudoHighlightsFragment : Fragment(R.layout.ludo_highlight_fragment) {
     private var _binding: LudoHighlightFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private val SOCKET_KEY = "LudoHighlightsFragment"
     private val eventsList = mutableListOf<LudoEvent>()
     private lateinit var eventsAdapter: LudoEventAdapter
 
@@ -36,6 +38,13 @@ class LudoHighlightsFragment : Fragment(R.layout.ludo_highlight_fragment) {
             }
         }
         setupRecyclerView()
+        (activity as? LudoScoringActivity)?.latestScore?.let {
+            it.ludoEvents?.let { events -> updateEvents(events) }
+        }
+    }
+    fun onScoreUpdated(score: LudoScoreDTO) {
+        if (_binding == null) return
+        score.ludoEvents?.let { updateEvents(it) }
     }
 
     private fun setupRecyclerView() {
@@ -53,50 +62,49 @@ class LudoHighlightsFragment : Fragment(R.layout.ludo_highlight_fragment) {
             if (eventsList.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    override fun onResume() {
-        super.onResume()
-        setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
-        _binding = null
-    }
-
-    private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
-                    is SocketState.Connected -> requireContext().toastShort("Connected")
-                    is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
+                    is SocketState.Connected -> { /* silent */ }
+                    is SocketState.Error -> context?.toastShort("Socket Error")
                     is SocketState.Disconnected -> {}
                 }
             }
         }
-        WebSocketManager.messageListener = { jsonString ->
-            activity?.runOnUiThread {
-                try {
-                    val score = Gson().fromJson(jsonString, LudoScoreDTO::class.java)
-                    val events = score?.ludoEvents
-                    if (!events.isNullOrEmpty()) {
-                        updateEvents(events)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+
+        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
+
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerSocketListeners()
+    }
+    override fun onPause() {
+        super.onPause()
+        unregisterSocketListeners()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            registerSocketListeners()
+            (activity as? LudoScoringActivity)?.latestScore?.let {
+                it.ludoEvents?.let { events -> updateEvents(events) }
             }
-        }
+        } else unregisterSocketListeners()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        unregisterSocketListeners()
+        _binding = null
     }
 
     companion object {

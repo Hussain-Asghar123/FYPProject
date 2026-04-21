@@ -7,50 +7,79 @@ object WebSocketManager {
     private val client = OkHttpClient()
     private var webSocket: WebSocket? = null
     private var currentMatchId: Long? = null
-    private val pendingMessages = mutableListOf<String>() // ← BUG 1 FIX: queue add karo
+    private val pendingMessages = mutableListOf<String>()
 
-    var socketStateListener: ((SocketState) -> Unit)? = null
-    var messageListener: ((String) -> Unit)? = null
+    private val stateListeners = mutableMapOf<String, (SocketState) -> Unit>()
+    private val messageListeners = mutableMapOf<String, (String) -> Unit>()
 
-    fun connect(matchId: Long) {
-        // ← BUG 2 FIX: pehle same match check karo, PHIR disconnect
-        if (webSocket != null && currentMatchId == matchId) {
-            socketStateListener?.invoke(SocketState.Connected)
-            return
+    // Backward compatibility (purana code jo directly assign karta tha)
+    var socketStateListener: ((SocketState) -> Unit)?
+        get() = stateListeners["__default__"]
+        set(value) {
+            if (value == null) stateListeners.remove("__default__")
+            else stateListeners["__default__"] = value
         }
 
+    var messageListener: ((String) -> Unit)?
+        get() = messageListeners["__default__"]
+        set(value) {
+            if (value == null) messageListeners.remove("__default__")
+            else messageListeners["__default__"] = value
+        }
+
+    fun addStateListener(key: String, listener: (SocketState) -> Unit) {
+        stateListeners[key] = listener
+    }
+
+    fun removeStateListener(key: String) {
+        stateListeners.remove(key)
+    }
+
+    fun addMessageListener(key: String, listener: (String) -> Unit) {
+        messageListeners[key] = listener
+    }
+
+    fun removeMessageListener(key: String) {
+        messageListeners.remove(key)
+    }
+
+    fun connect(matchId: Long) {
+        if (webSocket != null && currentMatchId == matchId) {
+            stateListeners.values.forEach { it.invoke(SocketState.Connected) }
+            return
+        }
         disconnect()
         currentMatchId = matchId
 
         val url = "wss://mhaseeb-t-a.hf.space/ws?matchId=$matchId"
-
         val request = Request.Builder().url(url).build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
 
             override fun onOpen(ws: WebSocket, response: Response) {
                 android.util.Log.d("WS", "Connected to match $matchId")
-                // ← BUG 1 FIX: pending messages flush karo
                 synchronized(pendingMessages) {
                     pendingMessages.forEach { ws.send(it) }
                     pendingMessages.clear()
                 }
-                socketStateListener?.invoke(SocketState.Connected)
+                stateListeners.values.forEach { it.invoke(SocketState.Connected) }
             }
 
             override fun onMessage(ws: WebSocket, text: String) {
-                messageListener?.invoke(text)
+                messageListeners.values.forEach { it.invoke(text) }
             }
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
                 android.util.Log.e("WS", "Error: ${t.message}")
                 webSocket = null
-                socketStateListener?.invoke(SocketState.Error(t.message ?: "Unknown error"))
+                stateListeners.values.forEach {
+                    it.invoke(SocketState.Error(t.message ?: "Unknown error"))
+                }
             }
 
             override fun onClosed(ws: WebSocket, code: Int, reason: String) {
                 webSocket = null
-                socketStateListener?.invoke(SocketState.Disconnected)
+                stateListeners.values.forEach { it.invoke(SocketState.Disconnected) }
             }
         })
     }
@@ -59,14 +88,13 @@ object WebSocketManager {
         webSocket?.close(1000, "Normal close")
         webSocket = null
         currentMatchId = null
-        pendingMessages.clear() // ← queue bhi clear karo
-        socketStateListener?.invoke(SocketState.Disconnected)
+        synchronized(pendingMessages) { pendingMessages.clear() }
+        stateListeners.values.forEach { it.invoke(SocketState.Disconnected) }
     }
 
     fun send(message: String) {
         val ws = webSocket
         if (ws == null) {
-            // ← BUG 1 FIX: drop mat karo — queue karo
             android.util.Log.w("WS", "Not connected yet — queuing: $message")
             synchronized(pendingMessages) { pendingMessages.add(message) }
             return

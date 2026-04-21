@@ -40,6 +40,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private var _binding: BadmintionScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private val SOCKET_KEY = "BadmintionScoringFragment"
 
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri?  = null
@@ -448,38 +449,33 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     }
 
     private fun setupSocketListeners() {
-        WebSocketManager.socketStateListener = { state ->
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
                     is SocketState.Connected -> { /* silent */ }
                     is SocketState.Error -> {
                         toast("Socket Error")
-                        // ✅ Error par bhi pending reset
                         isActionPending = false
                         if (_binding != null &&
-                            binding.layoutScoring.root.visibility == View.VISIBLE) {
+                            binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                     is SocketState.Disconnected -> {
-                        // ✅ Disconnect par bhi pending reset
                         isActionPending = false
                         if (_binding != null &&
-                            binding.layoutScoring.root.visibility == View.VISIBLE) {
+                            binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                 }
             }
         }
-
-        WebSocketManager.messageListener = { jsonString ->
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
             android.util.Log.d("BADMINTON_SOCKET", "Raw: $jsonString")
             activity?.runOnUiThread {
                 try {
                     handleServerUpdate(JSONObject(jsonString))
-                    // Force UI refresh
-                    if (_binding != null && binding.layoutScoring.root.visibility == View.VISIBLE) {
+                    if (_binding != null &&
+                        binding.layoutScoring.root.visibility == View.VISIBLE) {
                         updateScoreUI()
                         updateSetCircles()
                     }
@@ -492,9 +488,20 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         }
     }
 
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+    // 3. onHiddenChanged ADD karo:
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners()
+        else unregisterSocketListeners()
+    }
+
     private fun setupSocketConnection() {
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
@@ -828,20 +835,17 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     override fun onResume() {
         super.onResume()
         setupSocketListeners()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
     }
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         timerTask?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 

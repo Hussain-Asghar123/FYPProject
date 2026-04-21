@@ -47,6 +47,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var inningsId: Long? = null
     private var isInningsInitialized = false
     private var isBallPending = false
+    private val SOCKET_KEY = "ScoringFragment"
 
     private var selectedVotePlayerId: Long?    = null
     private var selectedVotePlayerName: String = ""
@@ -120,7 +121,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 loadAndShowVotingThenSummary()
                 return
             }
-            setupSocketConnection()
+            registerSocketListeners()
         }
 
         canEdit = computeCanEdit(matchResponse)
@@ -139,24 +140,27 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         if (_binding != null && canEdit && b1Selected && b2Selected && bowlerSelected) {
             showOnly(binding.layoutMainScoring.root)
         }
+        registerSocketListeners()
     }
 
-    override fun onPause() {
-        super.onPause()
+    // 5. onHiddenChanged() ADD karo
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
     }
 
+    // 6. onDestroyView() update karo
     override fun onDestroyView() {
         super.onDestroyView()
         summaryPollingJob?.cancel()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()  // purani 2 null lines hatao
         _binding = null
     }
+
     private fun computeCanEdit(match: MatchResponse?): Boolean {
         val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
         val role = prefs.getString("role", "")?.trim().orEmpty()
@@ -186,27 +190,28 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
         bowlingTeamName = if (bowlingTeamId == team1Id) team1Name else team2Name
     }
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { _ ->
-            WebSocketManager.socketStateListener = { state ->
-                android.util.Log.d("SOCKET_RAW", "📥 Raw: $state")
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Connected    -> requireContext().toastShort("Live Connected!")
-                        is SocketState.Error        -> requireContext().toastShort("Socket Error: ${state.message}")
-                        is SocketState.Disconnected -> {}
-                    }
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Connected    -> requireContext().toastShort("Live Connected!")
+                    is SocketState.Error        -> requireContext().toastShort("Socket Error: ${state.message}")
+                    is SocketState.Disconnected -> {}
                 }
             }
-            WebSocketManager.messageListener = { jsonString ->
-                val updatedScore = JsonConverter.fromJson(jsonString)
-                println("📥 Received JSON: $jsonString")
-                updatedScore?.let {
-                    activity?.runOnUiThread { updateScoreboardUI(it) }
-                }
-            }
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
         }
+        WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
+            val updatedScore = JsonConverter.fromJson(jsonString)
+            println("📥 Received JSON: $jsonString")
+            updatedScore?.let {
+                activity?.runOnUiThread { updateScoreboardUI(it) }
+            }
+        }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
    private fun updateScoreboardUI(score: ScoreDTO) {
         if (_binding == null || !isAdded) return

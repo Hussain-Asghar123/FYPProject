@@ -52,6 +52,8 @@ class StartScoringActivity : AppCompatActivity() {
     private val isLudo        get() = sportId == 6L
     private val isTugOfWar    get() = sportId == 7L
 
+    private val isChess get() = sportId == 8L
+
     private val sportDecisions = mapOf(
         1L to Pair("Bat",             "Bowl"),
         2L to Pair("Kickoff",         "Choose Side"),
@@ -143,6 +145,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTableTennis -> "Who Serves First?"
             isTugOfWar    -> "Who Starts First?"
             isLudo        -> "Who Starts First?"
+            isChess       -> "Who Plays White?"     // ← YE ADD KARO
             else          -> "Who Won The Toss?"
         }
 
@@ -154,6 +157,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTableTennis -> "🏓 Start Table Tennis Match"
             isLudo        -> "🎲 Start Ludo Match"
             isTugOfWar    -> "🪢 Start Tug of War"
+            isChess       -> "♟️ Start Chess Match"  // ← YE ADD KARO
             else          -> "Start Match"
         }
     }
@@ -366,6 +370,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTableTennis -> "SERVE"
             isLudo        -> "START"
             isTugOfWar    -> "PULL"
+            isChess       -> "WHITE"
             else          -> selectedDecision
         }
 

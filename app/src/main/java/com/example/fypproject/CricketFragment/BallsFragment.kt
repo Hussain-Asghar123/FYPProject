@@ -26,6 +26,7 @@ class BallsFragment : Fragment(R.layout.balls_fragment) {
     private val binding get() = _binding!!
 
     private var matchResponse: MatchResponse? = null
+    private val SOCKET_KEY = "BallsFragment"
     private var activeTeamId: Long? = null
 
     private lateinit var ballAdapter: BallByBallAdapter
@@ -148,29 +149,10 @@ class BallsFragment : Fragment(R.layout.balls_fragment) {
         binding.loadingLayout.visibility = View.GONE
     }
 
-    override fun onResume() {
-        super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.disconnect()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
-        _binding = null
-    }
-
-    // ✅ Real-time socket — React jaise activeTeam filter ke saath
     private fun setupSocketConnection() {
-        matchResponse?.id?.let { matchId ->
+        matchResponse?.id?.let { _ ->
 
-            WebSocketManager.socketStateListener = { state ->
+            WebSocketManager.addStateListener(SOCKET_KEY) { state ->
                 activity?.runOnUiThread {
                     if (state is SocketState.Error) {
                         requireContext().toastShort("Socket Error: ${state.message}")
@@ -178,27 +160,37 @@ class BallsFragment : Fragment(R.layout.balls_fragment) {
                 }
             }
 
-            WebSocketManager.messageListener = { json ->
-                val newBall: Ball? = JsonConverter.fromJson(json) as? Ball
-
-                newBall?.let { ball ->
-                    activity?.runOnUiThread {
-                        // ✅ Duplicate check
-                        if (ballList.none { it.id == ball.id }) {
-                            val newList = ballList.toMutableList()
-                            newList.add(ball)
-                            ballAdapter.submitList(newList)
-                            binding.rvBallByBall.scrollToPosition(0)
-
-                            binding.emptyLayout.visibility  = View.GONE
-                            binding.rvBallByBall.visibility = View.VISIBLE
-                        }
-                    }
-                }
+            WebSocketManager.addMessageListener(SOCKET_KEY) {
             }
-
-            WebSocketManager.connect(matchId)
         }
+    }
+    fun onSocketUpdate() {
+        if (_binding == null) return
+        fetchBalls()
+    }
+
+    private fun registerSocketListeners() = setupSocketConnection()
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerSocketListeners()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        unregisterSocketListeners()
+        _binding = null
     }
 
     companion object {

@@ -24,6 +24,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
     private var showingTeamA = true
+    private val SOCKET_KEY = "ScoreCardFragment"
     private lateinit var batsmanAdapter: BatsmanAdapter
     private lateinit var bowlerAdapter: BowlerAdapter
     private var ScoreCardTeamA: ScorecardResponse?=null
@@ -67,7 +68,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         }
 
         fetchScoreCard(true)
-        setupSocketConnection()
+
     }
 
     private fun fetchScoreCard(isTeamA: Boolean) {
@@ -111,45 +112,43 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         binding.btnTeamB.setTextColor(if (isTeamA) inactiveText else activeText)
     }
 
-    override fun onResume() {
-        super.onResume()
-        matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Connected    -> {}
+                    is SocketState.Error        -> requireContext().toastShort("Socket Error: ${state.message}")
+                    is SocketState.Disconnected -> {}
+                }
+            }
+        }
+    }
+    fun onSocketUpdate() {
+        if (_binding == null) return
         fetchScoreCard(showingTeamA)
     }
 
-    override fun onPause() {
-        super.onPause()
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerSocketListeners()
+        fetchScoreCard(showingTeamA)
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
-    }
-
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { id ->
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Connected -> {}
-                        is SocketState.Error -> requireContext().toastShort("Socket Error: ${state.message}")
-                        is SocketState.Disconnected -> {}
-                    }
-                }
-            }
-            WebSocketManager.messageListener = { jsonString ->
-                val updatedScore = JsonConverter.fromJson(jsonString)
-                updatedScore?.let {
-                    activity?.runOnUiThread {
-                    fetchScoreCard(showingTeamA)
-                    }
-                }
-            }
-            matchResponse?.id?.toLong()?.let { WebSocketManager.connect(it) }
-        }
     }
 
     companion object {

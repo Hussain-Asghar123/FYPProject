@@ -11,8 +11,11 @@ import com.example.fypproject.FutsalFragment.FutsalScoringFragment
 import com.example.fypproject.FutsalFragment.FutsalScoreCardFragment
 import com.example.fypproject.FutsalFragment.FutsalHighLightsFragment
 import com.example.fypproject.FutsalFragment.FutsalInfoFragment
+import com.example.fypproject.ScoringDTO.FutsalScoreDTO
+import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.databinding.ActivityFutsalScoringBinding
 import com.google.android.material.button.MaterialButton
+import com.google.gson.Gson
 
 class FutsalScoringActivity : AppCompatActivity() {
 
@@ -24,6 +27,11 @@ class FutsalScoringActivity : AppCompatActivity() {
     private var futsalScoreCardFragment: FutsalScoreCardFragment? = null
     private var futsalHighLightsFragment: FutsalHighLightsFragment? = null
     private var futsalInfoFragment: FutsalInfoFragment? = null
+
+    var latestScore: FutsalScoreDTO? = null
+        private set
+
+    private val ACTIVITY_SOCKET_KEY = "FutsalScoringActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +67,7 @@ class FutsalScoringActivity : AppCompatActivity() {
             futsalScoringFragment    = FutsalScoringFragment.newInstance(match)
             futsalScoreCardFragment  = FutsalScoreCardFragment.newInstance(match)
             futsalHighLightsFragment = FutsalHighLightsFragment.newInstance(match)
-            futsalInfoFragment     =   FutsalInfoFragment.newInstance(match)
+            futsalInfoFragment       = FutsalInfoFragment.newInstance(match)
         }
 
         if (savedInstanceState == null) {
@@ -74,8 +82,23 @@ class FutsalScoringActivity : AppCompatActivity() {
             futsalScoringFragment    = fm.findFragmentByTag("FutsalScoringFragment")    as? FutsalScoringFragment    ?: futsalScoringFragment
             futsalScoreCardFragment  = fm.findFragmentByTag("FutsalScoreCardFragment")  as? FutsalScoreCardFragment  ?: futsalScoreCardFragment
             futsalHighLightsFragment = fm.findFragmentByTag("FutsalHighLightsFragment") as? FutsalHighLightsFragment ?: futsalHighLightsFragment
-            futsalInfoFragment     = fm.findFragmentByTag("FutsalEventsFragment")     as? FutsalInfoFragment     ?: futsalInfoFragment
+            futsalInfoFragment       = fm.findFragmentByTag("FutsalEventsFragment")     as? FutsalInfoFragment       ?: futsalInfoFragment
             selectButton(binding.btnScoring)
+        }
+
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+
+        WebSocketManager.addMessageListener(ACTIVITY_SOCKET_KEY) { jsonString ->
+            val score = runCatching {
+                Gson().fromJson(jsonString, FutsalScoreDTO::class.java)
+            }.getOrNull() ?: return@addMessageListener
+
+            latestScore = score
+
+            runOnUiThread {
+                futsalScoreCardFragment?.onScoreUpdated(score)
+                futsalHighLightsFragment?.onScoreUpdated(score)
+            }
         }
 
         binding.btnScoring.setOnClickListener {
@@ -94,6 +117,24 @@ class FutsalScoringActivity : AppCompatActivity() {
             selectButton(binding.btnInfo)
             showFragment(futsalInfoFragment ?: return@setOnClickListener)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isChangingConfigurations) {
+            WebSocketManager.disconnect()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WebSocketManager.removeMessageListener(ACTIVITY_SOCKET_KEY)
+        WebSocketManager.disconnect()
     }
 
     private fun showFragment(fragment: Fragment) {

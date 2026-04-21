@@ -11,6 +11,7 @@ import com.example.fypproject.CricketFragment.InfoFragment
 import com.example.fypproject.CricketFragment.ScoreCardFragment
 import com.example.fypproject.CricketFragment.ScoringFragment
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.databinding.ActivityCricketScoringBinding
 import com.google.android.material.button.MaterialButton
 
@@ -18,6 +19,7 @@ class CricketScoringActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCricketScoringBinding
     private var matchResponse: MatchResponse? = null
     private lateinit var buttons: List<MaterialButton>
+    private val ACTIVITY_SOCKET_KEY = "CricketScoringActivity"
 
     private var scoringFragment: ScoringFragment? = null
     private var scoreCardFragment: ScoreCardFragment? = null
@@ -66,6 +68,13 @@ class CricketScoringActivity : AppCompatActivity() {
             infoFragment      = fm.findFragmentByTag("InfoFragment")      as? InfoFragment      ?: infoFragment
             selectButton(binding.btnScoring)
         }
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        WebSocketManager.addMessageListener(ACTIVITY_SOCKET_KEY) { jsonString ->
+            runOnUiThread {
+                scoreCardFragment?.onSocketUpdate()
+                ballsFragment?.onSocketUpdate()
+            }
+        }
 
         binding.btnScoring.setOnClickListener {
             selectButton(binding.btnScoring)
@@ -83,6 +92,24 @@ class CricketScoringActivity : AppCompatActivity() {
             selectButton(binding.btnInfo)
             showFragment(infoFragment ?: return@setOnClickListener)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isChangingConfigurations) {
+            WebSocketManager.disconnect()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WebSocketManager.disconnect()
+        WebSocketManager.removeMessageListener(ACTIVITY_SOCKET_KEY)
     }
 
     private fun showFragment(fragment: Fragment) {

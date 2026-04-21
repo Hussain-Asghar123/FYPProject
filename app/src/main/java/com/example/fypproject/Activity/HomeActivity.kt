@@ -44,6 +44,11 @@ class HomeActivity : AppCompatActivity() {
         binding.btnEdit.setOnClickListener {
             showEditNameDialog()
         }
+        binding.txtViewAllLive.setOnClickListener {
+            val intent = Intent(this, MatchesDetailActivity::class.java)
+            intent.putExtra("status", "LIVE")
+            startActivity(intent)
+        }
 
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
         val name = sharedPreferences.getString("name", "")
@@ -248,6 +253,7 @@ class HomeActivity : AppCompatActivity() {
                 .show()
         }
     }
+
 
     private fun setupSportsButtons() {
         sportButtons = listOf(

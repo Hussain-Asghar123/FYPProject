@@ -6,7 +6,10 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
+import com.example.fypproject.Scoring.BadmintionScoringActivity
+import com.example.fypproject.Scoring.TableTennisScoringActivity
 import com.example.fypproject.ScoringDTO.BadmintionScoreDTO
+import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
 import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.Utils.toastShort
@@ -19,6 +22,7 @@ class BadmintionScoreCardFragment : Fragment(R.layout.badmintion_scorecard_fragm
     private var _binding: BadmintionScorecardFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private val SOCKET_KEY = "BadmintionScoreCardFragment"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,78 +37,64 @@ class BadmintionScoreCardFragment : Fragment(R.layout.badmintion_scorecard_fragm
 
         binding.tvTeam1Name.text = matchResponse?.team1Name ?: "Team 1"
         binding.tvTeam2Name.text = matchResponse?.team2Name ?: "Team 2"
-
-        setupSocketConnection()
     }
 
-    private fun updateUI(obj: JSONObject) {
+    private fun updateUI(score: BadmintionScoreDTO) {
         if (_binding == null) return
         binding.apply {
-            val team1Games = obj.optInt("team1Games",
-                obj.optInt("gamesTeam1", 0))
-            val team2Games = obj.optInt("team2Games",
-                obj.optInt("gamesTeam2", 0))
+            tvTeam1Goals.text = (score.team1Games ?: 0).toString()
+            tvTeam2Goals.text = (score.team2Games ?: 0).toString()
 
-            val team1Points = obj.optInt("team1Points",
-                obj.optInt("team1Score",
-                    obj.optInt("scoreTeam1", 0)))
-            val team2Points = obj.optInt("team2Points",
-                obj.optInt("team2Score",
-                    obj.optInt("scoreTeam2", 0)))
+            tvTeam1Fouls.text = (score.team1Points ?: 0).toString()
+            tvTeam2Fouls.text = (score.team2Points ?: 0).toString()
 
-            tvTeam1Goals.text = team1Games.toString()
-            tvTeam2Goals.text = team2Games.toString()
-
-            tvTeam1Fouls.text = team1Points.toString()
-            tvTeam2Fouls.text = team2Points.toString()
-
-            android.util.Log.d("BADMINTON_SCORECARD", "Games: $team1Games-$team2Games, Points: $team1Points-$team2Points")
         }
     }
-
-    private fun setupSocketConnection() {
-        matchResponse?.id?.let { id ->
-            WebSocketManager.socketStateListener = { state ->
-                activity?.runOnUiThread {
-                    when (state) {
-                        is SocketState.Error -> context?.toastShort("Socket Error")
-                        else -> {}
-                    }
-                }
-            }
-
-            WebSocketManager.messageListener = { jsonString ->
-                activity?.runOnUiThread {
-                    try {
-                        val obj = JSONObject(jsonString)
-                        updateUI(obj)
-                        android.util.Log.d("BADMINTON_SCORECARD", "Received: $jsonString")
-                    } catch (e: Exception) {
-                        android.util.Log.e("BADMINTON_SCORECARD", "Parse error: ${e.message}")
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            WebSocketManager.connect(id)
-        }
+    fun onScoreUpdated(score: BadmintionScoreDTO) {
+        if (_binding == null) return
+        updateUI(score)
     }
+
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
+            activity?.runOnUiThread {
+                when (state) {
+                    is SocketState.Error -> context?.toastShort("Socket Error")
+                    else -> {}
+                }
+            }
+        }
+        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
+    }
+
 
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        registerSocketListeners()
     }
 
     override fun onPause() {
         super.onPause()
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
+
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            registerSocketListeners()
+            (activity as? BadmintionScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
+        } else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        WebSocketManager.socketStateListener = null
-        WebSocketManager.messageListener     = null
-        WebSocketManager.disconnect()
+        unregisterSocketListeners()
         _binding = null
     }
 

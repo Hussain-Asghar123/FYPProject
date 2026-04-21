@@ -38,6 +38,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var currentStatus  = "LIVE"
     private var currentHalf    = 1
     private var elapsedMinutes = 0
+    private val SOCKET_KEY = "FutsalScoringFragment"
     private val handler        = Handler(Looper.getMainLooper())
     private var timerRunnable: Runnable? = null
     private var halfStartTime  = 0L
@@ -74,7 +75,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         computeCanEdit()
         setupBottomTabs()
         setupEventsRecycler()
-        setupSocket()
+        registerSocketListeners()
         fetchPlayers()
 
            showTab("scoring")
@@ -86,19 +87,22 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
     override fun onResume() {
         super.onResume()
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+        registerSocketListeners()
     }
 
-    override fun onPause() {
-        super.onPause()
-        WebSocketManager.disconnect()
+    // 5. onHiddenChanged() ADD karo
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
     }
 
+    // 6. onDestroyView() update karo
     override fun onDestroyView() {
         super.onDestroyView()
+        unregisterSocketListeners()  // purani null lines hatao
         timerRunnable?.let { handler.removeCallbacks(it) }
         handler.removeCallbacksAndMessages(null)
-        WebSocketManager.disconnect()
         _binding = null
     }
 
@@ -416,27 +420,38 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         s.spinnerBenched.setupWithPlayers("Select Player In",  players)
     }
 
-    private fun setupSocket() {
-        WebSocketManager.socketStateListener = { state ->
+    private fun registerSocketListeners() {
+        WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
                     is SocketState.Connected    -> toast("Connected")
-                    is SocketState.Error        -> toast("Socket Error")
-                    is SocketState.Disconnected -> {}
+                    is SocketState.Error        -> {
+                        toast("Socket Error")
+                        isActionPending = false
+                        if (_binding != null) setScoringButtonsEnabled(true)
+                    }
+                    is SocketState.Disconnected -> {
+                        isActionPending = false
+                        if (_binding != null) setScoringButtonsEnabled(true)
+                    }
                 }
             }
         }
-        WebSocketManager.messageListener = { json ->
+        WebSocketManager.addMessageListener(SOCKET_KEY) { json ->
             activity?.runOnUiThread {
                 try { handleServerUpdate(JSONObject(json)) }
                 catch (e: Exception) {
                     e.printStackTrace()
                     isActionPending = false
-                    setScoringButtonsEnabled(true)
+                    if (_binding != null) setScoringButtonsEnabled(true)
                 }
             }
         }
-        matchResponse?.id?.let { WebSocketManager.connect(it) }
+    }
+
+    private fun unregisterSocketListeners() {
+        WebSocketManager.removeStateListener(SOCKET_KEY)
+        WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
