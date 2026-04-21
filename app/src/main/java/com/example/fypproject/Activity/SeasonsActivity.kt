@@ -130,18 +130,27 @@ class SeasonsActivity : AppCompatActivity() {
                     filterList.clear()
                     filterList.addAll(fullList)
                     adapter.notifyDataSetChanged()
+                    checkEmptyState()
 
                 } else {
                     Log.e("SeasonsActivity", "Error: ${response.code()}")
                     toastLong(NetworkUi.userMessage(response, "Failed to load seasons"))
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 Log.e("SeasonsActivity", "Fetch failed", e)
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState()
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = filterList.isEmpty()
+        binding.seasonRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setLoading(isLoading: Boolean) {

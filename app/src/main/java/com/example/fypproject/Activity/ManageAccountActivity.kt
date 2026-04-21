@@ -2,6 +2,7 @@ package com.example.fypproject.Activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -64,10 +65,17 @@ class ManageAccountActivity : AppCompatActivity() {
                     filteredList.addAll(fullList)
                     adapter.notifyDataSetChanged()
                 }
+                checkEmptyState()
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = filteredList.isEmpty()
+        binding.accountRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setupSearch(){
@@ -81,7 +89,8 @@ class ManageAccountActivity : AppCompatActivity() {
             }
         )
         adapter.notifyDataSetChanged()
-       }
+        checkEmptyState()
+        }
     }
     private fun openUpdate(account: AccountResponse) {
         val intent = Intent(this, UpdateAccountActivity::class.java)
@@ -120,6 +129,7 @@ class ManageAccountActivity : AppCompatActivity() {
                     filteredList.addAll(fullList)
                     adapter.notifyDataSetChanged()
                 }
+                checkEmptyState()
             } finally {
                 setLoading(false)
             }

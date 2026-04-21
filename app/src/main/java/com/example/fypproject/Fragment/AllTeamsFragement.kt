@@ -40,15 +40,24 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
                     val teams = response.body()!!
                     val adapter = TeamAdapter(teams)
                     binding.rvAllTeams.adapter = adapter
+                    checkEmptyState(teams.isEmpty())
                 } else {
                     toastLong(NetworkUi.userMessage(response, "No teams found"))
+                    checkEmptyState(true)
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState(true)
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun checkEmptyState(isEmpty: Boolean) {
+        if (_binding == null) return
+        binding.rvAllTeams.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setLoading(isLoading: Boolean) {

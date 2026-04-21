@@ -46,15 +46,24 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
                     binding.tvStartDate.text = data.startDate ?: "N/A"
 
                     binding.rvTopTeams.adapter = TournamentOverViewAdapter(data.top)
+                    checkEmptyState(data.top.isEmpty())
                 } else {
                     toastLong(NetworkUi.userMessage(response))
+                    checkEmptyState(true)
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState(true)
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun checkEmptyState(isEmpty: Boolean) {
+        if (_binding == null) return
+        binding.rvTopTeams.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setLoading(isLoading: Boolean) {

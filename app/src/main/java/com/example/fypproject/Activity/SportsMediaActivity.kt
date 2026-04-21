@@ -104,6 +104,9 @@ class SportsMediaActivity : AppCompatActivity() {
                         mediaAdapter.addItems(newItems)
                         mediaViewerAdapter.notifyDataSetChanged()
                         page++
+                        checkEmptyState()
+                    } else if (page == 0) {
+                        checkEmptyState()
                     }
                 }
 
@@ -111,8 +114,17 @@ class SportsMediaActivity : AppCompatActivity() {
                     isLoading = false
                     binding.progressBar.visibility = View.GONE
                     Toast.makeText(this@SportsMediaActivity, "Failed to load media", Toast.LENGTH_SHORT).show()
+                    if (page == 0) {
+                        checkEmptyState()
+                    }
                 }
             })
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = mediaList.isEmpty()
+        binding.rvMedia.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setupViewPager() {

@@ -84,6 +84,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/search" />
 
+    <!-- ================= EMPTY STATE ================= -->
+    <TextView
+        android:id="@+id/tvEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:text="No Data"
+        android:textSize="18sp"
+        android:textColor="#999999"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search" />
+
     <!-- ================= FAB ADD BUTTON ================= -->
     <ImageButton
         android:id="@+id/btn_add"

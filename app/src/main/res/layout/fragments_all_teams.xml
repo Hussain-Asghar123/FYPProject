@@ -15,6 +15,16 @@
             android:layout_height="match_parent"
             android:padding="12dp" />
 
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="No Data"
+            android:textSize="18sp"
+            android:textColor="#999999"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <FrameLayout
