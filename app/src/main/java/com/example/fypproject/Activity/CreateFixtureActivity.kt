@@ -61,17 +61,10 @@ class CreateFixtureActivity : AppCompatActivity() {
         when (sportId) {
             1L -> {
                 binding.etOvers.visibility = View.VISIBLE
-                binding.etSets.visibility = View.GONE
-            }
-
-            4L, 5L -> {
-                binding.etSets.visibility = View.VISIBLE
-                binding.etOvers.visibility = View.GONE
             }
 
             else -> {
                 binding.etOvers.visibility = View.GONE
-                binding.etSets.visibility = View.GONE
             }
         }
     }
