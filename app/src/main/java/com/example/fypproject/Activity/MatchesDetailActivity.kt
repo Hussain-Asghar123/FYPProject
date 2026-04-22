@@ -81,21 +81,24 @@ class MatchesDetailActivity : AppCompatActivity() {
     }
 
     private fun fetchMatches(sport: String?, status: String) {
-        setLoading(true)
+        showLoading(true)
         api.getMatchesBySport(sport, status).enqueue(object : Callback<List<MatchResponse>> {
             override fun onResponse(call: Call<List<MatchResponse>>, response: Response<List<MatchResponse>>) {
-                setLoading(false)
+                showLoading(false)
                 if (response.isSuccessful) {
                     val list = response.body() ?: emptyList()
                     adapter.setItems(sortMatchesByDate(list))
+                    checkEmptyState()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
+                    checkEmptyState()
                 }
             }
 
             override fun onFailure(call: Call<List<MatchResponse>>, t: Throwable) {
-                setLoading(false)
+                showLoading(false)
                 toastLong(NetworkUi.userMessage(t))
+                checkEmptyState()
             }
         })
     }
@@ -141,6 +144,16 @@ class MatchesDetailActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnBack.isEnabled = !isLoading
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = adapter.itemCount == 0
+        binding.rvMatches.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun highlightSelectedSport(selected: View) {

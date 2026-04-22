@@ -124,7 +124,11 @@ class UpdateFixtureActivity : AppCompatActivity() {
                     if (t1Index != -1) binding.spinnerTeam1.setSelection(t1Index)
                     if (t2Index != -1) binding.spinnerTeam2.setSelection(t2Index)
                 } else {
-                    toastShort("No teams found")
+                    teamList.clear()
+                    val adapter = TeamSpinnerAdapter(this@UpdateFixtureActivity, teamList)
+                    binding.spinnerTeam1.adapter = adapter
+                    binding.spinnerTeam2.adapter = adapter
+                    toastShort("No data available")
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
@@ -143,6 +147,11 @@ class UpdateFixtureActivity : AppCompatActivity() {
     }
 
     private fun updateMatch() {
+
+        if (teamList.size < 2) {
+            toastShort("No data available")
+            return
+        }
 
         val team1Pos = binding.spinnerTeam1.selectedItemPosition
         val team2Pos = binding.spinnerTeam2.selectedItemPosition

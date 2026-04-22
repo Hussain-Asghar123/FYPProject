@@ -3,22 +3,16 @@ package com.example.fypproject.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.TournamentDetailAdapter
 import com.example.fypproject.DTO.SportTournamentCount
 import com.example.fypproject.Network.ApiClient.api
-import com.example.fypproject.R
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
-import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityTournamentDetailBinding
 import kotlinx.coroutines.launch
-import kotlin.toString
 
 class TournamentDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTournamentDetailBinding
@@ -88,20 +82,27 @@ class TournamentDetailActivity : AppCompatActivity() {
                             )
                         }
 
+                    sportList.clear()
+                    sportList.addAll(addedSports)
                     adapter.updateList(addedSports)
-
-                    if (addedSports.isEmpty()) {
-                        toastShort("No sports added yet")
-                    }
+                    checkEmptyState()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "No sports found"))
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState()
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = sportList.isEmpty()
+        binding.rvSports.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvNoData.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun setLoading(isLoading: Boolean) {

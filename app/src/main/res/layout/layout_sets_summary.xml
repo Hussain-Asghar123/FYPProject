@@ -15,6 +15,15 @@
         <!-- ══════════════════════════════ -->
         <!--         MATCH RESULT          -->
         <!-- ══════════════════════════════ -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🏆"
+            android:textSize="64sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
         <TextView
             android:id="@+id/tvMatchResult"
             android:layout_width="match_parent"

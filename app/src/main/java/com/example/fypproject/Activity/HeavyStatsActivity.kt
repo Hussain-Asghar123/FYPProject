@@ -27,13 +27,14 @@ class HeavyStatsActivity : AppCompatActivity() {
     companion object {
         private const val VIEW_OVERALL = "overall"
         private const val VIEW_TOURNAMENT = "tournament"
-
         private const val SPORT_CRICKET = "cricket"
         private const val SPORT_FUTSAL = "futsal"
         private const val SPORT_VOLLEYBALL = "volleyball"
         private const val SPORT_BADMINTON = "badminton"
         private const val SPORT_TABLETENNIS = "table tennis"
-        private const val SPORT_TUGOFWAR = "tug of war"
+       // private const val SPORT_TUGOFWAR = "tug of war"
+        private const val SPORT_LUDO="ludo"
+        private const val SPORT_CHESS="chess"
     }
 
     private lateinit var binding: ActivityHeavyStatsBinding
@@ -123,7 +124,9 @@ class HeavyStatsActivity : AppCompatActivity() {
         R.id.chipVolleyball-> SPORT_VOLLEYBALL
         R.id.chipBadminton-> SPORT_BADMINTON
         R.id.chipTableTennis-> SPORT_TABLETENNIS
-        R.id.chipTugofwar-> SPORT_TUGOFWAR
+       // R.id.chipTugofwar-> SPORT_TUGOFWAR
+        R.id.chipLudo-> SPORT_LUDO
+        R.id.chipChess-> SPORT_CHESS
         else -> SPORT_CRICKET
     }
 
@@ -133,7 +136,9 @@ class HeavyStatsActivity : AppCompatActivity() {
         SPORT_VOLLEYBALL -> R.id.chipVolleyball
         SPORT_BADMINTON -> R.id.chipBadminton
         SPORT_TABLETENNIS -> R.id.chipTableTennis
-        SPORT_TUGOFWAR-> R.id.chipTugofwar
+       // SPORT_TUGOFWAR-> R.id.chipTugofwar
+        SPORT_LUDO-> R.id.chipLudo
+        SPORT_CHESS-> R.id.chipChess
         else -> R.id.chipCricket
     }
 
@@ -152,7 +157,9 @@ class HeavyStatsActivity : AppCompatActivity() {
             "volleyball" -> SPORT_VOLLEYBALL
             "badminton" -> SPORT_BADMINTON
             "tabletennis" -> SPORT_TABLETENNIS
-            "tugofwar" -> SPORT_TUGOFWAR
+           // "tugofwar" -> SPORT_TUGOFWAR
+            "ludo" -> SPORT_LUDO
+            "chess" -> SPORT_CHESS
             else -> SPORT_CRICKET
         }
     }
@@ -171,7 +178,7 @@ class HeavyStatsActivity : AppCompatActivity() {
 
     private fun loadOverallStats(sport: String?) {
         lifecycleScope.launch {
-            showProgress(true)
+            showLoading(true)
             try {
                 val stats = api.getPlayerStats(playerId, tournamentId = null, sport = sport)
 
@@ -183,36 +190,41 @@ class HeavyStatsActivity : AppCompatActivity() {
                 }
 
                 renderCurrentStats()
+                checkEmptyState()
             } catch (e: Exception) {
                 Toast.makeText(
                     this@HeavyStatsActivity,
                     "API Error: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
+                checkEmptyState()
             } finally {
-                showProgress(false)
+                showLoading(false)
             }
         }
     }
 
     private fun loadTournamentStats(tournamentId: Long) {
         lifecycleScope.launch {
-            showProgress(true)
+            showLoading(true)
             try {
                 val stats = api.getPlayerStats(playerId, tournamentId = tournamentId, sport = null)
                 tournamentStats = stats
                 renderCurrentStats()
+                checkEmptyState()
             } catch (_: Exception) {
                 tournamentStats = null
                 Toast.makeText(this@HeavyStatsActivity, "No data found", Toast.LENGTH_SHORT).show()
                 renderCurrentStats()
+                checkEmptyState()
             } finally {
-                showProgress(false)
+                showLoading(false)
             }
         }
     }
 
     private fun fetchTournaments() {
+        showLoading(true)
         lifecycleScope.launch {
             try {
                 val response = api.getTournamentNamesAndIds()
@@ -229,14 +241,14 @@ class HeavyStatsActivity : AppCompatActivity() {
                     names
                 )
                 binding.spinnerTournaments.setAdapter(adapter)
+                checkEmptyState()
             } catch (_: Exception) {
+                checkEmptyState()
+            } finally {
+                showLoading(false)
             }
         }
     }
-
-    // ─────────────────────────────────────────────
-    // RENDER
-    // ─────────────────────────────────────────────
 
     private fun renderCurrentStats() {
         val stats = if (activeView == VIEW_OVERALL) overallStats else tournamentStats
@@ -321,7 +333,9 @@ class HeavyStatsActivity : AppCompatActivity() {
         styleChip(binding.chipVolleyball, sport == SPORT_VOLLEYBALL)
         styleChip(binding.chipBadminton, sport == SPORT_BADMINTON)
         styleChip(binding.chipTableTennis, sport == SPORT_TABLETENNIS)
-        styleChip(binding.chipTugofwar, sport == SPORT_TUGOFWAR)
+     //   styleChip(binding.chipTugofwar, sport == SPORT_TUGOFWAR)
+        styleChip(binding.chipLudo, sport == SPORT_LUDO)
+        styleChip(binding.chipChess, sport == SPORT_CHESS)
     }
 
 
@@ -344,7 +358,9 @@ class HeavyStatsActivity : AppCompatActivity() {
             SPORT_VOLLEYBALL->bindVolleyballStats(stats)
             SPORT_BADMINTON->bindBadmintonStats(stats)
             SPORT_TABLETENNIS->bindTableTennisStats(stats)
-            SPORT_TUGOFWAR->bindTugOfWarStats(stats)
+        //    SPORT_TUGOFWAR->bindTugOfWarStats(stats)
+            SPORT_LUDO->bindLudoStats(stats)
+            SPORT_CHESS->bindChessStats(stats)
             else -> bindCricketStats(stats)
         }
     }
@@ -598,6 +614,75 @@ class HeavyStatsActivity : AppCompatActivity() {
         binding.layoutBowlingStats.root.visibility = View.GONE
     }
 
+    private fun bindLudoStats(stats: PlayerStatsDto) {
+        val matches = stats.ludoMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        val runs=stats.goals
+        val captures=stats.assists
+
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Home Runs"
+            tvBoxValue.text = runs.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Captures"
+            tvBoxValue.text = captures.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Home Runs" to runs.toString(),
+                "Captures"  to captures.toString()
+            )
+        )
+
+        binding.layoutBowlingStats.root.visibility = View.GONE
+    }
+
+    private fun bindChessStats(stats: PlayerStatsDto) {
+        val matches = stats.chessMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        val wins=stats.goals
+        val check=stats.assists
+        val winRate = if (matches > 0)
+            "${((stats.goals.toDouble() / matches) * 100).toInt()}%"
+        else "—"
+
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Wins"
+            tvBoxValue.text = wins.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Checks"
+            tvBoxValue.text = check.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Wins"     to wins.toString(),
+                "Checks"   to check.toString(),
+                "Win Rate" to winRate
+            )
+        )
+
+        binding.layoutBowlingStats.root.visibility = View.GONE
+    }
     private fun setupGrid(root: View, title: String, dataList: List<Pair<String, String>>) {
         root.findViewById<TextView>(R.id.tvTableHeaderTitle)?.text = title
         val grid = root.findViewById<ViewGroup>(R.id.statsGrid)
@@ -618,5 +703,21 @@ class HeavyStatsActivity : AppCompatActivity() {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
         binding.progressBar.indeterminateTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primaryColor))
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
+        binding.progressBar.indeterminateTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primaryColor))
+    }
+
+    private fun checkEmptyState() {
+        val stats = if (activeView == VIEW_OVERALL) overallStats else tournamentStats
+        val isEmpty = stats == null
+
+        if (activeView == VIEW_TOURNAMENT && isEmpty) {
+            binding.tvTournamentEmptyState.visibility =
+                if (selectedTournamentId == null) View.VISIBLE else View.GONE
+        }
     }
 }

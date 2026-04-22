@@ -68,6 +68,18 @@
 
                 android:background="@drawable/rounded_edittext"/>
 
+            <!-- NO DATA AVAILABLE TEXT -->
+            <TextView
+                android:id="@+id/tvNoData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="No data available"
+                android:textSize="16sp"
+                android:textColor="#666666"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp" />
+
             <!-- TeamFragement 2 -->
             <Spinner
                 android:id="@+id/spinnerTeam2"
@@ -81,9 +93,9 @@
                 android:id="@+id/etScorerId"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="24dp"
-                android:hint="Scorer ID"
-                android:inputType="number"
+                android:layout_marginBottom="16dp"
+                android:hint="Scorer"
+                android:inputType="textVisiblePassword"
                 android:background="@drawable/rounded_edittext"
                 android:paddingStart="12dp"
                 android:textColor="#212121"/>

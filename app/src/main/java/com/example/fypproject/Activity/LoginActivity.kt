@@ -36,6 +36,10 @@ class LoginActivity : AppCompatActivity() {
             }
 
             setLoading(true)
+            currentFocus?.let { view ->
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(view.windowToken, 0)
+            }
             val request= LoginRequest(username, password)
             lifecycleScope.launch(){
                 try{
@@ -49,12 +53,13 @@ class LoginActivity : AppCompatActivity() {
                         putString("role", response.role)
                         putString("username", response.username)
                     }
-
-                  startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                   finish()
+                    checkEmptyState()
+                    startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
+                    finish()
                 }catch(e: Exception){
                     toastLong(NetworkUi.userMessage(e))
                     Log.e("Login", "Login Failed", e)
+                    checkEmptyState()
                 } finally {
                     setLoading(false)
                 }
@@ -68,5 +73,14 @@ class LoginActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         binding.progressOverlay.visibility = if (isLoading) android.view.View.VISIBLE else android.view.View.GONE
         binding.btnLogin.isEnabled = !isLoading
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun checkEmptyState() {
+        // Add empty state logic here if needed
+        // Example: if (username.isEmpty() || password.isEmpty()) { showErrorMessage() }
     }
 }

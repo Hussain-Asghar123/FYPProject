@@ -667,9 +667,9 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         s.tvTeam2Score.text = team2Sets.toString()
 
         s.tvMatchResult.text = when {
-            team1Sets > team2Sets -> " $t1Name Wins!"
-            team2Sets > team1Sets -> " $t2Name Wins!"
-            else                  -> " Match Draw!"
+            team1Sets > team2Sets -> "🏆 $t1Name Wins!"
+            team2Sets > team1Sets -> "🏆 $t2Name Wins!"
+            else                  -> "🤝 Match Draw!"
         }
 
         s.tvTeam1Timeouts.text = team1Timeouts.toString()

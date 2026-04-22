@@ -45,7 +45,9 @@ class AddAccountActivity : AppCompatActivity() {
     private fun createAccount(name: String, username: String, password: String){
         val request= CreateAccountRequest(name, username, password)
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
+            binding.btnAdd.isEnabled = false
+            binding.btnBack.isEnabled = false
             try{
                 val response= ApiClient.api.createAccount(request)
                 toastShort("Account created successfully")
@@ -53,7 +55,9 @@ class AddAccountActivity : AppCompatActivity() {
             }catch (e: Exception){
                 toastLong(NetworkUi.userMessage(e))
             } finally {
-                setLoading(false)
+                showLoading(false)
+                binding.btnAdd.isEnabled = true
+                binding.btnBack.isEnabled = true
             }
         }
     }
@@ -62,5 +66,14 @@ class AddAccountActivity : AppCompatActivity() {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnAdd.isEnabled = !isLoading
         binding.btnBack.isEnabled = !isLoading
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        // Add empty state logic here if needed
+        // Example: if (someDataList.isEmpty()) { showEmptyStateView() }
     }
 }

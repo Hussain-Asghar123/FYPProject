@@ -733,11 +733,12 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         s.tvTeam1Score.text = t1Score.toString()
         s.tvTeam2Score.text = t2Score.toString()
 
-        s.tvMatchResult.text = when {
-            t1Score > t2Score -> " $t1Name Wins!"
-            t2Score > t1Score -> " $t2Name Wins!"
-            else              -> " Match Draw!"
+        val (icon, result) = when {
+            t1Score > t2Score -> "🏆" to " $t1Name Wins!"
+            t2Score > t1Score -> "🏆" to " $t2Name Wins!"
+            else              -> "🤝" to " Match Draw!"
         }
+        s.tvMatchResult.text = "$icon $result"
 
         val team1Goals = eventsList.filter {
             it.eventType == "GOAL" &&

@@ -1,6 +1,5 @@
 package com.example.fypproject.Fragment
 
-import android.content.Context.MODE_PRIVATE
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -86,15 +85,18 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
                     filteredList.clear()
                     filteredList.addAll(
                         matches.filter {
-                            it.status== MatchStatus.UPCOMING || it.status == MatchStatus.LIVE
+                            it.status == MatchStatus.UPCOMING || it.status == MatchStatus.LIVE
                         }
                     )
                     adapter.notifyDataSetChanged()
+                    checkEmptyState()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "No fixtures found"))
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState()
             } finally {
                 setLoading(false)
             }
@@ -105,6 +107,13 @@ class FixturesFragement : Fragment(R.layout.fragment_fixtures) {
         if (_binding == null) return
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnAddFixture.isEnabled = !isLoading
+    }
+
+    private fun checkEmptyState() {
+        if (_binding == null) return
+        val isEmpty = filteredList.isEmpty()
+        binding.rvFixtures.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun openStartScoring(fixture: FixturesResponse) {

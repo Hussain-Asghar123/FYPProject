@@ -9,13 +9,10 @@ import com.example.fypproject.R
 import com.example.fypproject.Scoring.BadmintionScoringActivity
 import com.example.fypproject.Scoring.TableTennisScoringActivity
 import com.example.fypproject.ScoringDTO.BadmintionScoreDTO
-import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
 import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.BadmintionScorecardFragmentBinding
-import com.google.gson.Gson
-import org.json.JSONObject
 
 class BadmintionScoreCardFragment : Fragment(R.layout.badmintion_scorecard_fragment) {
 
@@ -37,22 +34,38 @@ class BadmintionScoreCardFragment : Fragment(R.layout.badmintion_scorecard_fragm
 
         binding.tvTeam1Name.text = matchResponse?.team1Name ?: "Team 1"
         binding.tvTeam2Name.text = matchResponse?.team2Name ?: "Team 2"
+
+        (activity as? BadmintionScoringActivity)?.latestScore?.let { updateUI(it) }
     }
 
     private fun updateUI(score: BadmintionScoreDTO) {
         if (_binding == null) return
+
+        binding.tvEmptyState.visibility = View.GONE
+
         binding.apply {
             tvTeam1Goals.text = (score.team1Games ?: 0).toString()
             tvTeam2Goals.text = (score.team2Games ?: 0).toString()
 
             tvTeam1Fouls.text = (score.team1Points ?: 0).toString()
             tvTeam2Fouls.text = (score.team2Points ?: 0).toString()
-
         }
     }
+
     fun onScoreUpdated(score: BadmintionScoreDTO) {
         if (_binding == null) return
+        setLoading(false)
         updateUI(score)
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        if (_binding == null) return
+        binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+    private fun showEmptyState() {
+        if (_binding == null) return
+        binding.tvEmptyState.visibility = View.VISIBLE
     }
 
     private fun registerSocketListeners() {
@@ -89,7 +102,9 @@ class BadmintionScoreCardFragment : Fragment(R.layout.badmintion_scorecard_fragm
         if (!hidden) {
             registerSocketListeners()
             (activity as? BadmintionScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
-        } else unregisterSocketListeners()
+        } else {
+            unregisterSocketListeners()
+        }
     }
 
     override fun onDestroyView() {

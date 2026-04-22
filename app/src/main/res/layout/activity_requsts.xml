@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Requests"
+            android:gravity="center"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -66,6 +67,15 @@
             android:text="No requests available"
             android:textSize="16sp"
             android:textColor="#999999"
+            android:visibility="gone" />
+
+        <!-- Yeh FrameLayout ke andar add karo -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="#E31212"
             android:visibility="gone" />
     </FrameLayout>
 

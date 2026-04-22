@@ -46,7 +46,7 @@ class ScrorerActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
             try {
                 val response = api.getMatchesByScorer(scorerId)
                 if (response.isSuccessful) {
@@ -63,13 +63,16 @@ class ScrorerActivity : AppCompatActivity() {
                     } else {
                         toastShort("No matches assigned to score")
                     }
+                    checkEmptyState()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Failed to fetch matches"))
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState()
             } finally {
-                setLoading(false)
+                showLoading(false)
             }
         }
     }
@@ -78,6 +81,17 @@ class ScrorerActivity : AppCompatActivity() {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnBack.isEnabled = !isLoading
     }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = (binding.scoringRecycler.adapter?.itemCount ?: 0) == 0
+        binding.scoringRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
+    }
+
     override fun onResume() {
         super.onResume()
         fetchMatches()

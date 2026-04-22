@@ -51,7 +51,7 @@ object WebSocketManager {
         disconnect()
         currentMatchId = matchId
 
-        val url = "wss://mhaseeb-t-a.hf.space/ws?matchId=$matchId"
+        val url = "wss://mhaseeb-t-fyp.hf.space/ws?matchId=$matchId"
         val request = Request.Builder().url(url).build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {

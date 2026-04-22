@@ -136,7 +136,11 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId ?: return
         isUploading = true
-        toast("Uploading")
+
+        // Show progress overlay
+        showUploadProgress(true)
+        toast("Uploading...")
+
         lifecycleScope.launch {
             try {
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -149,15 +153,22 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
                 }
-                if (response.isSuccessful) toast("Upload Successful!")
-                else toast("Upload failed: ${response.code()}")
+                if (response.isSuccessful) toast("✅ Upload Successful!")
+                else toast("❌ Upload failed: ${response.code()}")
             } catch (e: Exception) {
-                toast("Upload failed: ${e.message}")
+                toast("❌ Upload failed: ${e.message}")
             } finally {
+                // Hide progress overlay
+                showUploadProgress(false)
                 isUploading = false
                 pendingEventId = null
             }
         }
+    }
+
+    private fun showUploadProgress(show: Boolean) {
+        if (_binding == null) return
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun showMediaDialog(eventId: Long?) {

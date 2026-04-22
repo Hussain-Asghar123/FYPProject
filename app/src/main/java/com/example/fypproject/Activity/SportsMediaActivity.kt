@@ -84,15 +84,12 @@ class SportsMediaActivity : AppCompatActivity() {
     private fun fetchSportsMedia() {
         if (isLoading) return
 
-        isLoading = true
-        binding.progressBar.visibility = View.VISIBLE
-        binding.progressBar.indeterminateTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primaryColor))
+        showLoading(true)
 
         api.getMediaBySportId(sportId, page, size)
             .enqueue(object : Callback<List<MediaDto>> {
                 override fun onResponse(call: Call<List<MediaDto>>, response: Response<List<MediaDto>>) {
-                    isLoading = false
-                    binding.progressBar.visibility = View.GONE
+                    showLoading(false)
 
                     if (response.isSuccessful && !response.body().isNullOrEmpty()) {
                         val newItems = response.body()!!
@@ -111,8 +108,7 @@ class SportsMediaActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<List<MediaDto>>, t: Throwable) {
-                    isLoading = false
-                    binding.progressBar.visibility = View.GONE
+                    showLoading(false)
                     Toast.makeText(this@SportsMediaActivity, "Failed to load media", Toast.LENGTH_SHORT).show()
                     if (page == 0) {
                         checkEmptyState()
@@ -125,6 +121,12 @@ class SportsMediaActivity : AppCompatActivity() {
         val isEmpty = mediaList.isEmpty()
         binding.rvMedia.visibility = if (isEmpty) View.GONE else View.VISIBLE
         binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
+    }
+
+    private fun showLoading(show: Boolean) {
+        isLoading = show
+        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
+        binding.progressBar.indeterminateTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primaryColor))
     }
 
     private fun setupViewPager() {

@@ -1,8 +1,10 @@
 package com.example.fypproject.CricketFragment
 
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -77,27 +79,68 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         val teamId = if (isTeamA) match.team1Id else match.team2Id
         teamId ?: return
 
+        if (isTeamA == showingTeamA) {
+            showLoadingState()
+        }
+
         lifecycleScope.launch {
             try {
                 val response = api.getScoreCard(matchId, teamId)
                 if (response.isSuccessful) {
-                    val scorecard = response.body() ?: return@launch
-                    if (isTeamA) ScoreCardTeamA = scorecard else ScoreCardTeamB = scorecard
-                    if (isTeamA == showingTeamA) updateUI(scorecard)
+                    val scorecard = response.body()
+                    if (scorecard != null) {
+                        if (isTeamA) ScoreCardTeamA = scorecard else ScoreCardTeamB = scorecard
+                        if (isTeamA == showingTeamA) updateUI(scorecard)
+                    } else {
+                        if (isTeamA == showingTeamA) showEmptyState()
+                    }
                 } else {
                     requireContext().toastShort("HTTP Error: ${response.code()}")
+                    if (isTeamA == showingTeamA) showEmptyState()
                 }
             } catch (e: Exception) {
                 requireContext().toastShort("Exception: ${e.message}")
+                if (isTeamA == showingTeamA) showEmptyState()
             }
         }
     }
     private fun updateUI(scorecard: ScorecardResponse){
+        hideLoadingState()
+        hideEmptyState()
+        showContentView()
         batsmanAdapter.updateData(scorecard.batsmanScores)
         bowlerAdapter.updateData(scorecard.bowlerScores)
         binding.tvExtras.text =    "Extras   ${scorecard.extras}"
         binding.tvTotal.text =    " Total    ${scorecard.totalRuns}"
         binding.tvOversInfo.text = "Overs    ${scorecard.overs}.${scorecard.balls}"
+    }
+
+    private fun showLoadingState() {
+        binding.progressLoading.visibility = View.VISIBLE
+        binding.contentScrollView.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.GONE
+        binding.progressLoading.indeterminateTintList =
+            ColorStateList.valueOf(0xFFE31212.toInt())
+    }
+
+    private fun hideLoadingState() {
+        binding.progressLoading.visibility = View.GONE
+        binding.progressLoading.indeterminateTintList =
+            ColorStateList.valueOf(0xFFE31212.toInt())
+    }
+
+    private fun showEmptyState() {
+        binding.progressLoading.visibility = View.GONE
+        binding.contentScrollView.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.VISIBLE
+    }
+
+    private fun hideEmptyState() {
+        binding.emptyStateContainer.visibility = View.GONE
+    }
+
+    private fun showContentView() {
+        binding.contentScrollView.visibility = View.VISIBLE
     }
 
     private fun highlightTab(isTeamA: Boolean) {
@@ -110,6 +153,8 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         binding.btnTeamA.setTextColor(if (isTeamA) activeText else inactiveText)
         binding.btnTeamB.setBackgroundColor(if (isTeamA) inactiveColor else activeColor)
         binding.btnTeamB.setTextColor(if (isTeamA) inactiveText else activeText)
+        
+        showContentView()
     }
 
     private fun registerSocketListeners() {
@@ -141,8 +186,10 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) registerSocketListeners()
-        else unregisterSocketListeners()
+        if (!hidden) {
+            registerSocketListeners()
+            fetchScoreCard(showingTeamA)
+        } else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {

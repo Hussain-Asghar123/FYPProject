@@ -45,6 +45,8 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
         childFragmentManager.beginTransaction()
             .replace(binding.fragmentContainer.id, fragment)
             .commit()
+        binding.fragmentContainer.postDelayed({
+        }, 300)
     }
 
     private fun selectButton(active: MaterialButton) {
@@ -55,6 +57,7 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
         active.backgroundTintList =
             android.content.res.ColorStateList.valueOf(Color.parseColor("#E31212"))
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

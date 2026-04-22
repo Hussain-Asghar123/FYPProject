@@ -267,6 +267,7 @@ class StartScoringActivity : AppCompatActivity() {
     }
 
     private fun fetchMatchDetails() {
+        showLoading(true)
         lifecycleScope.launch {
             try {
                 val response = api.getMatchById1(matchId)
@@ -275,11 +276,16 @@ class StartScoringActivity : AppCompatActivity() {
                     sportId   = matchData?.sportId ?: sportId
                     bindDataToUI()
                     setupSportUI()
+                    checkEmptyState()
                 } else {
                     toastShort("Failed to fetch match (${response.code()})")
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 toastLong("Network error: ${e.message}")
+                checkEmptyState()
+            } finally {
+                showLoading(false)
             }
         }
     }
@@ -360,6 +366,7 @@ class StartScoringActivity : AppCompatActivity() {
     }
 
     private fun startMatchCall() {
+        showLoading(true)
         binding.startScoringBtn.isEnabled = false
         binding.startScoringBtn.alpha     = 0.7f
 
@@ -400,6 +407,9 @@ class StartScoringActivity : AppCompatActivity() {
             },
         ) ?: run {
             toastShort("Match data missing")
+            showLoading(false)
+            binding.startScoringBtn.isEnabled = true
+            binding.startScoringBtn.alpha     = 1f
             return
         }
 
@@ -411,11 +421,13 @@ class StartScoringActivity : AppCompatActivity() {
                     finish()
                 } else {
                     toastShort("Failed: ${response.code()}")
+                    showLoading(false)
                     binding.startScoringBtn.isEnabled = true
                     binding.startScoringBtn.alpha     = 1f
                 }
             } catch (e: Exception) {
                 toastLong("Network error: ${e.message}")
+                showLoading(false)
                 binding.startScoringBtn.isEnabled = true
                 binding.startScoringBtn.alpha     = 1f
             }
@@ -432,6 +444,7 @@ class StartScoringActivity : AppCompatActivity() {
     }
 
     private fun abandonMatchCall() {
+        showLoading(true)
         binding.abandonYesBtn.isEnabled = false
         binding.abandonYesBtn.alpha     = 0.5f
 
@@ -440,14 +453,17 @@ class StartScoringActivity : AppCompatActivity() {
                 val response = api.abandonMatch(matchId)
                 if (response.isSuccessful) {
                     toastShort("Match Abandoned")
+                    checkEmptyState()
                     finish()
                 } else {
                     toastShort("Failed: ${response.code()}")
+                    showLoading(false)
                     binding.abandonYesBtn.isEnabled = true
                     binding.abandonYesBtn.alpha     = 1f
                 }
             } catch (e: Exception) {
                 toastLong("Network error: ${e.message}")
+                showLoading(false)
                 binding.abandonYesBtn.isEnabled = true
                 binding.abandonYesBtn.alpha     = 1f
             }
@@ -457,5 +473,16 @@ class StartScoringActivity : AppCompatActivity() {
     private fun highlightButton(selected: MaterialButton, unselected: MaterialButton) {
         selected.setBackgroundColor(colorSelected)
         unselected.setBackgroundColor(colorDefault)
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay?.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = matchData == null
+        if (isEmpty) {
+            toastShort("No match data available")
+        }
     }
 }

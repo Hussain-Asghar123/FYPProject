@@ -36,15 +36,26 @@ class ChessHighlightsFragment : Fragment(R.layout.chess_highlight_fragment) {
             }
         }
         setupRecyclerView()
+        showLoadingState()
         // ✅ Cached data load karo
         (activity as? ChessScoringActivity)?.latestScore?.let {
             it.chessEvents?.let { events -> updateEvents(events) }
+        } ?: run {
+            showEmptyState()
         }
     }
 
     fun onScoreUpdated(score: ChessScoreDTO) {
         if (_binding == null) return
-        score.chessEvents?.let { updateEvents(it) }
+        score.chessEvents?.let {
+            if (it.isNotEmpty()) {
+                updateEvents(it)
+            } else {
+                showEmptyState()
+            }
+        } ?: run {
+            showEmptyState()
+        }
     }
 
     private fun setupRecyclerView() {
@@ -58,8 +69,38 @@ class ChessHighlightsFragment : Fragment(R.layout.chess_highlight_fragment) {
         eventsList.clear()
         eventsList.addAll(sorted)
         eventsAdapter.notifyDataSetChanged()
-        binding.rvMatchEvents.visibility =
-            if (eventsList.isEmpty()) View.GONE else View.VISIBLE
+
+        if (eventsList.isEmpty()) {
+            showEmptyState()
+        } else {
+            hideLoadingState()
+            hideEmptyState()
+            showContentView()
+        }
+    }
+
+    private fun showLoadingState() {
+        binding.progressLoading.visibility = View.VISIBLE
+        binding.rvMatchEvents.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.GONE
+    }
+
+    private fun hideLoadingState() {
+        binding.progressLoading.visibility = View.GONE
+    }
+
+    private fun showEmptyState() {
+        binding.progressLoading.visibility = View.GONE
+        binding.rvMatchEvents.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.VISIBLE
+    }
+
+    private fun hideEmptyState() {
+        binding.emptyStateContainer.visibility = View.GONE
+    }
+
+    private fun showContentView() {
+        binding.rvMatchEvents.visibility = View.VISIBLE
     }
 
     private fun registerSocketListeners() {

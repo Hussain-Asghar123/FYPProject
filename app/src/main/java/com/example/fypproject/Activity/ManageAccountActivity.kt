@@ -43,6 +43,16 @@ class ManageAccountActivity : AppCompatActivity() {
         binding.search.isEnabled = !isLoading
     }
 
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = filteredList.isEmpty()
+        binding.accountRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
+    }
+
     private fun setupRecycler(){
         adapter=AccountAdapter(
             filteredList,
@@ -55,7 +65,9 @@ class ManageAccountActivity : AppCompatActivity() {
     }
     private fun getAllAccounts(){
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
+            binding.btnAdd.isEnabled = false
+            binding.btnBack.isEnabled = false
             try {
                 val response = api.getAllAccounts()
                 if(response.isSuccessful && response.body() != null){
@@ -67,29 +79,25 @@ class ManageAccountActivity : AppCompatActivity() {
                 }
                 checkEmptyState()
             } finally {
-                setLoading(false)
+                showLoading(false)
+                binding.btnAdd.isEnabled = true
+                binding.btnBack.isEnabled = true
             }
         }
     }
 
-    private fun checkEmptyState() {
-        val isEmpty = filteredList.isEmpty()
-        binding.accountRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
-        binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
-    }
-
     private fun setupSearch(){
         binding.search.addTextChangedListener{
-        val query = it.toString().lowercase()
-        filteredList.clear()
-        filteredList.addAll(
-            fullList.filter {
-                acc ->
-                acc.name.lowercase().contains(query) || acc.username.lowercase().contains(query)
-            }
-        )
-        adapter.notifyDataSetChanged()
-        checkEmptyState()
+            val query = it.toString().lowercase()
+            filteredList.clear()
+            filteredList.addAll(
+                fullList.filter {
+                    acc ->
+                    acc.name.lowercase().contains(query) || acc.username.lowercase().contains(query)
+                }
+            )
+            adapter.notifyDataSetChanged()
+            checkEmptyState()
         }
     }
     private fun openUpdate(account: AccountResponse) {
@@ -118,7 +126,9 @@ class ManageAccountActivity : AppCompatActivity() {
     }
     private fun deleteAccount(id: Long) {
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
+            binding.btnAdd.isEnabled = false
+            binding.btnBack.isEnabled = false
             try {
                 api.deleteAccount(id.toInt())
                 val response = api.getAllAccounts()
@@ -131,7 +141,9 @@ class ManageAccountActivity : AppCompatActivity() {
                 }
                 checkEmptyState()
             } finally {
-                setLoading(false)
+                showLoading(false)
+                binding.btnAdd.isEnabled = true
+                binding.btnBack.isEnabled = true
             }
         }
     }

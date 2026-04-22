@@ -1,6 +1,5 @@
 package com.example.fypproject.Activity
 
-import android.R.attr.id
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,7 +11,6 @@ import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityUpdateAccountBinding
 import kotlinx.coroutines.launch
-import kotlin.toString
 
 class UpdateAccountActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUpdateAccountBinding

@@ -142,7 +142,7 @@ class HomeActivity : AppCompatActivity() {
         val currentUsername = sharedPreferences.getString("username", "")
 
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
             try {
                 val updateRequest = com.example.fypproject.DTO.PlayerDto(
                     id = id,
@@ -168,13 +168,13 @@ class HomeActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
             } finally {
-                setLoading(false)
+                showLoading(false)
             }
         }
     }
 
     private fun setupRecyclerViews() {
-        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
+        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
 
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
@@ -309,7 +309,7 @@ class HomeActivity : AppCompatActivity() {
             binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
 
         lifecycleScope.launch {
-            setLoading(true)
+            showLoading(true)
             try {
                 val response = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.getLiveMatches(status = status, sport = sport)
@@ -326,26 +326,30 @@ class HomeActivity : AppCompatActivity() {
                                     (m.tournamentName?.lowercase()?.contains(searchQuery) ?: false)
                         }
                     } else list
+                    val limited = if (status == "LIVE") filtered.take(3) else filtered.take(4)
 
                     if (status == "LIVE") {
-                        liveAdapter.updateData(filtered)
+                        liveAdapter.updateData(limited)
                         binding.recyclerLiveMatches.visibility = View.VISIBLE
                     } else {
-                        upcomingAdapter.updateData(filtered)
+                        upcomingAdapter.updateData(limited)
                         binding.recyclerUpcomingMatches.visibility = View.VISIBLE
                     }
+                    checkEmptyState()
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Failed to load matches"))
                     if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.VISIBLE
                     else binding.recyclerUpcomingMatches.visibility = View.VISIBLE
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 toastLong(NetworkUi.userMessage(e))
                 if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.VISIBLE
                 else binding.recyclerUpcomingMatches.visibility = View.VISIBLE
+                checkEmptyState()
             } finally {
-                setLoading(false)
+                showLoading(false)
             }
         }
     }
@@ -353,6 +357,19 @@ class HomeActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
         binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
+    }
+
+    private fun showLoading(show: Boolean) {
+        if (show) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
+        binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val liveEmpty = liveAdapter.itemCount == 0
+        val upcomingEmpty = upcomingAdapter.itemCount == 0
+
+        binding.tvLiveEmptyState.visibility = if (liveEmpty) View.VISIBLE else View.GONE
+        binding.tvUpcomingEmptyState.visibility = if (upcomingEmpty) View.VISIBLE else View.GONE
     }
 
     override fun onResume() {

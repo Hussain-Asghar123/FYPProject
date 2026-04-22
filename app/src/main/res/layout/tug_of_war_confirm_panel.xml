@@ -28,7 +28,7 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:backgroundTint="#10B981"
+        app:backgroundTint="#E31212"
         app:cornerRadius="12dp"/>
 
     <com.google.android.material.button.MaterialButton

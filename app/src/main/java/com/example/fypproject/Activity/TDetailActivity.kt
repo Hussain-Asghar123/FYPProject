@@ -78,8 +78,7 @@ class TDetailActivity : AppCompatActivity() {
     }
 
     private fun fetchTournaments() {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.tvEmpty.visibility = View.GONE
+        showLoading(true)
 
         api.getSeasonWiseTournaments( seasonId,sportId)
 
@@ -90,17 +89,21 @@ class TDetailActivity : AppCompatActivity() {
                     call: Call<List<TournamentResponse>>,
                     response: Response<List<TournamentResponse>>
                 ) {
-                    binding.progressBar.visibility = View.GONE
+                    showLoading(false)
 
                     if (response.isSuccessful) {
                         val list = response.body().orEmpty()
+                        tournamneList.clear()
+                        tournamneList.addAll(list)
                         adapter.setData(list)
-                        if(list.isEmpty()){
-                            showEmpty("No tournaments found for $sportName")
+                        if (list.isEmpty()) {
+                            showEmpty("No data available")
                         }
+                        checkEmptyState()
                     }
                     else {
-                        showEmpty("No tournaments found")
+                        showEmpty("No data available")
+                        checkEmptyState()
                     }
                 }
 
@@ -108,8 +111,9 @@ class TDetailActivity : AppCompatActivity() {
                     call: Call<List<TournamentResponse>>,
                     t: Throwable
                 ) {
-                    binding.progressBar.visibility = View.GONE
-                    showEmpty("Network error")
+                    showLoading(false)
+                    showEmpty("No data available")
+                    checkEmptyState()
                 }
             })
     }
@@ -119,6 +123,17 @@ class TDetailActivity : AppCompatActivity() {
         binding.tvEmpty.visibility = View.VISIBLE
         binding.tvEmpty.text = msg
     }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = tournamneList.isEmpty()
+        binding.rvSports.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
+    }
+
     override fun onResume() {
         super.onResume()
         fetchTournaments()

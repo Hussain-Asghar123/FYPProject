@@ -170,16 +170,27 @@ class CreateTournamnetActivity : AppCompatActivity() {
         }
 
     private fun disableUi() {
-        binding.progressOverlay.visibility = View.VISIBLE
+        showLoading(true)
         binding.btnSubmit.isEnabled = false
+        binding.ivBack.isEnabled = false
     }
 
     private fun enableUi() {
-        binding.progressOverlay.visibility = View.GONE
+        showLoading(false)
         binding.btnSubmit.isEnabled = true
+        binding.ivBack.isEnabled = true
     }
 
     private fun showToast(msg: String) {
         toastShort(msg)
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        // Add empty state logic here if needed
+        // Example: if (formData.isEmpty()) { showEmptyStateView() }
     }
 }

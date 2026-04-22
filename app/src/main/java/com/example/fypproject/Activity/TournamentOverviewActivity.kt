@@ -74,7 +74,7 @@ class TournamentOverviewActivity : AppCompatActivity() {
         binding.btnTeams.setOnClickListener {
             selectButton(binding.btnTeams)
             setMenuVisible(false)
-            loadFragment(TeamFragement.newInstance(tournamentId,sportId))
+            loadFragment(TeamFragement.newInstance(tournamentId, sportId))
         }
 
         binding.btnPoints.setOnClickListener {

@@ -610,6 +610,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val ballId  = pendingBallId    ?: return
 
         isUploading = true
+        // Show progress overlay
+        showUploadProgress(true)
+        requireContext().toastShort("Uploading...")
 
         lifecycleScope.launch {
             try {
@@ -630,18 +633,25 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 }
 
                 if (response.isSuccessful) {
-                    requireContext().toastShort("Upload Successful!")
+                    requireContext().toastShort("✅ Upload Successful!")
                 } else {
-                    requireContext().toastShort("Upload failed: ${response.code()}")
+                    requireContext().toastShort("❌ Upload failed: ${response.code()}")
                 }
 
             } catch (e: Exception) {
-                requireContext().toastShort("Upload failed: ${e.message}")
+                requireContext().toastShort("❌ Upload failed: ${e.message}")
             } finally {
+                // Hide progress overlay
+                showUploadProgress(false)
                 isUploading   = false
                 pendingBallId = null
             }
         }
+    }
+
+    private fun showUploadProgress(show: Boolean) {
+        if (_binding == null) return
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun updateHeaderUI(score: ScoreDTO) {

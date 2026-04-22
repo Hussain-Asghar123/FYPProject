@@ -37,6 +37,7 @@
             android:text="Media"
             android:textColor="@android:color/white"
             android:textSize="18sp"
+            android:gravity="center"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

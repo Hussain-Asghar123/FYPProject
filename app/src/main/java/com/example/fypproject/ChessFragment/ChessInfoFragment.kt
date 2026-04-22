@@ -17,7 +17,6 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
     private var _binding: InfoFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
-
     private val SOCKET_KEY = "ChessInfoFragment"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,25 +30,15 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
                 bundle.getSerializable("match_response") as? MatchResponse
             }
         }
-        registerSocketListeners()
         populateMatchInfo()
     }
 
-    override fun onResume() {
-        super.onResume()
-        registerSocketListeners()
-    }
-
+    override fun onResume() { super.onResume(); registerSocketListeners() }
+    override fun onPause() { super.onPause(); unregisterSocketListeners() }
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) registerSocketListeners()
-        else unregisterSocketListeners()
+        if (!hidden) registerSocketListeners() else unregisterSocketListeners()
     }
-
-    override fun onPause() {
-        super.onPause()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         unregisterSocketListeners()
@@ -60,13 +49,13 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
         WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
-                    is SocketState.Connected    -> { /* silent */ }
-                    is SocketState.Error        -> { /* handle if needed */ }
+                    is SocketState.Connected -> {}
+                    is SocketState.Error -> {}
                     is SocketState.Disconnected -> {}
                 }
             }
         }
-        WebSocketManager.addMessageListener(SOCKET_KEY) { /* no-op */ }
+        WebSocketManager.addMessageListener(SOCKET_KEY) {}
     }
 
     private fun unregisterSocketListeners() {
@@ -82,17 +71,18 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
                     match.team2Id -> match.team2Name
                     else -> "Unknown"
                 }
-                tvMatchTitle.text  = "${match.team1Name} vs ${match.team2Name}"
-                tvTournament.text  = match.tournamentName
+                tvBallTypeLabel.visibility = View.GONE
+                tvOvers.visibility = View.GONE
+                tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
+                tvTournament.text = match.tournamentName
                 tvMatchScorer.text = match.scorerId
-                tvOvers.text       = match.overs.toString()
-                tvStatus.text      = match.status
-                tvVenue.text       = match.venue
-                tvDate.text        = formatDateTime(match.date)
-                tvTime.text        = match.time
-                tvTossWonBy.text   = tossWinnerName
-                tvChooseTo.text    = match.decision
-                tvMatchId.text     = match.id.toString()
+                tvStatus.text = match.status
+                tvVenue.text = match.venue
+                tvDate.text = formatDateTime(match.date)
+                tvTime.text = match.time
+                tvTossWonBy.text = tossWinnerName
+                tvChooseTo.text = match.decision
+                tvMatchId.text = match.id.toString()
             }
         }
     }
@@ -100,13 +90,11 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
     private fun formatDateTime(dateTime: String?): String {
         if (dateTime.isNullOrEmpty()) return "N/A"
         return try {
-            val inputFormat  = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
             val date = inputFormat.parse(dateTime)
             date?.let { outputFormat.format(it) } ?: dateTime
-        } catch (e: Exception) {
-            dateTime
-        }
+        } catch (e: Exception) { dateTime }
     }
 
     companion object {

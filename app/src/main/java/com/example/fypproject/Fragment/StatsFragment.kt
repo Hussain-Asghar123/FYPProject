@@ -33,14 +33,29 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     }
 
     private fun fetchTournamentStats(id: Long) {
+        setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val stats = api.getTournamentStats(id)
                 populateUI(stats)
             } catch (e: Exception) {
                 Log.e("StatsFragment", "Error: ${e.message}", e)
+                showError()
+            } finally {
+                setLoading(false)
             }
         }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        if (_binding == null) return
+        binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+    private fun showError() {
+        if (_binding == null) return
+        binding.tvEmptyState.visibility = View.VISIBLE
+        binding.tvEmptyState.text = "No data available"
     }
 
     private fun populateUI(stats: TournamentStatsDto) {
@@ -50,6 +65,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             SPORT_BADMINTON->populateBadmintonUI(stats)
             SPORT_TABLE_TENNIS->populateTableTennisUI(stats)
             SPORT_TUG_OF_WAR->populateTugOfWarUI(stats)
+            SPORT_LUDO  -> populateLudoUI(stats)
+            SPORT_CHESS -> populateChessUI(stats)
             else             -> populateCricketUI(stats)
         }
     }
@@ -366,6 +383,75 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
+
+    private fun populateLudoUI(stats: TournamentStatsDto) {
+        hideCardHighestScore()
+        hideBowlersSection()
+        val scorers = stats.topGoalScorers.orEmpty()
+        binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
+        binding.cardBestBatsman.tvLabel.text      = "Top Home Runs"
+        binding.cardBestBatsman.tvPlayerName.text =
+            stats.topScorer?.playerName ?: scorers.maxByOrNull { it.goals }?.playerName ?: "TBD"
+        binding.cardBestBatsman.tvValue.text      =
+            stats.topScorer?.reason ?: scorers.maxByOrNull { it.goals }?.let { "${it.goals} home runs" } ?: "No Data"
+        binding.cardBestBowler.tvLabel.text       = "Top Captures"
+        binding.cardBestBowler.tvPlayerName.text  =
+            stats.topAssist?.playerName ?: scorers.maxByOrNull { it.assists }?.playerName ?: "TBD"
+        binding.cardBestBowler.tvValue.text       =
+            stats.topAssist?.reason ?: scorers.maxByOrNull { it.assists }?.let { "${it.assists} captures" } ?: "No Data"
+        binding.tvTopBatsmenTitle.text = "Top Players"
+        binding.headerBatsmen.apply {
+            tvRuns.text  = "Home Runs"
+            tvBalls.text = "Captures"
+            tvFours.text = "POM"
+            tvSixes.visibility = View.GONE
+            tvPom.visibility   = View.GONE
+        }
+        binding.rvTopBatsmen.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = TournamentStatsAdapter(
+                sportType       = TournamentStatsAdapter.SPORT_LUDO,
+                isBatting       = true,
+                goalScorerItems = scorers
+            )
+        }
+    }
+
+    private fun populateChessUI(stats: TournamentStatsDto) {
+        hideCardHighestScore()
+        hideBowlersSection()
+        val scorers = stats.topGoalScorers.orEmpty()
+        binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
+        binding.cardBestBatsman.tvLabel.text      = "Most Wins"
+        binding.cardBestBatsman.tvPlayerName.text =
+            stats.topScorer?.playerName ?: scorers.maxByOrNull { it.goals }?.playerName ?: "TBD"
+        binding.cardBestBatsman.tvValue.text      =
+            stats.topScorer?.reason ?: scorers.maxByOrNull { it.goals }?.let { "${it.goals} wins" } ?: "No Data"
+        binding.cardBestBowler.tvLabel.text       = "Most Checks"
+        binding.cardBestBowler.tvPlayerName.text  =
+            stats.topAssist?.playerName ?: scorers.maxByOrNull { it.assists }?.playerName ?: "TBD"
+        binding.cardBestBowler.tvValue.text       =
+            stats.topAssist?.reason ?: scorers.maxByOrNull { it.assists }?.let { "${it.assists} checks" } ?: "No Data"
+        binding.tvTopBatsmenTitle.text = "Leaderboard"
+        binding.headerBatsmen.apply {
+            tvRuns.text  = "Wins"
+            tvBalls.text = "Checks"
+            tvFours.text = "POM"
+            tvSixes.visibility = View.GONE
+            tvPom.visibility   = View.GONE
+        }
+        binding.rvTopBatsmen.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = TournamentStatsAdapter(
+                sportType       = TournamentStatsAdapter.SPORT_CHESS,
+                isBatting       = true,
+                goalScorerItems = scorers
+            )
+        }
+    }
+
+
+
     // ── HELPERS ─────────────────────────────────────────────────────
     private fun showBowlersSection() {
         binding.tvTopBowlersTitle.visibility  = View.VISIBLE
@@ -401,6 +487,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             4L -> SPORT_BADMINTON
             5L-> SPORT_TABLE_TENNIS
             6L-> SPORT_TUG_OF_WAR
+            7L -> SPORT_LUDO
+            8L -> SPORT_CHESS
             else -> null
         }
         if (fromId != null) return fromId
@@ -413,6 +501,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             name.contains(SPORT_BADMINTON)   -> SPORT_BADMINTON
             name.contains(SPORT_TABLE_TENNIS)   -> SPORT_TABLE_TENNIS
             name.contains(SPORT_TUG_OF_WAR) -> SPORT_TUG_OF_WAR
+            name.contains(SPORT_LUDO)  -> SPORT_LUDO
+            name.contains(SPORT_CHESS) -> SPORT_CHESS
             stats.topGoalScorers.orEmpty().isNotEmpty()
                     || stats.topAssistants.orEmpty().isNotEmpty() -> SPORT_FUTSAL
             else -> SPORT_CRICKET
@@ -441,5 +531,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         private const val SPORT_BADMINTON  = "badminton"
         private const val SPORT_TABLE_TENNIS  = "table_tennis"
         private const val SPORT_TUG_OF_WAR  = "tug_of_war"
+        private const val SPORT_LUDO  = "ludo"
+        private const val SPORT_CHESS = "chess"
     }
 }

@@ -159,6 +159,8 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         if (!isScoring) {
             binding.tvNoEvents.visibility =
                 if (eventsList.isEmpty()) View.VISIBLE else View.GONE
+            binding.rvEvents.visibility =
+                if (eventsList.isEmpty()) View.GONE else View.VISIBLE
             eventsAdapter.notifyDataSetChanged()
         }
     }
@@ -535,6 +537,8 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             }
             binding.tvNoEvents.visibility =
                 if (eventsList.isEmpty()) View.VISIBLE else View.GONE
+            binding.rvEvents.visibility =
+                if (eventsList.isEmpty()) View.GONE else View.VISIBLE
             eventsAdapter.notifyDataSetChanged()
         }
 
@@ -756,7 +760,11 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
-        toast("Uploading")
+
+        // Show progress overlay
+        binding.layoutProgressBar.visibility = View.VISIBLE
+        toast("Uploading...")
+
         lifecycleScope.launch {
             try {
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -769,11 +777,17 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
                 val response    = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
                 }
-                if (response.isSuccessful) toast("Upload Successful!")
-                else toast("Upload failed: ${response.code()}")
+                if (response.isSuccessful) {
+                    toast("✅ Upload Successful!")
+                }
+                else {
+                    toast("❌ Upload failed: ${response.code()}")
+                }
             } catch (e: Exception) {
-                toast("Upload failed: ${e.message}")
+                toast("❌ Upload failed: ${e.message}")
             } finally {
+                // Hide progress overlay
+                binding.layoutProgressBar.visibility = View.GONE
                 isUploading    = false
                 pendingEventId = null
             }
@@ -855,3 +869,4 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         }
     }
 }
+

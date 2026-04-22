@@ -33,4 +33,5 @@ data class MatchResponse(
 
     // ── Futsal extras ───────────────────────────────────────────
     val winnerTeamName: String? = null,
+    val winnerTeamId: Long? = null,
 ) : Serializable

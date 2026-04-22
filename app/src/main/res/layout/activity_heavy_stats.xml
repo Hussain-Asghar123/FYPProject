@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Player Stats"
+            android:gravity="center"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -137,12 +138,26 @@
                         android:layout_height="wrap_content"
                         android:text="TABLE TENNIS" />
 
+<!--                    <com.google.android.material.chip.Chip-->
+<!--                        android:id="@+id/chipTugofwar"-->
+<!--                        style="@style/Widget.MaterialComponents.Chip.Choice"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="TUG OF WAR" />-->
+
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipTugofwar"
+                        android:id="@+id/chipLudo"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TUG OF WAR" />
+                        android:text="LUDO" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipChess"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CHESS" />
 
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>

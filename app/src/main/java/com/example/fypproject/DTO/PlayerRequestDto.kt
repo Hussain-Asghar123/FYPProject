@@ -17,5 +17,6 @@ data class TeamRequestDto(
 )
 
 data class PlayerInfo(
-    val name: String
+    val name: String,
+    val username: String
 )

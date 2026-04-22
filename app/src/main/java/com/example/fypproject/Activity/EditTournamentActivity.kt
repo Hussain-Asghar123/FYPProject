@@ -84,11 +84,15 @@ class EditTournamentActivity : AppCompatActivity() {
     }
 
     private fun loadTournament() {
+        showLoading(true)
+        binding.btnSubmit.isEnabled = false
         api.getTournamentById(tournamentId).enqueue(object : Callback<TournamentUpdateRequest> {
                 override fun onResponse(
                     call: Call<TournamentUpdateRequest>,
                     response: Response<TournamentUpdateRequest>
                 ) {
+                    showLoading(false)
+                    binding.btnSubmit.isEnabled = true
                     if (!response.isSuccessful || response.body() == null) {
                         toastLong(NetworkUi.userMessage(response, "Failed to load tournament"))
                         return
@@ -116,10 +120,14 @@ class EditTournamentActivity : AppCompatActivity() {
                         "Knock Out" -> binding.rbKnockOut.isChecked = true
                         "League" -> binding.rbLeague.isChecked = true
                     }
+                    checkEmptyState()
                 }
 
                 override fun onFailure(call: Call<TournamentUpdateRequest>, t: Throwable) {
+                    showLoading(false)
+                    binding.btnSubmit.isEnabled = true
                     toastLong(NetworkUi.userMessage(t))
+                    checkEmptyState()
                 }
             })
     }
@@ -170,17 +178,27 @@ class EditTournamentActivity : AppCompatActivity() {
             }
         )
 
+        showLoading(true)
+        binding.btnSubmit.isEnabled = false
+        binding.ivBack.isEnabled = false
+
         api.updateTournament(tournamentId, dto).enqueue(object : Callback<TournamentUpdateRequest> {
 
                 override fun onResponse(
                     call: Call<TournamentUpdateRequest>,
                     response: Response<TournamentUpdateRequest>
                 ) {
+                    showLoading(false)
+                    binding.btnSubmit.isEnabled = true
+                    binding.ivBack.isEnabled = true
                     if (response.isSuccessful) finish()
                     else toastLong(NetworkUi.userMessage(response, "Update failed"))
                 }
 
                 override fun onFailure(call: Call<TournamentUpdateRequest>, t: Throwable) {
+                    showLoading(false)
+                    binding.btnSubmit.isEnabled = true
+                    binding.ivBack.isEnabled = true
                     toastLong(NetworkUi.userMessage(t))
                 }
             })
@@ -188,5 +206,14 @@ class EditTournamentActivity : AppCompatActivity() {
 
     private fun toast(msg: String) {
         toastShort(msg)
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        // Add empty state logic here if needed
+        // Example: if (formData.isEmpty()) { showEmptyStateView() }
     }
 }

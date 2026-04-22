@@ -44,16 +44,18 @@ class MatchSummaryActivity : AppCompatActivity() {
                         runOnUiThread { bindData(data) }
                     } else {
                         showError("No summary data available.")
+                        checkEmptyState()
                     }
                 } else {
                     showError("Failed to load summary.")
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 showError("Error: ${e.message}")
+                checkEmptyState()
             } finally {
-
                 runOnUiThread {
-                    binding.layoutLoading.visibility = View.GONE
+                    showLoading(false)
                 }
             }
         }
@@ -124,6 +126,7 @@ class MatchSummaryActivity : AppCompatActivity() {
             layoutLoading.visibility = View.GONE
             tvError.visibility = View.GONE
             layoutContent.visibility = View.VISIBLE
+            checkEmptyState()
         }
     }
 
@@ -133,6 +136,13 @@ class MatchSummaryActivity : AppCompatActivity() {
             binding.layoutContent.visibility = View.GONE
             binding.tvError.visibility = View.GONE
         }
+    }
+
+    private fun checkEmptyState() {
+        // Check if summary data is available
+        val isEmpty = binding.tvMatchResult.text.isNullOrEmpty() || binding.tvMatchResult.text.toString().trim().isEmpty()
+        binding.layoutContent.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.tvError.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
     private fun showError(message: String) {

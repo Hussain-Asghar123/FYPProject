@@ -80,7 +80,7 @@
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp"
                 android:hint="Scorer"
-                android:inputType="numberDecimal"
+                android:inputType="textVisiblePassword"
                 android:background="@drawable/rounded_edittext"
                 android:paddingStart="12dp"
                 android:textColor="#212121"/>

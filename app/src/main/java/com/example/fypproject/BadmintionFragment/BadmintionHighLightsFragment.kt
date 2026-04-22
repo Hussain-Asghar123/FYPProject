@@ -6,20 +6,15 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.BadmintionEventAdapter
-import com.example.fypproject.Adapter.VolleyBallEventsAdapter
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.R
 import com.example.fypproject.Scoring.BadmintionScoringActivity
 import com.example.fypproject.ScoringDTO.BadmintionScoreDTO
 import com.example.fypproject.ScoringDTO.BadmintonEvent
-import com.example.fypproject.ScoringDTO.VollayBallScoreDTO
-import com.example.fypproject.ScoringDTO.VolleyballEvent
-import com.example.fypproject.Sockets.JsonConverter
 import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.BadmintionHighlightsFragmentBinding
-import com.example.fypproject.databinding.BadmintionScoringFragmentBinding
 import com.google.gson.Gson
 
 class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_fragment) {
@@ -61,9 +56,20 @@ class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_frag
         eventsList.addAll(sorted)
         eventsAdapter.notifyDataSetChanged()
 
-        binding.rvMatchEvents.visibility =
-            if (eventsList.isEmpty()) View.GONE else View.VISIBLE
+        if (eventsList.isEmpty()) {
+            binding.rvMatchEvents.visibility = View.GONE
+            binding.tvEmptyState.visibility = View.VISIBLE
+        } else {
+            binding.rvMatchEvents.visibility = View.VISIBLE
+            binding.tvEmptyState.visibility = View.GONE
+        }
     }
+
+    private fun setLoading(isLoading: Boolean) {
+        if (_binding == null) return
+        binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
     private fun registerSocketListeners() {
         WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
@@ -93,13 +99,20 @@ class BadmintionHighLightsFragment: Fragment(R.layout.badmintion_highlights_frag
 
     fun onScoreUpdated(score: BadmintionScoreDTO) {
         if (_binding == null) return
+        setLoading(false)
         score.badmintonEvents?.let { updateEvents(it) }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
-            (activity as? BadmintionScoringActivity)?.latestScore?.let { onScoreUpdated(it) }
+            setLoading(true)
+            (activity as? BadmintionScoringActivity)?.latestScore?.let {
+                onScoreUpdated(it)
+            } ?: run {
+                setLoading(false)
+                binding.tvEmptyState.visibility = View.VISIBLE
+            }
         }
     }
 

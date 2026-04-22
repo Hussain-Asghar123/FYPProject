@@ -1,87 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
     app:cardElevation="4dp"
-    app:cardCornerRadius="8dp">
+    app:cardCornerRadius="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/white">
+        android:orientation="horizontal">
 
-        <!-- Request Title / Name -->
-        <TextView
-            android:id="@+id/request_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Malik"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#333333" />
+        <!-- Left Red Border (border-l-4 border-red-500) -->
+        <View
+            android:id="@+id/left_border"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:background="#EF4444" />
 
-        <!-- Creator Info -->
-        <TextView
-            android:id="@+id/request_creator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Creator: Hussnain"
-            android:textSize="13sp"
-            android:textColor="#000000"
-            android:layout_marginTop="6dp" />
-
-        <!-- Status Badge -->
+        <!-- All Content -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="6dp">
+            android:orientation="vertical"
+            android:background="@color/white"
+            android:padding="16dp">
 
+            <!-- Top Row: Title+Chevron LEFT, Buttons RIGHT -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Team/Player Name + Chevron -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/request_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#111827" />
+
+                    <!-- Chevron: only for Team cards -->
+                    <ImageView
+                        android:id="@+id/chevron"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_chevron_down"
+                        android:layout_marginStart="6dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Approve / Reject — visible only when PENDING -->
+                <LinearLayout
+                    android:id="@+id/action_buttons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <ImageButton
+                        android:id="@+id/btn_approve"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_check_circle"
+                        android:background="@drawable/button_approve_ripple"
+                        android:scaleType="centerInside"
+                        android:padding="10dp"
+                        android:contentDescription="Approve"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageButton
+                        android:id="@+id/btn_reject"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_close_circle"
+                        android:background="@drawable/button_reject_ripple"
+                        android:scaleType="centerInside"
+                        android:padding="10dp"
+                        android:contentDescription="Reject" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Creator / Captain Info -->
+            <TextView
+                android:id="@+id/request_creator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="#4B5563"
+                android:layout_marginTop="4dp" />
+
+            <!-- Status -->
             <TextView
                 android:id="@+id/request_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status: PENDING"
                 android:textSize="13sp"
-                android:textColor="#E31212"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:background="#fff3e0"
-                android:elevation="2dp" />
-        </LinearLayout>
+                android:textColor="#4B5563"
+                android:layout_marginTop="4dp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginTop="12dp"
-            android:spacing="12dp">
-
-            <ImageButton
-                android:id="@+id/btn_approve"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_check_circle"
-                android:background="@drawable/button_approve_ripple"
-                android:scaleType="centerInside"
+            <!-- Expandable Players Section — Team only -->
+            <LinearLayout
+                android:id="@+id/players_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#F9FAFB"
                 android:padding="12dp"
-                android:contentDescription="Approve"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/btn_reject"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_close_circle"
-                android:background="@drawable/button_reject_ripple"
-                android:scaleType="centerInside"
-                android:padding="12dp"
-                android:contentDescription="Reject" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Team Players:"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#374151"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/players_list_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -78,7 +78,8 @@ class CreateFixtureActivity : AppCompatActivity() {
 
 
     private fun fetchTeams() {
-        setLoading(true)
+        showLoading(true)
+        binding.btnSave.isEnabled = false
         lifecycleScope.launch {
             try {
                 val response = api.getTeamsByTournamentId(tournamentId)
@@ -90,14 +91,17 @@ class CreateFixtureActivity : AppCompatActivity() {
                     val adapter = TeamSpinnerAdapter(this@CreateFixtureActivity, teamList)
                     binding.spinnerTeam1.adapter = adapter
                     binding.spinnerTeam2.adapter = adapter
-                    binding.btnSave.isEnabled = true
+                    checkEmptyState()
                 } else {
                     toastShort("No teams found")
+                    checkEmptyState()
                 }
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
+                checkEmptyState()
             } finally {
-                setLoading(false)
+                showLoading(false)
+                binding.btnBack.isEnabled = true
             }
         }
     }
@@ -241,6 +245,21 @@ class CreateFixtureActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         binding.progressOverlay.visibility = if (isLoading) android.view.View.VISIBLE else android.view.View.GONE
         binding.btnSave.isEnabled = !isLoading
+        binding.btnBack.isEnabled = !isLoading
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val isEmpty = teamList.isEmpty()
+        if (isEmpty) {
+            toastShort("No teams available")
+            binding.btnSave.isEnabled = false
+        } else {
+            binding.btnSave.isEnabled = true
+        }
     }
 }
 

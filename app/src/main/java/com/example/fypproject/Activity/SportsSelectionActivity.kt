@@ -107,19 +107,24 @@ class SportsSelectionActivity : AppCompatActivity() {
                 call: Call<Season>,
                 response: Response<Season>
             ) {
+                showLoading(false)
                 enableButton()
 
                 if (response.isSuccessful) {
                     showToast("Sports added successfully!")
+                    checkEmptyState()
                     openNextScreen(seasonId, sportsIds)
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Server error"))
+                    checkEmptyState()
                 }
             }
 
             override fun onFailure(call: Call<Season>, t: Throwable) {
+                showLoading(false)
                 enableButton()
                 toastLong(NetworkUi.userMessage(t))
+                checkEmptyState()
             }
         })
     }
@@ -135,17 +140,27 @@ class SportsSelectionActivity : AppCompatActivity() {
     private fun disableButton() {
         binding.btnAdd.isEnabled = false
         binding.btnAdd.text = "Adding..."
-        setLoading(true)
+        showLoading(true)
     }
 
     private fun enableButton() {
         binding.btnAdd.isEnabled = true
         binding.btnAdd.text = "Add"
-        setLoading(false)
+        showLoading(false)
     }
 
     private fun setLoading(isLoading: Boolean) {
         binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+    private fun showLoading(show: Boolean) {
+        binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun checkEmptyState() {
+        val selectedSports = getSelectedSports()
+        val isEmpty = selectedSports.isEmpty()
+        binding.btnAdd.isEnabled = !isEmpty
     }
 
     private fun showToast(msg: String) {
