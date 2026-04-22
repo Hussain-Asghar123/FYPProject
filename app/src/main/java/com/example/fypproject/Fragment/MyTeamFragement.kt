@@ -139,6 +139,7 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         )
 
         binding.spinnerPlayers.setAdapter(adapter)
+        binding.spinnerPlayers.inputType = android.text.InputType.TYPE_NULL
         binding.spinnerPlayers.setOnClickListener { binding.spinnerPlayers.showDropDown() }
     }
 

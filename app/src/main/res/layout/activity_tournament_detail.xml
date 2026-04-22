@@ -149,7 +149,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="No data available"
+                android:text="No Sport Added Yet - Click the + button to add"
                 android:textSize="16sp"
                 android:textColor="#666666"
                 android:visibility="gone" />

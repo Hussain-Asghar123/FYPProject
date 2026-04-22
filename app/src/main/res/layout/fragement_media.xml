@@ -43,7 +43,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:gravity="center"
-        android:text="No Data"
+        android:text="No media found."
         android:textSize="18sp"
         android:textColor="#999999"
         android:visibility="gone"

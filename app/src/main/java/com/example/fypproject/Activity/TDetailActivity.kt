@@ -97,12 +97,12 @@ class TDetailActivity : AppCompatActivity() {
                         tournamneList.addAll(list)
                         adapter.setData(list)
                         if (list.isEmpty()) {
-                            showEmpty("No data available")
+                            showEmpty("No Tournament Available")
                         }
                         checkEmptyState()
                     }
                     else {
-                        showEmpty("No data available")
+                        showEmpty("No Tournament available")
                         checkEmptyState()
                     }
                 }
@@ -112,7 +112,7 @@ class TDetailActivity : AppCompatActivity() {
                     t: Throwable
                 ) {
                     showLoading(false)
-                    showEmpty("No data available")
+                    showEmpty("No Tournament available")
                     checkEmptyState()
                 }
             })

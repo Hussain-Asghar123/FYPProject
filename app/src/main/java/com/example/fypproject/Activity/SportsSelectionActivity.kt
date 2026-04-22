@@ -49,8 +49,6 @@ class SportsSelectionActivity : AppCompatActivity() {
 
         binding.btnAdd.visibility =
             if (role.equals("ADMIN", true)) View.VISIBLE else View.GONE
-
-        // Setup card click listeners
         setupCardClickListeners()
 
         binding.btnAdd.setOnClickListener {
