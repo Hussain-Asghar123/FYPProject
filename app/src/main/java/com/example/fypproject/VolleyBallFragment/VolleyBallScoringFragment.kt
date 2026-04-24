@@ -535,8 +535,8 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             isCompletedAndWaitingForData = false
         }
 
-        team1Points   = obj.optInt("team1Score",    team1Points)
-        team2Points   = obj.optInt("team2Score",    team2Points)
+        team1Points   = obj.optInt("team1Points",    team1Points)
+        team2Points   = obj.optInt("team2Points",    team2Points)
         if (team1Points > 0 || team2Points > 0) {
             lastTeam1Points = team1Points
             lastTeam2Points = team2Points

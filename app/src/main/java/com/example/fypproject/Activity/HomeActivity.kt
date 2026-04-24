@@ -174,7 +174,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerViews() {
-        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
 
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
@@ -182,7 +182,7 @@ class HomeActivity : AppCompatActivity() {
         val username = sharedPreferences.getString("username", "") ?: ""
 
         liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
-                MatchNavigator.navigate(this@HomeActivity, match)
+            MatchNavigator.navigate(this@HomeActivity, match)
         }
 
         upcomingAdapter = MatchAdapter(mutableListOf(), false) { match ->
@@ -260,7 +260,7 @@ class HomeActivity : AppCompatActivity() {
             binding.btnAllSports,
             binding.btnCricket,
             binding.btnFutsal,
-            binding.btnVolleyball,
+            binding.btnVolleyBall,
             binding.btnBadminton,
             binding.btnTugOfWar,
             binding.btnLudo,
@@ -326,13 +326,12 @@ class HomeActivity : AppCompatActivity() {
                                     (m.tournamentName?.lowercase()?.contains(searchQuery) ?: false)
                         }
                     } else list
-                    val limited = if (status == "LIVE") filtered.take(3) else filtered.take(4)
 
                     if (status == "LIVE") {
-                        liveAdapter.updateData(limited)
+                        liveAdapter.updateData(filtered)
                         binding.recyclerLiveMatches.visibility = View.VISIBLE
                     } else {
-                        upcomingAdapter.updateData(limited)
+                        upcomingAdapter.updateData(filtered)
                         binding.recyclerUpcomingMatches.visibility = View.VISIBLE
                     }
                     checkEmptyState()

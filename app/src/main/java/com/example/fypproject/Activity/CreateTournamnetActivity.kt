@@ -3,15 +3,11 @@ package com.example.fypproject.Activity
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatEditText
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.fypproject.DTO.TournamentRequest
 import com.example.fypproject.Network.ApiService
 import com.example.fypproject.Network.RetrofitInstance
-import com.example.fypproject.R
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityCreateTournamnetBinding
@@ -31,9 +27,9 @@ class CreateTournamnetActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding=ActivityCreateTournamnetBinding.inflate(layoutInflater)
+        binding = ActivityCreateTournamnetBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        api= RetrofitInstance.api
+        api = RetrofitInstance.api
         seasonId = intent.getLongExtra("seasonId", -1L)
         sportId = intent.getLongExtra("sportsId", -1L)
         updateTournamentTypeUI(sportId)
@@ -47,23 +43,22 @@ class CreateTournamnetActivity : AppCompatActivity() {
         binding.etStartDate.setOnClickListener {
             showDatePicker(binding.etStartDate as AppCompatEditText)
         }
-
         binding.etEndDate.setOnClickListener {
             showDatePicker(binding.etEndDate as AppCompatEditText)
         }
-
         binding.btnSubmit.setOnClickListener {
             if (validateForm()) {
                 createTournament()
             }
         }
-
     }
+
     private fun updateTournamentTypeUI(sportId: Long) {
         val isVisible = sportId == 1L
         binding.tvType.visibility = if (isVisible) View.VISIBLE else View.GONE
         binding.rgTournamentType.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
+
     private fun showDatePicker(editText: AppCompatEditText) {
         val cal = Calendar.getInstance()
         DatePickerDialog(
@@ -77,6 +72,7 @@ class CreateTournamnetActivity : AppCompatActivity() {
             cal.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
+
     private fun validateForm(): Boolean {
         val name = binding.etTournamentName.text.toString().trim()
         val organizer = binding.etOrganizerEmail.text.toString().trim()
@@ -116,6 +112,11 @@ class CreateTournamnetActivity : AppCompatActivity() {
             return false
         }
 
+        // Sirf tennis (sportId == 1L) ke liye tournament type validate karo
+        if (sportId == 1L && binding.rgTournamentType.checkedRadioButtonId == -1) {
+            showToast("Select tournament type")
+            return false
+        }
 
         if (binding.rgTournamentStage.checkedRadioButtonId == -1) {
             showToast("Select tournament stage")
@@ -124,6 +125,7 @@ class CreateTournamnetActivity : AppCompatActivity() {
 
         return true
     }
+
     private fun createTournament() {
         disableUi()
 
@@ -138,8 +140,8 @@ class CreateTournamnetActivity : AppCompatActivity() {
             tournamentType = getTournamentType(),
             tournamentStage = getTournamentStage()
         )
-        api.createTournament(request).enqueue(object : Callback<Void> {
 
+        api.createTournament(request).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 enableUi()
                 if (response.isSuccessful) {
@@ -149,17 +151,20 @@ class CreateTournamnetActivity : AppCompatActivity() {
                     showToast(NetworkUi.userMessage(response, "Failed to create tournament"))
                 }
             }
+
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 enableUi()
                 showToast(NetworkUi.userMessage(t))
             }
         })
     }
+
     private fun getPlayerType(): String =
         if (binding.rbMen.isChecked) "male" else "female"
 
     private fun getTournamentType(): String =
-        if (binding.rbTypeHard.isChecked) "hard" else "tennis"
+        if (sportId != 1L) ""
+        else if (binding.rbTypeHard.isChecked) "hard" else "tennis"
 
     private fun getTournamentStage(): String =
         when {
@@ -190,7 +195,6 @@ class CreateTournamnetActivity : AppCompatActivity() {
     }
 
     private fun checkEmptyState() {
-        // Add empty state logic here if needed
-        // Example: if (formData.isEmpty()) { showEmptyStateView() }
+
     }
 }

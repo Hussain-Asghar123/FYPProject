@@ -29,7 +29,7 @@ data class ScoreDTO(
     @SerializedName("extrasThisBall") var extrasThisBall: Int = 0,
     @SerializedName("extra") var extra: Int = 0,
 
-    @SerializedName("event") var event: String = "",
+    @SerializedName("event") var event: String? = "",
     @SerializedName("eventType") var eventType: String? = null,
     @SerializedName("dismissalType") var dismissalType: String? = null,
     @SerializedName("comment") var comment: String? = null,

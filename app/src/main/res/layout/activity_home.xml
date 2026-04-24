@@ -132,13 +132,13 @@
                             app:cornerRadius="18dp" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnVolleyball"
+                            android:id="@+id/btnVolleyBall"
                             android:layout_width="wrap_content"
                             android:layout_height="40dp"
                             android:layout_marginEnd="8dp"
                             android:backgroundTint="#212121"
                             android:paddingHorizontal="16dp"
-                            android:text="Volleyball"
+                            android:text="VolleyBall"
                             android:textAllCaps="false"
                             android:textColor="@android:color/white"
                             app:cornerRadius="18dp" />
@@ -303,10 +303,10 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ProgressBar
                 android:layout_width="56dp"
@@ -368,13 +368,13 @@
                         android:id="@+id/btnEdit"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_edit"
-                        android:contentDescription="Edit Button"
-                        android:scaleType="centerInside"
-                        android:padding="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
+                        android:contentDescription="Edit Button"
                         android:focusable="true"
-                        android:background="?attr/selectableItemBackgroundBorderless" />
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@android:drawable/ic_menu_edit" />
 
                 </LinearLayout>
             </LinearLayout>
