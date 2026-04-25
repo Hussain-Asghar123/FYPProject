@@ -88,6 +88,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var cameraImageUri: Uri? = null
     private var isUploading = false
 
+    private var isVotingActive: Boolean = false
     private var summaryPollingJob: kotlinx.coroutines.Job? = null
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -308,7 +309,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         if (canEdit) checkInningsComplete(normalizedScore)
     }
 
-    // ✅ FIX 1: targetChased logic hata di - backend status pe rely karo
     private fun handleModalLogic(score: ScoreDTO) {
         if (!canEdit) return
         matchResponse?.id?.let {
@@ -318,12 +318,13 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             }
         }
 
+        // Backend sent End_Innings signal → show the undo/end panel (both innings)
         if (score.comment == "End_Innings" || score.eventType == "End_Innings") {
             showOnly(binding.layoutInningsUndo.root)
             return
         }
 
-        // ✅ Sirf backend status pe trust karo match complete ke liye
+        // Backend confirmed match is complete → go to summary
         if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE") {
             loadAndShowVotingThenSummary()
             return
@@ -369,9 +370,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
     }
 
-    // ✅ FIX 2: targetChased bilkul hata di checkInningsComplete se
-    // Backend target remaining runs bhejta hai, original nahi
-    // Isliye frontend pe score.runs >= score.target comparison galat tha
     private fun checkInningsComplete(score: ScoreDTO) {
         if (score.firstInnings != isFirstInnings) return
 
@@ -379,7 +377,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val oversComplete = score.overs >= totalOvers && score.balls == 0 && score.overs > 0 && currentBalls == 0
         val wicketsComplete = score.wickets >= 10
 
-        // ✅ targetChased hata di - backend "COMPLETED" status bhejega tab handle hoga
         if ((oversComplete || wicketsComplete) &&
             score.eventType != "End_Innings" &&
             score.comment != "End_Innings"
@@ -860,9 +857,17 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             val scoreToSend = lastReceivedScore ?: return@setOnClickListener
 
             if (!isFirstInnings) {
+                // 2nd innings: send End_Innings to backend, then immediately go to voting/summary
+                // Backend ka wait nahi karna — directly voting show karo
+                JsonConverter.sendScore(scoreToSend.apply {
+                    this.eventType = "End_Innings"
+                    this.comment   = null
+                    this.undo      = false
+                })
                 matchResponse?.id?.let { markMatchEnded(it) }
                 loadAndShowVotingThenSummary()
             } else {
+                // 1st innings: send End_Innings to backend and wait for innings switch via socket
                 JsonConverter.sendScore(scoreToSend.apply {
                     this.eventType = "End_Innings"
                     this.comment   = null
@@ -907,6 +912,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun loadAndShowSummary() {
         if (_binding == null || !isAdded) return
+        if (isVotingActive) return  // Voting screen pe hain, button press hone tak summary mat dikhao
 
         val summary = binding.layoutMatchSummary
         showOnly(summary.root)
@@ -965,6 +971,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
 
         val v = binding.layoutVoting
+        isVotingActive = true
         showOnly(v.root)
 
         v.tvVoteTeam1Name.text    = team1Name.ifEmpty { "Team 1" }
@@ -1009,10 +1016,12 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
         v.btnSubmitVote.setOnClickListener {
             val playerId = selectedVotePlayerId ?: return@setOnClickListener
+            isVotingActive = false
             submitVote(matchId, accountId, playerId)
         }
 
         v.btnSkipVote.setOnClickListener {
+            isVotingActive = false
             loadAndShowSummary()
         }
     }

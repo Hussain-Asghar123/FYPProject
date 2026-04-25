@@ -45,12 +45,8 @@
                 android:layout_width="242dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:background="@android:color/white"
                 android:iconifiedByDefault="false"
-                android:imeOptions="actionSearch"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
+                android:imeOptions="actionSearch|flagNoFullscreen"
                 app:queryHint="Search matches..." />
 
 

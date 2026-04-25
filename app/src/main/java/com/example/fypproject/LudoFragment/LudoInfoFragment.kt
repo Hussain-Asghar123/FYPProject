@@ -73,6 +73,7 @@ class LudoInfoFragment : Fragment(R.layout.info_fragment) {
                 }
                 tvBallTypeLabel.visibility = View.GONE
                 tvOvers.visibility = View.GONE
+                dividerBallType.visibility= View.GONE
                 tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
                 tvTournament.text = match.tournamentName
                 tvMatchScorer.text = match.scorerId

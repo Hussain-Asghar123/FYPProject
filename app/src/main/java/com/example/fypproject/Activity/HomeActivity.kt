@@ -59,49 +59,28 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setupSearchFunctionality() {
         val searchView = binding.searchViewTop
-        searchView.isIconified = true
+        searchView.isIconified = false  // hamesha expand rahega
         searchView.queryHint = "Search matches..."
+        searchView.clearFocus() // keyboard shuru mein band rahe
 
-        val searchTextId = resources.getIdentifier("search_src_text", "id", "android")
-            .takeIf { it != 0 }
-            ?: resources.getIdentifier("search_src_text", "id", "androidx.appcompat")
-
-        val searchEditText = searchTextId
-            .takeIf { it != 0 }
-            ?.let { searchView.findViewById<EditText>(it) }
-
-        searchEditText?.setTextColor(Color.parseColor("#212121"))
-        searchEditText?.setHintTextColor(Color.parseColor("#757575"))
-
-        val searchPlateId = resources.getIdentifier("search_plate", "id", "android")
-            .takeIf { it != 0 }
-            ?: resources.getIdentifier("search_plate", "id", "androidx.appcompat")
-
-        val searchPlate = searchPlateId
-            .takeIf { it != 0 }
-            ?.let { searchView.findViewById<View>(it) }
-
-        searchPlate?.setBackgroundColor(Color.WHITE)
-
+        // Done button pe keyboard hide karo
         searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val q = query?.trim()
-                if (q.isNullOrBlank()) {
-                    fetchAllForCurrentSport()
-                } else {
-                    fetchAllForCurrentSport(searchQuery = q.lowercase())
-                }
+                if (q.isNullOrBlank()) fetchAllForCurrentSport()
+                else fetchAllForCurrentSport(searchQuery = q.lowercase())
+
+                // Keyboard band karo
                 searchView.clearFocus()
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(searchView.windowToken, 0)
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 val q = newText?.trim()
-                if (q.isNullOrBlank()) {
-                    fetchAllForCurrentSport()
-                } else {
-                    fetchAllForCurrentSport(searchQuery = q.lowercase())
-                }
+                if (q.isNullOrBlank()) fetchAllForCurrentSport()
+                else fetchAllForCurrentSport(searchQuery = q.lowercase())
                 return true
             }
         })
@@ -174,7 +153,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerViews() {
-        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this)
+        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
 
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
@@ -316,7 +295,7 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 if (response.isSuccessful) {
-                    val list = response.body() ?: emptyList<com.example.fypproject.DTO.MatchResponse>()
+                    val list = response.body() ?: emptyList()
 
                     val filtered = if (!searchQuery.isNullOrBlank()) {
                         list.filter { m ->
@@ -328,7 +307,7 @@ class HomeActivity : AppCompatActivity() {
                     } else list
 
                     if (status == "LIVE") {
-                        liveAdapter.updateData(filtered)
+                        liveAdapter.updateData(filtered)  // sab dikhao
                         binding.recyclerLiveMatches.visibility = View.VISIBLE
                     } else {
                         upcomingAdapter.updateData(filtered)

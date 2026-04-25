@@ -53,7 +53,7 @@ object WebSocketManager {
 
         val url = "wss://mhaseeb-t-a.hf.space/ws?matchId=$matchId"
         //  val url = "wss://mhaseeb-t-fyp.hf.space/ws?matchId=$matchId"
-       // val url = "ws://192.168.1.105:7860/ws?matchId=$matchId"
+       // val url = "ws://192.168.1.101:7860/ws?matchId=$matchId"
 
         val request = Request.Builder().url(url).build()
 
