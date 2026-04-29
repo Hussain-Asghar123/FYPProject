@@ -671,25 +671,29 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         v.btnSkipVote.setOnClickListener { showFutsalSummary() }
     }
 
-    private fun submitVote(matchId: Long, accountId: Long, playerId: Long) {
+    private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showFutsalSummary()
+            showFutsalSummary()   // ← apne fragment ka summary function yahan likh do
             return
         }
+
         val v = binding.layoutVoting
         v.btnSubmitVote.isEnabled = false
         v.btnSubmitVote.text      = "Submitting…"
         v.btnSkipVote.isEnabled   = false
 
+        val body = buildMap<String, Any?> {
+            put("matchId",   matchId)
+            put("accountId", accountId)
+            put("playerId",  playerId)
+            if (!feedback.isNullOrBlank()) put("feedback", feedback)
+        }
+
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(
-                        matchId   = matchId,
-                        accountId = accountId,
-                        playerId  = playerId
-                    )
+                    RetrofitInstance.api.submitVote(body)
                 }
                 when {
                     response.isSuccessful -> {
@@ -701,6 +705,12 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
                         markAsVoted(matchId)
                         toast("Already voted!")
                         showFutsalSummary()
+                    }
+                    response.code() == 404 -> {
+                        toast("Match or player not found.")
+                        v.btnSubmitVote.isEnabled = true
+                        v.btnSubmitVote.text      = "Submit & View Summary"
+                        v.btnSkipVote.isEnabled   = true
                     }
                     else -> {
                         toast("Vote failed (${response.code()}). Try again.")

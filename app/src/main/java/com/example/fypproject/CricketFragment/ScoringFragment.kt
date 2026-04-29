@@ -4,6 +4,7 @@ import android.content.Context.MODE_PRIVATE
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -56,6 +57,10 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private var lastReceivedScore: ScoreDTO? = null
 
+    private var isSuperOverPending = false
+    private var isSuperOver: Boolean = false
+    private var isSuperOverInnings: Int = 1
+
     private var team1Id: Long = -1L
     private var team2Id: Long = -1L
     private var team1Name: String = ""
@@ -68,7 +73,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var currentStrikerId: Long? = null
     private var currentNonStrikerId: Long? = null
     private var currentBowlerId: Long? = null
+    private var selectedPenaltyRuns = 5
 
+    private var isEndingMatch: Boolean = false
     private var b1Selected = false
     private var b2Selected = false
     private var bowlerSelected = false
@@ -83,7 +90,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var wicketFielderId: Long? = null
     private var wicketOutPlayerId: Long? = null
     private var wicketRunOutRuns: Int = 0
-    private var penaltyTeamId: Long? = null
     private var pendingBallId: Long? = null
     private var cameraImageUri: Uri? = null
     private var isUploading = false
@@ -219,13 +225,22 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun updateScoreboardUI(score: ScoreDTO) {
-        if (_binding == null || !isAdded) return
-        isBallPending = false
-        setScoringPanelEnabled(true)
-        lastReceivedScore = score
-        if (binding.layoutMatchSummary.root.visibility == View.VISIBLE) {
-            return
-        }
+
+            if (_binding == null || !isAdded) return
+            isBallPending = false
+            setScoringPanelEnabled(true)
+            lastReceivedScore = score
+
+            // ✅ React: if (isEndingMatch.current) { isEndingMatch.current = false; openModal("favPlayerModal") }
+            if (isEndingMatch) {
+                isEndingMatch = false
+                loadAndShowVotingThenSummary()
+                return
+            }
+
+            if (binding.layoutMatchSummary.root.visibility == View.VISIBLE) {
+                return
+            }
         if (score.inningsId != null && score.inningsId != -1L) {
             this.inningsId = score.inningsId
         }
@@ -312,42 +327,63 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private fun handleModalLogic(score: ScoreDTO) {
         if (!canEdit) return
         matchResponse?.id?.let {
-            if (hasMatchEnded(it)) {
-                loadAndShowVotingThenSummary()
-                return
-            }
+            if (hasMatchEnded(it)) { loadAndShowVotingThenSummary(); return }
+        }
+        if (score.comment == "Super_Over") {
+            showOnly(binding.layoutInningsUndo.root)
+            binding.layoutInningsUndo.btnSuperOver.visibility = View.VISIBLE
+            binding.layoutInningsUndo.btnEndInnings.text = "End Match"
+            return
         }
 
-        // Backend sent End_Innings signal → show the undo/end panel (both innings)
+        // ✅ 2. DLS_UPDATED — back to main
+        if (score.comment == "DLS_UPDATED") {
+            showOnly(binding.layoutMainScoring.root)
+            return
+        }
+
         if (score.comment == "End_Innings" || score.eventType == "End_Innings") {
             showOnly(binding.layoutInningsUndo.root)
-            return
-        }
-
-        // Backend confirmed match is complete → go to summary
-        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE") {
-            loadAndShowVotingThenSummary()
-            return
-        }
-
-        if (!score.firstInnings && isFirstInnings) {
-            switchInnings()
-            return
-        }
-
-        if (score.balls == 0 && score.overs == 0 && score.wickets == 0 && score.runs == 0) {
-            if (!b1Selected || !b2Selected || !bowlerSelected) {
-                showOnly(binding.layoutSelectPlayer.root)
-            }
-            return
-        } else {
-            if (b1Selected && b2Selected && bowlerSelected) {
-                if (binding.layoutSelectPlayer.root.visibility == View.VISIBLE ||
-                    binding.layoutSelectBowler.root.visibility == View.VISIBLE
-                ) {
-                    showOnly(binding.layoutMainScoring.root)
+            when {
+                isSuperOver && isSuperOverInnings == 1 -> {
+                    binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                    binding.layoutInningsUndo.btnEndInnings.text = "End Super Over Innings"
+                }
+                isSuperOver && isSuperOverInnings == 2 -> {
+                    // SO doosri innings khatam → ab "End Match"
+                    binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                    binding.layoutInningsUndo.btnEndInnings.text = "End Match"
+                }
+                !isFirstInnings -> {
+                    // Normal match doosri innings → Super Over option + End Match
+                    binding.layoutInningsUndo.btnSuperOver.visibility = View.VISIBLE
+                    binding.layoutInningsUndo.btnEndInnings.text = "End Match"
+                }
+                else -> {
+                    // Normal match pehli innings
+                    binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                    binding.layoutInningsUndo.btnEndInnings.text = "End Innings"
                 }
             }
+            return
+        }
+
+        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE") {
+            loadAndShowVotingThenSummary(); return
+        }
+
+        if (!score.firstInnings && isFirstInnings && !isSuperOver) { switchInnings(); return }
+
+        if (score.balls == 0 && score.overs == 0 && score.wickets == 0 && score.runs == 0) {
+            if (!b1Selected || !b2Selected || !bowlerSelected)
+                showOnly(binding.layoutSelectPlayer.root)
+            return
+        }
+
+        if (b1Selected && b2Selected && bowlerSelected) {
+            if (binding.layoutSelectPlayer.root.visibility == View.VISIBLE ||
+                binding.layoutSelectBowler.root.visibility == View.VISIBLE)
+                showOnly(binding.layoutMainScoring.root)
         }
 
         if (score.balls == 0 && score.overs > 0) {
@@ -360,18 +396,10 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 binding.layoutSelectBowler.btnSelectBowler.text = "Select Next Bowler"
                 requireContext().toastShort("Over complete! Select next bowler.")
             }
-            return
-        }
-
-        if (score.status == "SUPER_OVER") {
-            resetForNewInnings()
-            showOnly(binding.layoutSelectPlayer.root)
-            return
         }
     }
-
     private fun checkInningsComplete(score: ScoreDTO) {
-        if (score.firstInnings != isFirstInnings) return
+        if (!isSuperOver && score.firstInnings != isFirstInnings) return
 
         val totalOvers = matchResponse?.overs ?: return
         val oversComplete = score.overs >= totalOvers && score.balls == 0 && score.overs > 0 && currentBalls == 0
@@ -379,10 +407,25 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
         if ((oversComplete || wicketsComplete) &&
             score.eventType != "End_Innings" &&
-            score.comment != "End_Innings"
+            score.comment != "End_Innings" &&
+            score.comment != "Super_Over"
         ) {
             if (binding.layoutInningsUndo.root.visibility != View.VISIBLE) {
                 showOnly(binding.layoutInningsUndo.root)
+                when {
+                    isSuperOver && isSuperOverInnings == 1 -> {
+                        binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                        binding.layoutInningsUndo.btnEndInnings.text = "End Super Over Innings"
+                    }
+                    isSuperOver && isSuperOverInnings == 2 -> {
+                        binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                        binding.layoutInningsUndo.btnEndInnings.text = "End Match"
+                    }
+                    !isFirstInnings -> {
+                        binding.layoutInningsUndo.btnSuperOver.visibility = View.VISIBLE
+                        binding.layoutInningsUndo.btnEndInnings.text = "End Match"
+                    }
+                }
             }
         }
     }
@@ -436,6 +479,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun switchInnings() {
         if (!isFirstInnings) return
+        if (isSuperOver) return
 
         val tempTeamId = battingTeamId
         battingTeamId  = bowlingTeamId
@@ -500,6 +544,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         b1Selected    = false
         b2Selected    = false
         bowlerSelected = false
+
 
         currentOvers = 0
         currentBalls = 0
@@ -649,13 +694,13 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 }
 
                 if (response.isSuccessful) {
-                    requireContext().toastShort("✅ Upload Successful!")
+                    requireContext().toastShort("Upload Successful!")
                 } else {
-                    requireContext().toastShort("❌ Upload failed: ${response.code()}")
+                    requireContext().toastShort(" Upload failed: ${response.code()}")
                 }
 
             } catch (e: Exception) {
-                requireContext().toastShort("❌ Upload failed: ${e.message}")
+                requireContext().toastShort(" Upload failed: ${e.message}")
             } finally {
                 showUploadProgress(false)
                 isUploading   = false
@@ -821,28 +866,21 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun setupMorePanel() {
         binding.layoutMorePanel.apply {
-            btnEndInnings.setOnClickListener { showOnly(binding.layoutEndInnings.root) }
             btnDLS.setOnClickListener        { showOnly(binding.layoutDLS.root)        }
-            btnSuperOver.setOnClickListener  { showOnly(binding.layoutSuperOver.root)  }
             btnAbandon.setOnClickListener    { showAbandonConfirmationDialog()         }
             btnPenalty.setOnClickListener    { resetPenaltyPanel(); showOnly(binding.layoutPenalty.root) }
         }
-        binding.layoutEndInnings.btnCloseEndInnings.setOnClickListener { showOnly(binding.layoutMainScoring.root) }
         binding.layoutDLS.btnCloseDLS.setOnClickListener               { showOnly(binding.layoutMainScoring.root) }
-        binding.layoutSuperOver.btnCloseSuperOver.setOnClickListener   { showOnly(binding.layoutMainScoring.root) }
         binding.layoutAbandon.btnCloseAbandon.setOnClickListener       { showOnly(binding.layoutMainScoring.root) }
         binding.layoutPenalty.btnClosePenalty.setOnClickListener       { showOnly(binding.layoutMainScoring.root) }
 
         setupEndInningsAction()
         setupDLSAction()
-        setupSuperOverAction()
         setupPenaltyAction()
     }
 
+
     private fun setupEndInningsAction() {
-        binding.layoutEndInnings.btnConfirmEndInnings.setOnClickListener {
-            triggerEndInnings()
-        }
 
         binding.layoutInningsUndo.btnUndo.setOnClickListener {
             JsonConverter.sendScore(ScoreDTO().apply {
@@ -852,32 +890,82 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             })
             showOnly(binding.layoutMainScoring.root)
         }
-
         binding.layoutInningsUndo.btnEndInnings.setOnClickListener {
             val scoreToSend = lastReceivedScore ?: return@setOnClickListener
 
-            if (!isFirstInnings) {
-                // 2nd innings: send End_Innings to backend, then immediately go to voting/summary
-                // Backend ka wait nahi karna — directly voting show karo
-                JsonConverter.sendScore(scoreToSend.apply {
-                    this.eventType = "End_Innings"
-                    this.comment   = null
-                    this.undo      = false
-                })
-                matchResponse?.id?.let { markMatchEnded(it) }
-                loadAndShowVotingThenSummary()
-            } else {
-                // 1st innings: send End_Innings to backend and wait for innings switch via socket
-                JsonConverter.sendScore(scoreToSend.apply {
-                    this.eventType = "End_Innings"
-                    this.comment   = null
-                    this.undo      = false
-                })
-                showOnly(binding.layoutMainScoring.root)
+            when {
+                isSuperOver && isSuperOverInnings == 1 -> {
+                    // SO pehli innings end → teams switch, doosri SO innings shuru
+                    isSuperOverInnings = 2
+                    isFirstInnings=false
+                    val tempId = battingTeamId
+                    battingTeamId   = bowlingTeamId
+                    bowlingTeamId   = tempId
+                    battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
+                    bowlingTeamName = if (bowlingTeamId == team1Id) team1Name else team2Name
+
+                    resetForNewInnings()
+                    displayedBalls.clear()
+                    binding.ballContainer.removeAllViews()
+                    binding.tvTeamName.text = battingTeamName
+
+                    JsonConverter.sendScore(scoreToSend.copy(
+                        eventType = "End_Innings", event = "0", comment = "", undo = false, superOver = true, firstInnings = true
+                    ))
+                    showOnly(binding.layoutSelectPlayer.root)
+                    requireContext().toastShort("Super Over Innings 1 done! Doosri team ke liye players select karo.")
+                }
+                isSuperOver && isSuperOverInnings == 2 -> {
+                    isEndingMatch = true
+                    matchResponse?.id?.let { markMatchEnded(it) }
+                    JsonConverter.sendScore(scoreToSend.copy(
+                        eventType = "End_Innings", event = "0", comment = "", undo = false, superOver = true, firstInnings = false
+                    ))
+                    showOnly(binding.layoutMainScoring.root)
+                }
+                !isFirstInnings -> {
+                    // Normal match second innings end
+                    isEndingMatch = true
+                    matchResponse?.id?.let { markMatchEnded(it) }
+                    JsonConverter.sendScore(scoreToSend.copy(
+                        eventType = "End_Innings", event = "0", comment = "", undo = false
+                    ))
+                    showOnly(binding.layoutMainScoring.root)
+                }
+                else -> {
+                    // Normal match first innings end
+                    JsonConverter.sendScore(scoreToSend.copy(
+                        eventType = "End_Innings", event = "0", comment = "", undo = false
+                    ))
+                    showOnly(binding.layoutMainScoring.root)
+                }
             }
         }
-    }
+        binding.layoutInningsUndo.btnSuperOver.setOnClickListener {
+            val base = lastReceivedScore ?: run {
+                requireContext().toastShort("Score data missing, retry karo")
+                return@setOnClickListener
+            }
 
+            // ✅ React: handleSuperOver(data) → {..data, eventType:"Super_Over", event:"0"}
+            JsonConverter.sendScore(base.copy(
+                eventType = "Super_Over",
+                event     = "0",
+                comment   = "",
+                undo      = false
+            ))
+            isSuperOverPending = false
+            isSuperOver = true
+            isSuperOverInnings = 1
+            isFirstInnings = true
+            binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+            resetForNewInnings()
+            displayedBalls.clear()
+            binding.ballContainer.removeAllViews()
+            showOnly(binding.layoutSelectPlayer.root)
+            requireContext().toastShort("Super Over! Select players.")
+        }
+    }
     private fun triggerEndInnings() {
         JsonConverter.sendScore(ScoreDTO().apply {
             this.matchId      = matchResponse?.id
@@ -912,7 +1000,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun loadAndShowSummary() {
         if (_binding == null || !isAdded) return
-        if (isVotingActive) return  // Voting screen pe hain, button press hone tak summary mat dikhao
+        if (isVotingActive) return
 
         val summary = binding.layoutMatchSummary
         showOnly(summary.root)
@@ -1017,7 +1105,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         v.btnSubmitVote.setOnClickListener {
             val playerId = selectedVotePlayerId ?: return@setOnClickListener
             isVotingActive = false
-            submitVote(matchId, accountId, playerId)
+            val feedback = v.etVoteFeedback.text?.toString()?.trim()
+                .takeIf { !it.isNullOrEmpty() }
+            submitVote(matchId, accountId, playerId, feedback)
         }
 
         v.btnSkipVote.setOnClickListener {
@@ -1038,8 +1128,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val prefs = requireActivity().getSharedPreferences("MatchPrefs", MODE_PRIVATE)
         return prefs.getBoolean("match_ended_$matchId", false)
     }
-
-    private fun submitVote(matchId: Long, accountId: Long, playerId: Long) {
+    private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             requireContext().toastShort("Account not found. Please login again.")
             loadAndShowSummary()
@@ -1051,14 +1140,17 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         v.btnSubmitVote.text      = "Submitting…"
         v.btnSkipVote.isEnabled   = false
 
+        val body = buildMap<String, Any?> {
+            put("matchId",   matchId)
+            put("accountId", accountId)
+            put("playerId",  playerId)
+            put("feedback",  feedback)
+        }
+
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(
-                        matchId   = matchId.toLong(),
-                        accountId = accountId,
-                        playerId  = playerId
-                    )
+                    RetrofitInstance.api.submitVote(body)
                 }
 
                 when {
@@ -1159,100 +1251,114 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private fun setupDLSAction() {
         binding.layoutDLS.btnConfirmDLS.setOnClickListener {
             val targetText = binding.layoutDLS.etDLSTarget.text.toString().trim()
-            val oversText  = binding.layoutDLS.etDLSOvers.text.toString().trim()
-
-            if (targetText.isEmpty() || oversText.isEmpty()) {
-                requireContext().toastShort("Enter both target and overs"); return@setOnClickListener
+            if (targetText.isEmpty()) {
+                requireContext().toastShort("Target enter karo"); return@setOnClickListener
             }
             val revisedTarget = targetText.toIntOrNull()
-            val revisedOvers  = oversText.toDoubleOrNull()
-            if (revisedTarget == null || revisedOvers == null || revisedTarget <= 0 || revisedOvers <= 0) {
-                requireContext().toastShort("Enter valid numbers"); return@setOnClickListener
+            if (revisedTarget == null || revisedTarget <= 0) {
+                requireContext().toastShort("Valid number enter karo"); return@setOnClickListener
             }
 
-            JsonConverter.sendScore(ScoreDTO().apply {
-                this.matchId      = matchResponse?.id
-                this.inningsId    = currentInningsId()
-                this.teamId       = battingTeamId
-                this.eventType    = "dls"
-                this.event        = "dls"
-                this.target       = revisedTarget
-                this.status       = "LIVE"
-                this.firstInnings = isFirstInnings
-            })
+            // ✅ React: {...data, eventType:"dls", dlsTarget:newTarget, event:"0"}
+            val base = lastReceivedScore ?: return@setOnClickListener
+            JsonConverter.sendScore(base.copy(
+                eventType  = "dls",
+                event      = "0",
+                dlsTarget  = revisedTarget,
+                undo       = false,
+                comment    = ""
+            ))
             binding.layoutDLS.etDLSTarget.text?.clear()
-            binding.layoutDLS.etDLSOvers.text?.clear()
             showOnly(binding.layoutMainScoring.root)
+            requireContext().toastShort("DLS target set: $revisedTarget")
         }
     }
 
-    private fun setupSuperOverAction() {
-        binding.layoutSuperOver.btnConfirmSuperOver.setOnClickListener {
-            JsonConverter.sendScore(ScoreDTO().apply {
-                this.matchId   = matchResponse?.id
-                this.inningsId = currentInningsId()
-                this.eventType = "super_over"
-                this.event     = "super_over"
-                this.status    = "SUPER_OVER"
-            })
-            showOnly(binding.layoutSelectPlayer.root)
-            resetForNewInnings()
-            requireContext().toastShort("Super Over started! Select players.")
-        }
-    }
+
 
     private fun setupPenaltyAction() {
-        binding.layoutPenalty.apply {
-            btnPenaltyBatting.setOnClickListener {
-                penaltyTeamId = battingTeamId
-                tvPenaltyTeamSelected.text = "Awarded to: $battingTeamName (Batting)"
-                tvPenaltyTeamSelected.setTextColor(0xFF4CAF50.toInt())
-                btnPenaltyBatting.strokeColor = android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt())
-                btnPenaltyBowling.strokeColor = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                btnConfirmPenalty.isEnabled = true
+
+        // ── Preset buttons — JS jaisa ──────────────────────────
+        val presetButtons = listOf(
+            binding.layoutPenalty.btn1Run  to 1,
+            binding.layoutPenalty.btn2Runs to 2,
+            binding.layoutPenalty.btn3Runs to 3,
+            binding.layoutPenalty.btn5Runs to 5,
+            binding.layoutPenalty.btn10Runs to 10,
+        )
+
+        presetButtons.forEach { (btn, runs) ->
+            btn.setOnClickListener {
+                selectedPenaltyRuns = runs
+                binding.layoutPenalty.etPenaltyRuns.setText(runs.toString())
+                updatePresetSelection(presetButtons, runs)
             }
-            btnPenaltyBowling.setOnClickListener {
-                penaltyTeamId = bowlingTeamId
-                val bowlingName = if (bowlingTeamId == team1Id) team1Name else team2Name
-                tvPenaltyTeamSelected.text = "Awarded to: $bowlingName (Bowling)"
-                tvPenaltyTeamSelected.setTextColor(0xFF4CAF50.toInt())
-                btnPenaltyBowling.strokeColor = android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt())
-                btnPenaltyBatting.strokeColor = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                btnConfirmPenalty.isEnabled = true
-            }
-            btnConfirmPenalty.setOnClickListener {
-                val teamId = penaltyTeamId ?: return@setOnClickListener
-                val runs = etPenaltyRuns.text.toString().trim().toIntOrNull()
-                if (runs == null || runs <= 0) {
-                    requireContext().toastShort("Enter valid penalty runs"); return@setOnClickListener
+        }
+
+        // ── Custom input ───────────────────────────────────────
+        binding.layoutPenalty.etPenaltyRuns.addTextChangedListener(
+            object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+                override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    val runs = s.toString().toIntOrNull()
+                    val valid = runs != null && runs > 0
+                    selectedPenaltyRuns = runs ?: selectedPenaltyRuns
+                    binding.layoutPenalty.btnConfirmPenalty.isEnabled = valid
+                    if (valid) {
+                        val label = if (runs == 1) "Run" else "Runs"
+                        binding.layoutPenalty.btnConfirmPenalty.text = "+ $runs Penalty $label"
+                    } else {
+                        binding.layoutPenalty.btnConfirmPenalty.text = "Award Penalty"
+                    }
                 }
-                JsonConverter.sendScore(ScoreDTO().apply {
-                    this.matchId       = matchResponse?.id
-                    this.inningsId     = currentInningsId()
-                    this.teamId        = teamId
-                    this.eventType     = "penalty"
-                    this.event         = runs.toString()
-                    this.runsOnThisBall = runs
-                    this.isLegal       = false
-                    this.status        = "LIVE"
-                    this.firstInnings  = isFirstInnings
-                })
-                showOnly(binding.layoutMainScoring.root)
-                requireContext().toastShort("Penalty $runs runs awarded!")
+            }
+        )
+
+        // ── Confirm — FIXED: event="PENALTY", runs mein value ──
+        binding.layoutPenalty.btnConfirmPenalty.setOnClickListener {
+            val runs = selectedPenaltyRuns
+            if (runs <= 0) { requireContext().toastShort("Valid runs enter karo"); return@setOnClickListener }
+
+            val base = lastReceivedScore ?: return@setOnClickListener  // null ho toh return
+            JsonConverter.sendScore(base.copy(
+                eventType      = "penalty",
+                event          = runs.toString(),  // "5" not "PENALTY"
+                runsOnThisBall = runs,
+                undo           = false,
+                comment        = ""
+            ))
+            showOnly(binding.layoutMainScoring.root)
+            requireContext().toastShort("Penalty $runs runs added!")
+        }
+
+        // Default 5 select karo start mein
+        binding.layoutPenalty.btn5Runs.performClick()
+    }
+
+    private fun updatePresetSelection(
+        buttons: List<Pair<Button, Int>>,
+        selected: Int
+    ) {
+        buttons.forEach { (btn, runs) ->
+            if (runs == selected) {
+                // Selected — white background, red text
+                btn.setBackgroundResource(R.drawable.bg_white_solid)
+                btn.setTextColor(android.graphics.Color.parseColor("#E31212"))
+            } else {
+                // Unselected — outline only
+                btn.setBackgroundResource(R.drawable.bg_white_outline)
+                btn.setTextColor(android.graphics.Color.WHITE)
             }
         }
     }
 
     private fun resetPenaltyPanel() {
-        penaltyTeamId = null
-        binding.layoutPenalty.apply {
-            tvPenaltyTeamSelected.text = "No team selected"
-            tvPenaltyTeamSelected.setTextColor(0xFFAAAAAA.toInt())
-            etPenaltyRuns.text?.clear()
-            btnConfirmPenalty.isEnabled = false
-            btnPenaltyBatting.strokeColor = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
-            btnPenaltyBowling.strokeColor = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
-        }
+        selectedPenaltyRuns = 5
+        binding.layoutPenalty.etPenaltyRuns.setText("5")
+        binding.layoutPenalty.btn5Runs.performClick()
+        binding.layoutPenalty.btnConfirmPenalty.isEnabled = true
+        binding.layoutPenalty.btnConfirmPenalty.text = "+ 5 Penalty Runs"
     }
 
     private fun showAbandonConfirmationDialog() {

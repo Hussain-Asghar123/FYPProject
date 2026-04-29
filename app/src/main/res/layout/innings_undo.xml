@@ -7,7 +7,7 @@
     android:padding="20dp">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -24,12 +24,14 @@
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="End Innings"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:paddingStart="16dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -37,7 +39,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:weightSum="2">
+        android:weightSum="1">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnEndInnings"
@@ -46,15 +48,48 @@
             android:layout_weight="1"
             style="@style/SelectPlayerBtn"
             android:text="End Innings"
-            android:layout_marginEnd="8dp"/>
+            android:layout_marginHorizontal="8dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:weightSum="1">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnUndo"
+            style="@style/SelectPlayerBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/SelectPlayerBtn"
-            android:text="Undo"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginHorizontal="8dp"
+            android:text="Undo" />
+
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:weightSum="1">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSuperOver"
+            style="@style/SelectPlayerBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="8dp"
+            android:visibility="gone"
+            android:text="SuperOver" />
+
+    </LinearLayout>
+
+
 </LinearLayout>

@@ -47,14 +47,26 @@ class TournamentOverviewActivity : AppCompatActivity() {
             openEditTournament()
         }
 
-        buttons = listOf(
-            binding.btnOverview,
-            binding.btnFixtures,
-            binding.btnTeams,
-            binding.btnStats,
-            binding.btnPoints,
-            binding.btnMedia
-        )
+        // Stats button hide + buttons list se bahar agar sportId == 7
+        if (sportId == 7L) {
+            binding.btnStats.visibility = View.GONE
+            buttons = listOf(
+                binding.btnOverview,
+                binding.btnFixtures,
+                binding.btnTeams,
+                binding.btnPoints,
+                binding.btnMedia
+            )
+        } else {
+            buttons = listOf(
+                binding.btnOverview,
+                binding.btnFixtures,
+                binding.btnTeams,
+                binding.btnStats,
+                binding.btnPoints,
+                binding.btnMedia
+            )
+        }
 
         selectButton(binding.btnOverview)
         setMenuVisible(true)
@@ -71,6 +83,7 @@ class TournamentOverviewActivity : AppCompatActivity() {
             setMenuVisible(false)
             loadFragment(FixturesFragement.newInstance(tournamentId, sportId))
         }
+
         binding.btnTeams.setOnClickListener {
             selectButton(binding.btnTeams)
             setMenuVisible(false)
@@ -82,15 +95,20 @@ class TournamentOverviewActivity : AppCompatActivity() {
             setMenuVisible(false)
             loadFragment(PointsTableFragement.newInstance(tournamentId, sportName))
         }
+
         binding.btnMedia.setOnClickListener {
             selectButton(binding.btnMedia)
             setMenuVisible(false)
             loadFragment(MediaFragment.newInstance(tournamentId))
         }
-        binding.btnStats.setOnClickListener {
-            selectButton(binding.btnStats)
-            setMenuVisible(false)
-            loadFragment(StatsFragment.newInstance(tournamentId, sportId, sportName))
+
+        // Stats click sirf tab kaam karega jab sportId != 7
+        if (sportId != 7L) {
+            binding.btnStats.setOnClickListener {
+                selectButton(binding.btnStats)
+                setMenuVisible(false)
+                loadFragment(StatsFragment.newInstance(tournamentId, sportId, sportName))
+            }
         }
     }
 

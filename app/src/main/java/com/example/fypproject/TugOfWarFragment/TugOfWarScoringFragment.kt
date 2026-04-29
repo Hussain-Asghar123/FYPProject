@@ -566,37 +566,59 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         }
         v.btnSkipVote.setOnClickListener { showTugOfWarSummary() }
     }
+    private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
+        if (accountId == -1L) {
+            toast("Account not found. Please login again.")
+            showTugOfWarSummary()   // ← apne fragment ka summary function yahan likh do
+            return
+        }
 
-    private fun submitVote(matchId: Long, accountId: Long, playerId: Long) {
-        if (accountId == -1L) { toast("Login again"); showTugOfWarSummary(); return }
         val v = binding.layoutVoting
         v.btnSubmitVote.isEnabled = false
-        v.btnSubmitVote.text = getString(R.string.submitting)
-        v.btnSkipVote.isEnabled = false
+        v.btnSubmitVote.text      = "Submitting…"
+        v.btnSkipVote.isEnabled   = false
+
+        val body = buildMap<String, Any?> {
+            put("matchId",   matchId)
+            put("accountId", accountId)
+            put("playerId",  playerId)
+            if (!feedback.isNullOrBlank()) put("feedback", feedback)
+        }
+
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(matchId, accountId, playerId)
+                    RetrofitInstance.api.submitVote(body)
                 }
                 when {
                     response.isSuccessful -> {
-                        markAsVoted(matchId); toast("Vote submitted!"); showTugOfWarSummary()
+                        markAsVoted(matchId)
+                        toast("Vote submitted!")
+                        showTugOfWarSummary()
                     }
                     response.code() == 409 -> {
-                        markAsVoted(matchId); toast("Already voted!"); showTugOfWarSummary()
+                        markAsVoted(matchId)
+                        toast("Already voted!")
+                        showTugOfWarSummary()
+                    }
+                    response.code() == 404 -> {
+                        toast("Match or player not found.")
+                        v.btnSubmitVote.isEnabled = true
+                        v.btnSubmitVote.text      = "Submit & View Summary"
+                        v.btnSkipVote.isEnabled   = true
                     }
                     else -> {
-                        toast("Vote failed")
+                        toast("Vote failed (${response.code()}). Try again.")
                         v.btnSubmitVote.isEnabled = true
-                        v.btnSubmitVote.text = getString(R.string.submit_vote)
-                        v.btnSkipVote.isEnabled = true
+                        v.btnSubmitVote.text      = "Submit & View Summary"
+                        v.btnSkipVote.isEnabled   = true
                     }
                 }
-            } catch (_: Exception) {
-                toast("Network error")
+            } catch (e: Exception) {
+                toast("Network error: ${e.message}")
                 v.btnSubmitVote.isEnabled = true
-                v.btnSubmitVote.text = getString(R.string.submit_vote)
-                v.btnSkipVote.isEnabled = true
+                v.btnSubmitVote.text      = "Submit & View Summary"
+                v.btnSkipVote.isEnabled   = true
             }
         }
     }

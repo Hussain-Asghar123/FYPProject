@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Player name (left) -->
+    <TextView
+        android:id="@+id/tvPomPlayerName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="#1F2937" />
+
+    <!-- Reason / match detail (right, grey) -->
+    <TextView
+        android:id="@+id/tvPomReason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#9CA3AF"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+</LinearLayout>

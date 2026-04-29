@@ -24,11 +24,13 @@ class TournamentStatsAdapter(
 
     class BattingViewHolder(val binding: RowBatsmenStatsBinding) :
         RecyclerView.ViewHolder(binding.root)
+
     class BowlingViewHolder(val binding: RowBowlersStatsBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun getItemCount(): Int = when (sportType) {
-        SPORT_FUTSAL, SPORT_VOLLEYBALL,SPORT_BADMINTON,SPORT_TABLETENNIS,SPORT_TUG_OF_WAR,SPORT_LUDO, SPORT_CHESS ->
+        SPORT_FUTSAL, SPORT_VOLLEYBALL, SPORT_BADMINTON,
+        SPORT_TABLETENNIS, SPORT_TUG_OF_WAR, SPORT_LUDO, SPORT_CHESS ->
             if (isBatting) goalScorerItems.size else assistantItems.size
         else ->
             if (isBatting) battingItems.size else bowlingItems.size
@@ -43,9 +45,16 @@ class TournamentStatsAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val rank   = position + 1
+        val rank  = position + 1
         val rankBg = getRankBackground(rank)
+
         when (sportType) {
+            SPORT_CRICKET -> {
+                if (isBatting && holder is BattingViewHolder)
+                    bindCricketBatting(holder.binding, battingItems[position], rank, rankBg)
+                else if (!isBatting && holder is BowlingViewHolder)
+                    bindCricketBowling(holder.binding, bowlingItems[position], rank, rankBg)
+            }
             SPORT_FUTSAL -> {
                 if (isBatting && holder is BattingViewHolder)
                     bindFutsalScorers(holder.binding, goalScorerItems[position], rank, rankBg)
@@ -78,16 +87,14 @@ class TournamentStatsAdapter(
                 if (isBatting && holder is BattingViewHolder)
                     bindChessScorers(holder.binding, goalScorerItems[position], rank, rankBg)
             }
-            else -> {
-                if (isBatting && holder is BattingViewHolder)
-                    bindCricketBatting(holder.binding, battingItems[position], rank, rankBg)
-                else if (!isBatting && holder is BowlingViewHolder)
-                    bindCricketBowling(holder.binding, bowlingItems[position], rank, rankBg)
-            }
         }
     }
+
+    // ── Cricket Batting: Runs | Balls | 4s | 6s | POM ────────────────
     private fun bindCricketBatting(b: RowBatsmenStatsBinding, p: TopBatsmanDto, rank: Int, bg: Int) {
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        showAllBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
         b.tvRuns.text  = p.runs.toString()
         b.tvBalls.text = p.ballsFaced.toString()
@@ -96,123 +103,149 @@ class TournamentStatsAdapter(
         b.tvPom.text   = p.playerOfMatchCount.toString()
     }
 
+    // ── Cricket Bowling: Wkts | runsConceded | Balls | Eco | POM ─────
+    // JS uses p.runsConceded ?? 0 — so we use runsConceded field
     private fun bindCricketBowling(b: RowBowlersStatsBinding, p: TopBowlerDto, rank: Int, bg: Int) {
-        showCricketBowlingColumns(b)
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        showAllBowlingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
         b.tvWickets.text = p.wickets.toString()
-        b.tvRuns.text    = p.runs.toString()
+        b.tvRuns.text    = p.runsConceded.toString()   // JS: p.runsConceded ?? 0
         b.tvBalls.text   = p.ballsBowled.toString()
         b.tvEconomy.text = String.format(Locale.US, "%.2f", p.economy)
         b.tvPom.text     = p.playerOfMatchCount.toString()
     }
 
+    // ── Futsal Scorers: Goals | Assists | G+A | YC | RC ──────────────
     private fun bindFutsalScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        showAllBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
         b.tvRuns.text  = p.goals.toString()
         b.tvBalls.text = p.assists.toString()
-        b.tvFours.text = (p.goals + p.assists).toString()   // G+A
+        b.tvFours.text = (p.goals + p.assists).toString()  // G+A
         b.tvSixes.text = p.yellowCards.toString()
         b.tvPom.text   = p.redCards.toString()
     }
 
+    // ── Futsal Assisters: Assists | Goals | G+A ───────────────────────
     private fun bindFutsalAssistants(b: RowBowlersStatsBinding, p: TopFutsalAssistantDto, rank: Int, bg: Int) {
-        showCompactBowlingColumns(b)
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        hideExtraBowlingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
         b.tvWickets.text = p.assists.toString()
         b.tvRuns.text    = p.goals.toString()
-        b.tvPom.text     = (p.goals + p.assists).toString()
-        b.tvBalls.text   =""
-        b.tvEconomy.text = ""// G+A
+        b.tvPom.text     = (p.goals + p.assists).toString()  // G+A
     }
 
+    // ── Volleyball Scorers: Points | Aces | Blocks | AttackErr | Fantasy
+    // JS columns: ["Points", "Aces", "Blocks"]  using goals/assists/futsalFouls
     private fun bindVolleyballScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        showAllBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvRuns.text  = p.goals.toString()
-        b.tvBalls.text = p.assists.toString()
-        b.tvFours.text = p.futsalFouls.toString()
-        b.tvSixes.text = p.yellowCards.toString()
-        b.tvPom.text   = p.totalPoints.toString()
+        b.tvRuns.text  = p.goals.toString()        // Points
+        b.tvBalls.text = p.assists.toString()       // Aces
+        b.tvFours.text = p.futsalFouls.toString()  // Blocks
+        b.tvSixes.text = p.yellowCards.toString()   // AttackErr
+        b.tvPom.text   = p.totalPoints.toString()   // Fantasy
     }
 
+    // ── Volleyball Servers: Aces | Points | Fantasy ───────────────────
     private fun bindVolleyballServers(b: RowBowlersStatsBinding, p: TopFutsalAssistantDto, rank: Int, bg: Int) {
-        showCompactBowlingColumns(b)
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        hideExtraBowlingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvWickets.text = p.assists.toString()
-        b.tvRuns.text    = p.goals.toString()
-        b.tvPom.text     = p.totalPoints.toString()
-        b.tvBalls.text   =""
-        b.tvEconomy.text = ""
+        b.tvWickets.text = p.assists.toString()      // Aces
+        b.tvRuns.text    = p.goals.toString()        // Points
+        b.tvPom.text     = p.totalPoints.toString()  // Fantasy
     }
+
+    // ── Badminton: Points | Smashes+Aces | Faults ─────────────────────
     private fun bindBadmintonScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        showCricketBattingColumns(b)
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        hideExtraBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvRuns.text  = p.goals.toString()          // Points
-        b.tvBalls.text = p.assists.toString()         // Smashes+Aces
-        b.tvFours.text = p.futsalFouls.toString()    // Faults
+        b.tvRuns.text  = p.goals.toString()        // Points
+        b.tvBalls.text = p.assists.toString()       // Smashes+Aces
+        b.tvFours.text = p.futsalFouls.toString()  // Faults
     }
 
+    // ── Table Tennis: Points | Smashes+Aces | Faults ──────────────────
     private fun bindTableTennisScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        showCricketBattingColumns(b)
+        hideExtraBattingColumns(b)
         b.tvRank.text = rank.toString()
         b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvRuns.text  = p.goals.toString()
-        b.tvBalls.text = p.assists.toString()
-        b.tvFours.text = p.futsalFouls.toString()
+        b.tvRuns.text  = p.goals.toString()        // Points
+        b.tvBalls.text = p.assists.toString()       // Smashes+Aces
+        b.tvFours.text = p.futsalFouls.toString()  // Faults
     }
 
+    // ── Tug of War: Wins | Strength | POM ────────────────────────────
     private fun bindTugOfWarScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
+        hideExtraBattingColumns(b)
         b.tvRank.text = rank.toString()
         b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
         b.tvRuns.text  = p.goals.toString()
         b.tvBalls.text = p.assists.toString()
         b.tvFours.text = p.playerOfMatchCount.toString()
-        b.tvSixes.visibility = View.GONE
-        b.tvPom.visibility   = View.GONE
     }
+
+    // ── Ludo: Home Runs | Captures | POM ─────────────────────────────
     private fun bindLudoScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        hideExtraBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvRuns.text  = p.goals.toString()
-        b.tvBalls.text = p.assists.toString()
+        b.tvRuns.text  = p.goals.toString()    // Home Runs
+        b.tvBalls.text = p.assists.toString()  // Captures
         b.tvFours.text = p.playerOfMatchCount.toString()
-        b.tvSixes.visibility = View.GONE
-        b.tvPom.visibility   = View.GONE
     }
 
+    // ── Chess: Wins | Checks | POM ────────────────────────────────────
     private fun bindChessScorers(b: RowBatsmenStatsBinding, p: TopFutsalScorerDto, rank: Int, bg: Int) {
-        b.tvRank.text = rank.toString(); b.tvRank.setBackgroundResource(bg)
+        hideExtraBattingColumns(b)
+        b.tvRank.text = rank.toString()
+        b.tvRank.setBackgroundResource(bg)
         b.tvPlayerName.text = p.playerName
-        b.tvRuns.text  = p.goals.toString()
-        b.tvBalls.text = p.assists.toString()
+        b.tvRuns.text  = p.goals.toString()    // Wins
+        b.tvBalls.text = p.assists.toString()  // Checks
         b.tvFours.text = p.playerOfMatchCount.toString()
+    }
+
+    // ── Visibility Helpers ────────────────────────────────────────────
+
+    /** Cricket batting — show all 5 columns */
+    private fun showAllBattingColumns(b: RowBatsmenStatsBinding) {
+        b.tvSixes.visibility = View.VISIBLE
+        b.tvPom.visibility   = View.VISIBLE
+    }
+
+    /** Badminton / TT / Ludo / Chess / TugOfWar — only 3 columns */
+    private fun hideExtraBattingColumns(b: RowBatsmenStatsBinding) {
         b.tvSixes.visibility = View.GONE
         b.tvPom.visibility   = View.GONE
     }
 
-
-    private fun showCricketBowlingColumns(b: RowBowlersStatsBinding) {
-        b.tvBalls.visibility = View.VISIBLE
+    /** Cricket bowling — show Balls + Economy */
+    private fun showAllBowlingColumns(b: RowBowlersStatsBinding) {
+        b.tvBalls.visibility   = View.VISIBLE
         b.tvEconomy.visibility = View.VISIBLE
     }
 
-    private fun showCompactBowlingColumns(b: RowBowlersStatsBinding) {
-        b.tvBalls.visibility = View.GONE
+    /** Futsal / Volleyball bowling — hide Balls + Economy */
+    private fun hideExtraBowlingColumns(b: RowBowlersStatsBinding) {
+        b.tvBalls.visibility   = View.GONE
         b.tvEconomy.visibility = View.GONE
     }
-
-    private fun showCricketBattingColumns(b: RowBatsmenStatsBinding) {
-        b.tvSixes.visibility = View.GONE
-        b.tvPom.visibility = View.GONE
-    }
-
 
     private fun getRankBackground(rank: Int): Int = when (rank) {
         1    -> R.drawable.bg_rank_gold
@@ -222,13 +255,13 @@ class TournamentStatsAdapter(
     }
 
     companion object {
-        const val SPORT_CRICKET    = "cricket"
-        const val SPORT_FUTSAL     = "futsal"
-        const val SPORT_VOLLEYBALL = "volleyball"
-        const val SPORT_BADMINTON  = "badminton"
-        const val SPORT_TABLETENNIS = "table_tennis"
-        const val SPORT_TUG_OF_WAR = "tug_of_war"
-        const val SPORT_LUDO  = "ludo"
-        const val SPORT_CHESS = "chess"
+        const val SPORT_CRICKET      = "cricket"
+        const val SPORT_FUTSAL       = "futsal"
+        const val SPORT_VOLLEYBALL   = "volleyball"
+        const val SPORT_BADMINTON    = "badminton"
+        const val SPORT_TABLETENNIS  = "table_tennis"
+        const val SPORT_TUG_OF_WAR  = "tug_of_war"
+        const val SPORT_LUDO         = "ludo"
+        const val SPORT_CHESS        = "chess"
     }
 }

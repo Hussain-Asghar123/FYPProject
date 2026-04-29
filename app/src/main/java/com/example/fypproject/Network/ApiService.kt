@@ -26,6 +26,7 @@ import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.DTO.TeamRequest
 import com.example.fypproject.DTO.TeamRequestDto
 import com.example.fypproject.DTO.TeamResponse
+import com.example.fypproject.DTO.TopVotedPlayerDto
 import com.example.fypproject.DTO.TournamentOverviewResponse
 import com.example.fypproject.DTO.TournamentRequest
 import com.example.fypproject.DTO.TournamentResponse
@@ -299,11 +300,18 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): Response<Unit>
 
-    @POST("vote/{matchId}/{accountId}/{playerId}")
+    @POST("api/favourite-player/vote")
     suspend fun submitVote(
-        @Path("matchId")   matchId:   Long,
-        @Path("accountId") accountId: Long,
-        @Path("playerId")  playerId:  Long
-    ): Response<String>
+        @Body body: Map<String, @JvmSuppressWildcards Any?>
+    ): Response<Unit>
+
+    @GET("api/favourite-player/top-voted/{tournamentId}")
+    suspend fun getTopVotedPlayers(@Path("tournamentId") tournamentId: Long): List<TopVotedPlayerDto>
+
+    @POST("api/favourite-player/set-mot/{tournamentId}/{playerId}")
+    suspend fun setManOfTournament(
+        @Path("tournamentId") tournamentId: Long,
+        @Path("playerId") playerId: Long
+    ): ResponseBody
 
 }

@@ -17,6 +17,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- ── Man of Tournament card (now has Edit button for admins) ── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -29,13 +30,34 @@
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="20dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Man of the Tournament"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
-                        android:drawablePadding="8dp" />
+
+                    <!-- Title row: label + Edit button -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="Man of the Tournament"
+                            android:textColor="@android:color/white"
+                            android:textSize="14sp" />
+
+                        <!-- ADDED: Admin-only edit button (visibility set in code) -->
+                        <ImageButton
+                            android:id="@+id/btnEditMot"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@android:drawable/ic_menu_edit"
+                            android:background="@android:color/transparent"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:tint="@android:color/white"
+                            android:visibility="gone" />
+
+                    </RelativeLayout>
+
                     <TextView
                         android:id="@+id/tvManOfTournament"
                         android:layout_width="wrap_content"
@@ -54,6 +76,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Award cards row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -83,6 +106,7 @@
 
             </LinearLayout>
 
+            <!-- Top scorers table -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,8 +124,7 @@
                         android:padding="10dp"
                         android:text="Top Batsmen"
                         android:textColor="@android:color/white"
-                        android:textStyle="bold"
-                        android:drawablePadding="8dp" />
+                        android:textStyle="bold" />
 
                     <include layout="@layout/row_batsmen_stats" android:id="@+id/headerBatsmen" />
 
@@ -115,11 +138,11 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Top bowlers / assisters table -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="20dp"
                 app:cardCornerRadius="8dp">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -133,8 +156,7 @@
                         android:padding="10dp"
                         android:text="Top Bowlers"
                         android:textColor="@android:color/white"
-                        android:textStyle="bold"
-                        android:drawablePadding="8dp" />
+                        android:textStyle="bold" />
 
                     <include layout="@layout/row_bowlers_stats" android:id="@+id/headerBowlers" />
 
@@ -145,6 +167,41 @@
                         android:nestedScrollingEnabled="false"
                         android:background="#FFFFFF"
                         tools:listitem="@layout/row_bowlers_stats" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ── ADDED: Player of the Match Awards section ── -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPomAwards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                app:cardCornerRadius="8dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Amber/gold header matching React -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#F59E0B"
+                        android:padding="10dp"
+                        android:text="🏆  Player of the Match Awards"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvPomAwards"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:background="#FFFFFF" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -173,4 +230,5 @@
             android:layout_gravity="center"
             android:indeterminateTint="#E31212" />
     </FrameLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

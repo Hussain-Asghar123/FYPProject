@@ -19,6 +19,8 @@ data class TournamentStatsDto(
     val topRunScorers: List<TopBatsmanDto>? = null,
     val topBowlers: List<TopBowlerDto>? = null,
     val topGoalScorers: List<TopFutsalScorerDto>? = null,
+
+    // JS uses "topAssisters" — support both spellings
     @SerializedName(value = "topAssisters", alternate = ["topAssistants"])
     val topAssistants: List<TopFutsalAssistantDto>? = null
 )
@@ -40,23 +42,24 @@ data class SixesStatDto(
 data class TopBatsmanDto(
     val playerId: Long,
     val playerName: String,
-    val runs: Int,
-    val ballsFaced: Int,
-    val fours: Int,
-    val sixes: Int,
-    val strikeRate: Int,
-    val playerOfMatchCount: Int
+    val runs: Int = 0,
+    val ballsFaced: Int = 0,
+    val fours: Int = 0,
+    val sixes: Int = 0,
+    val strikeRate: Double = 0.0,
+    val playerOfMatchCount: Int = 0
 )
 
 data class TopBowlerDto(
     val playerId: Long,
     val playerName: String,
-    val wickets: Int,
-    val runs: Int,
-    val ballsBowled: Int,
-    val economy: Double,
-    val runsConceded: Int,
-    val playerOfMatchCount: Int
+    val wickets: Int = 0,
+    // API may send "runsConceded" OR "runs" — handle both, no duplicate field
+    @SerializedName(value = "runsConceded", alternate = ["runs"])
+    val runsConceded: Int = 0,
+    val ballsBowled: Int = 0,
+    val economy: Double = 0.0,
+    val playerOfMatchCount: Int = 0
 )
 
 data class TopFutsalScorerDto(
@@ -80,4 +83,10 @@ data class TopFutsalAssistantDto(
     val totalPoints: Int = 0,
     val matches: Int = 0,
     val playerOfMatchCount: Int = 0
+)
+
+data class TopVotedPlayerDto(
+    val playerId: Long,
+    val playerName: String,
+    val votes: Int
 )
