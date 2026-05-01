@@ -245,6 +245,15 @@
                     android:orientation="horizontal"
                     tools:listitem="@layout/item_live_match" />
 
+                <LinearLayout
+                    android:id="@+id/dotsIndicator"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="4dp"/>
+
                 <!-- Live Matches Empty State -->
                 <TextView
                     android:id="@+id/tvLiveEmptyState"

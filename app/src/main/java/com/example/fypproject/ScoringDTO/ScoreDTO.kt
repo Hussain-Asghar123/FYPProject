@@ -41,10 +41,6 @@ data class ScoreDTO(
     @SerializedName("six")           var six: Boolean = false,
 
     @SerializedName("firstInnings")  var firstInnings: Boolean = true,
-
-    // ✅ FIX: @Transient HATA DIYA — pehle ye field kabhi serialize nahi hoti thi
-    // Jab bhi superOver=true bhejte the, backend ko milta tha superOver=false
-    // Ab ye properly serialize hogi aur backend Super Over innings sahi create karega
     @SerializedName("superOver")     var superOver: Boolean = false,
 
     @SerializedName("dlsTarget")     var dlsTarget: Int? = null,

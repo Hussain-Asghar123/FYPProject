@@ -231,7 +231,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             setScoringPanelEnabled(true)
             lastReceivedScore = score
 
-            // ✅ React: if (isEndingMatch.current) { isEndingMatch.current = false; openModal("favPlayerModal") }
+
             if (isEndingMatch) {
                 isEndingMatch = false
                 loadAndShowVotingThenSummary()
@@ -336,7 +336,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             return
         }
 
-        // ✅ 2. DLS_UPDATED — back to main
         if (score.comment == "DLS_UPDATED") {
             showOnly(binding.layoutMainScoring.root)
             return
@@ -350,17 +349,17 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                     binding.layoutInningsUndo.btnEndInnings.text = "End Super Over Innings"
                 }
                 isSuperOver && isSuperOverInnings == 2 -> {
-                    // SO doosri innings khatam → ab "End Match"
+
                     binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
                     binding.layoutInningsUndo.btnEndInnings.text = "End Match"
                 }
                 !isFirstInnings -> {
-                    // Normal match doosri innings → Super Over option + End Match
+
                     binding.layoutInningsUndo.btnSuperOver.visibility = View.VISIBLE
                     binding.layoutInningsUndo.btnEndInnings.text = "End Match"
                 }
                 else -> {
-                    // Normal match pehli innings
+
                     binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
                     binding.layoutInningsUndo.btnEndInnings.text = "End Innings"
                 }

@@ -45,6 +45,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     private val SOCKET_KEY = "TableTennisScoringFragment"
 
     private var team1Points    = 0
+    private var pendingSummary = false
     private var team2Points    = 0
     private var team1Games     = 0
     private var team2Games     = 0
@@ -496,6 +497,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
+        if (pendingSummary) { pendingSummary = false; showTableTennisSummary() }
     }
 
     private fun parseTableTennisEvent(obj: JSONObject) {
@@ -561,7 +563,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showTableTennisSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showTableTennisSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

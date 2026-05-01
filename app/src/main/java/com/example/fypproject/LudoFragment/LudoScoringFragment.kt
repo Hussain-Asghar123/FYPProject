@@ -45,6 +45,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     private var team2HomeRuns   = 0
     private var team1Captures   = 0
     private var team2Captures   = 0
+    private var pendingSummary = false
     private var matchStatus     = "LIVE"
     private var matchStartTimeMs = 0L
     private var isActionPending  = false
@@ -522,6 +523,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
+        if (pendingSummary) { pendingSummary = false; showLudoSummary() }
     }
 
     private fun sendEvent(json: JSONObject) {
@@ -552,7 +554,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showLudoSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showLudoSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

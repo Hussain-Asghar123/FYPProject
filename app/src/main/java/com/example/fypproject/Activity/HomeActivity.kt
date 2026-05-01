@@ -10,10 +10,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import android.view.ViewGroup
+import android.widget.ImageView
 import com.example.fypproject.Adapter.MatchAdapter
 import com.example.fypproject.Network.RetrofitInstance
 import com.example.fypproject.R
-import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
@@ -41,9 +43,9 @@ class HomeActivity : AppCompatActivity() {
         setupNavigationDrawer()
         setupSportsButtons()
         setupSearchFunctionality()
-        binding.btnEdit.setOnClickListener {
-            showEditNameDialog()
-        }
+
+        binding.btnEdit.setOnClickListener { showEditNameDialog() }
+
         binding.txtViewAllLive.setOnClickListener {
             val intent = Intent(this, MatchesDetailActivity::class.java)
             intent.putExtra("status", "LIVE")
@@ -57,20 +59,49 @@ class HomeActivity : AppCompatActivity() {
         fetchAllForCurrentSport()
     }
 
+    // ✅ Dots setup — RecyclerView ke scroll pe active dot update hoga
+    private fun setupDotsIndicator(count: Int) {
+        val container = binding.dotsIndicator
+        container.removeAllViews()
+
+        if (count <= 1) return
+
+        val dots = Array(count) { ImageView(this) }
+
+        dots.forEachIndexed { index, dot ->
+            dot.setImageResource(R.drawable.dot_selector)
+            val params = ViewGroup.MarginLayoutParams(20, 20)
+            params.setMargins(6, 0, 6, 0)
+            dot.layoutParams = params
+            dot.setColorFilter(if (index == 0) Color.parseColor("#E31212") else Color.parseColor("#BDBDBD"))
+            container.addView(dot)
+        }
+
+        binding.recyclerLiveMatches.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val lm = recyclerView.layoutManager as LinearLayoutManager
+                val pos = lm.findFirstVisibleItemPosition()
+                dots.forEachIndexed { index, dot ->
+                    dot.setColorFilter(
+                        if (index == pos) Color.parseColor("#E31212")
+                        else Color.parseColor("#BDBDBD")
+                    )
+                }
+            }
+        })
+    }
+
     private fun setupSearchFunctionality() {
         val searchView = binding.searchViewTop
-        searchView.isIconified = false  // hamesha expand rahega
+        searchView.isIconified = false
         searchView.queryHint = "Search matches..."
-        searchView.clearFocus() // keyboard shuru mein band rahe
+        searchView.clearFocus()
 
-        // Done button pe keyboard hide karo
         searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val q = query?.trim()
                 if (q.isNullOrBlank()) fetchAllForCurrentSport()
                 else fetchAllForCurrentSport(searchQuery = q.lowercase())
-
-                // Keyboard band karo
                 searchView.clearFocus()
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
                 imm.hideSoftInputFromWindow(searchView.windowToken, 0)
@@ -85,6 +116,7 @@ class HomeActivity : AppCompatActivity() {
             }
         })
     }
+
     private fun showEditNameDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_player, null)
         val etName = dialogView.findViewById<EditText>(R.id.etNewName)
@@ -100,11 +132,8 @@ class HomeActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val newName = etName.text.toString().trim()
-            if (newName.isNotEmpty()) {
-                updateName(newName, dialog)
-            } else {
-                etName.error = "Name cannot be empty"
-            }
+            if (newName.isNotEmpty()) updateName(newName, dialog)
+            else etName.error = "Name cannot be empty"
         }
         dialog.show()
     }
@@ -113,10 +142,8 @@ class HomeActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
         val id = sharedPreferences.getLong("id", -1L)
 
-        if (id == -1L) {
-            toastShort("User ID not found")
-            return
-        }
+        if (id == -1L) { toastShort("User ID not found"); return }
+
         val currentRole = sharedPreferences.getString("role", "Player")
         val currentUsername = sharedPreferences.getString("username", "")
 
@@ -130,11 +157,9 @@ class HomeActivity : AppCompatActivity() {
                     username = currentUsername,
                     playerRequests = emptyList()
                 )
-
                 val response = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.updatePlayer(id, updateRequest)
                 }
-
                 if (response.isSuccessful) {
                     binding.txtUserName.text = newName
                     sharedPreferences.edit().putString("name", newName).apply()
@@ -143,7 +168,6 @@ class HomeActivity : AppCompatActivity() {
                 } else {
                     toastLong(NetworkUi.userMessage(response, "Failed to update name"))
                 }
-
             } catch (e: Exception) {
                 toastLong(NetworkUi.userMessage(e))
             } finally {
@@ -153,17 +177,13 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerViews() {
-        binding.recyclerLiveMatches.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerLiveMatches.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerUpcomingMatches.layoutManager = LinearLayoutManager(this)
-
-        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role = sharedPreferences.getString("role", "") ?: ""
-        val username = sharedPreferences.getString("username", "") ?: ""
 
         liveAdapter = MatchAdapter(mutableListOf(), true) { match ->
             MatchNavigator.navigate(this@HomeActivity, match)
         }
-
         upcomingAdapter = MatchAdapter(mutableListOf(), false) { match ->
             MatchNavigator.navigate(this@HomeActivity, match)
         }
@@ -187,19 +207,16 @@ class HomeActivity : AppCompatActivity() {
                 toastShort("You are not authorized to access this page")
                 return@setOnClickListener
             }
-            val intent = Intent(this, ManageAccountActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, ManageAccountActivity::class.java))
         }
         binding.menuSeasons.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
             startActivity(Intent(this, SeasonsActivity::class.java))
         }
-
         binding.menuMatches.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
             startActivity(Intent(this, MatchesDetailActivity::class.java))
         }
-
         binding.menuMyScorer.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
             startActivity(Intent(this, ScrorerActivity::class.java))
@@ -210,11 +227,8 @@ class HomeActivity : AppCompatActivity() {
         }
         binding.menuStats.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
-            val intent = Intent(this, HeavyStatsActivity::class.java)
-            startActivity(intent)
-
+            startActivity(Intent(this, HeavyStatsActivity::class.java))
         }
-
         binding.menuLogout.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Logout")
@@ -226,25 +240,16 @@ class HomeActivity : AppCompatActivity() {
                     startActivity(intent)
                     dialog.dismiss()
                 }
-                .setNegativeButton("No") { dialog, _ ->
-                    dialog.dismiss()
-                }
+                .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
                 .show()
         }
     }
 
-
     private fun setupSportsButtons() {
         sportButtons = listOf(
-            binding.btnAllSports,
-            binding.btnCricket,
-            binding.btnFutsal,
-            binding.btnVolleyBall,
-            binding.btnBadminton,
-            binding.btnTugOfWar,
-            binding.btnLudo,
-            binding.btnChess,
-            binding.btnTableTennis
+            binding.btnAllSports, binding.btnCricket, binding.btnFutsal,
+            binding.btnVolleyBall, binding.btnBadminton, binding.btnTugOfWar,
+            binding.btnLudo, binding.btnChess, binding.btnTableTennis
         )
 
         updateButtonSelection(binding.btnAllSports)
@@ -261,18 +266,9 @@ class HomeActivity : AppCompatActivity() {
 
     private fun updateButtonSelection(selectedButton: MaterialButton) {
         sportButtons.forEach { button ->
-            val isSelected = button == selectedButton
-            val tint = if (isSelected) Color.parseColor("#E31212") else Color.DKGRAY
+            val tint = if (button == selectedButton) Color.parseColor("#E31212") else Color.DKGRAY
             button.backgroundTintList = android.content.res.ColorStateList.valueOf(tint)
         }
-    }
-    private fun filterAdaptersByQuery(query: String) {
-        val q = query.lowercase().trim()
-        val liveFiltered = (liveAdapter as MatchAdapter).let { adapter ->
-            adapter.run {
-            }
-        }
-        fetchAllForCurrentSport(searchQuery = q)
     }
 
     private fun fetchAllForCurrentSport(searchQuery: String? = null) {
@@ -282,10 +278,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun fetchMatches(status: String, sport: String?, searchQuery: String? = null) {
-        if (status == "LIVE")
-            binding.recyclerLiveMatches.visibility = View.INVISIBLE
-        else
-            binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
+        if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.INVISIBLE
+        else binding.recyclerUpcomingMatches.visibility = View.INVISIBLE
 
         lifecycleScope.launch {
             showLoading(true)
@@ -307,8 +301,10 @@ class HomeActivity : AppCompatActivity() {
                     } else list
 
                     if (status == "LIVE") {
-                        liveAdapter.updateData(filtered)  // sab dikhao
+                        liveAdapter.updateData(filtered)
                         binding.recyclerLiveMatches.visibility = View.VISIBLE
+                        // ✅ Dots update karo data aane ke baad
+                        setupDotsIndicator(filtered.size)
                     } else {
                         upcomingAdapter.updateData(filtered)
                         binding.recyclerUpcomingMatches.visibility = View.VISIBLE
@@ -321,7 +317,6 @@ class HomeActivity : AppCompatActivity() {
                     checkEmptyState()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 toastLong(NetworkUi.userMessage(e))
                 if (status == "LIVE") binding.recyclerLiveMatches.visibility = View.VISIBLE
                 else binding.recyclerUpcomingMatches.visibility = View.VISIBLE
@@ -332,22 +327,14 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLoading(isLoading: Boolean) {
-        if (isLoading) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
-        binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
-    }
-
     private fun showLoading(show: Boolean) {
         if (show) loadingCount++ else loadingCount = (loadingCount - 1).coerceAtLeast(0)
         binding.progressOverlay.visibility = if (loadingCount > 0) View.VISIBLE else View.GONE
     }
 
     private fun checkEmptyState() {
-        val liveEmpty = liveAdapter.itemCount == 0
-        val upcomingEmpty = upcomingAdapter.itemCount == 0
-
-        binding.tvLiveEmptyState.visibility = if (liveEmpty) View.VISIBLE else View.GONE
-        binding.tvUpcomingEmptyState.visibility = if (upcomingEmpty) View.VISIBLE else View.GONE
+        binding.tvLiveEmptyState.visibility = if (liveAdapter.itemCount == 0) View.VISIBLE else View.GONE
+        binding.tvUpcomingEmptyState.visibility = if (upcomingAdapter.itemCount == 0) View.VISIBLE else View.GONE
     }
 
     override fun onResume() {

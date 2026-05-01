@@ -44,6 +44,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private val SOCKET_KEY = "TugOfWarScoringFragment"
 
     private var team1Rounds = 0
+    private var pendingSummary = false
     private var team2Rounds = 0
     private var currentRound = 1
     private var roundsToWin = 3
@@ -480,6 +481,8 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         updateScoreUI()
         updateRopeVisualization()
 
+        if (pendingSummary) { pendingSummary = false; showTugOfWarSummary() }
+
         if (binding.layoutScoring.root.isVisible) {
             setScoringButtonsEnabled(true)
         }
@@ -518,7 +521,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId = matchResponse?.id ?: run { showTugOfWarSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showTugOfWarSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

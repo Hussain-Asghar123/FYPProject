@@ -48,6 +48,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private var team1Points   = 0
     private var team2Points   = 0
+    private var pendingSummary = false
     private var team1Games    = 0
     private var team2Games    = 0
     private var currentGame   = 1
@@ -573,6 +574,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
+        if (pendingSummary) { pendingSummary = false; showBadmintonSummary() }
     }
 
 
@@ -635,7 +637,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showBadmintonSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showBadmintonSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

@@ -49,6 +49,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     private var matchStatus = "LIVE"
     private var resultType: String? = null
     private var isDraw = false
+    private var pendingSummary = false
     private var currentTurnTeamId: Long? = null
     private var currentTurnTeamName: String? = null
     private var matchStartTimeMs = 0L
@@ -611,6 +612,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
+        if (pendingSummary) { pendingSummary = false; showChessSummary() }
 
         val status = matchStatus.uppercase()
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
@@ -659,7 +661,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showChessSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showChessSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

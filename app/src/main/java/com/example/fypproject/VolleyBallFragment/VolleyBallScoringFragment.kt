@@ -45,6 +45,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     private val SOCKET_KEY = "VolleyBallScoringFragment"
 
     private var isActionPending = false
+    private var pendingSummary = false
 
     private var team1Points   = 0
     private var team2Points   = 0
@@ -578,6 +579,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             setScoringButtonsEnabled(true)
         }
 
+        if (pendingSummary) { pendingSummary = false; showVolleyBallSummary() }
         val status = matchStatus.uppercase()
 
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
@@ -680,7 +682,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showVolleyBallSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { showVolleyBallSummary(); return }
+        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

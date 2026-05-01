@@ -48,6 +48,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var foulTeamId:       Long?   = null
     private var subTeamId:        Long?   = null
     private var votingAlreadyTriggered = false
+
+    private var pendingSummary = false
     private var selectedCardType: String? = null
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri?  = null
@@ -505,6 +507,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
 
         updateEndHalfButtonText()
+
+        if(pendingSummary){
+            pendingSummary=false
+            showFutsalSummary()
+        }
     }
 
     private fun parseAndAddEvent(obj: JSONObject) {
@@ -614,7 +621,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         votingAlreadyTriggered = true
 
         if (hasAlreadyVoted(matchId)) {
-            showFutsalSummary()
+            pendingSummary = true
+            showPanel("loading")
             return
         }
 

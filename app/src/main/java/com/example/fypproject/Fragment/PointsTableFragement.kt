@@ -29,7 +29,6 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         tournamentId = arguments?.getLong(ARG_TOURNAMENT_ID) ?: -1L
         fallbackSport = arguments?.getString(ARG_SPORT)?.ifBlank { null } ?: "cricket"
 
-
         setLoading(false)
         setEmptyState(false)
 
@@ -43,28 +42,30 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
                 val response = api.getPtsTablesByTournament(tournamentId)
                 if (response.isSuccessful) {
                     val ptsTable = response.body().orEmpty()
+
+                    val sortedTable = ptsTable.sortedByDescending { it.points }
+
                     val detectedSport = resolveSport(
-                        ptsTable.firstOrNull()?.sport, fallbackSport
+                        sortedTable.firstOrNull()?.sport, fallbackSport
                     )
 
                     updateHeaderVisibility(detectedSport)
 
                     val recyclerView = when (detectedSport) {
-                        "futsal" -> binding.rvLeaderboard
-                        "volleyball" -> binding.rvLeaderboardVolleyball
-                        "badminton" -> binding.rvLeaderboardBadminton
+                        "futsal"      -> binding.rvLeaderboard
+                        "volleyball"  -> binding.rvLeaderboardVolleyball
+                        "badminton"   -> binding.rvLeaderboardBadminton
                         "tabletennis" -> binding.rvLeaderboardTableTennis
-                        "tugofwar"-> binding.rvLeaderboardTugOfWar
-                        "ludo"-> binding.rvLeaderboardLudo
-                        "chess"-> binding.rvLeaderboardChess
-
-                        else -> binding.rvLeaderboardCricket
+                        "tugofwar"    -> binding.rvLeaderboardTugOfWar
+                        "ludo"        -> binding.rvLeaderboardLudo
+                        "chess"       -> binding.rvLeaderboardChess
+                        else          -> binding.rvLeaderboardCricket
                     }
 
                     recyclerView.layoutManager = LinearLayoutManager(requireContext())
-                    recyclerView.adapter = PtsTableAdapter(ptsTable, detectedSport)
+                    recyclerView.adapter = PtsTableAdapter(sortedTable, detectedSport)
 
-                    setEmptyState(ptsTable.isEmpty())
+                    setEmptyState(sortedTable.isEmpty())
                 }
             } catch (e: Exception) {
                 setEmptyState(true)
@@ -76,21 +77,20 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
     }
 
     private fun updateHeaderVisibility(sport: String) {
-        binding.headerCricket.isVisible         = sport == "cricket"
-        binding.rvLeaderboardCricket.isVisible  = sport == "cricket"
-        binding.futsalScrollView.isVisible      = sport == "futsal"
-        binding.volleyballScrollView.isVisible  = sport == "volleyball"
-        binding.headerBadminton.isVisible       = sport == "badminton"
+        binding.headerCricket.isVisible          = sport == "cricket"
+        binding.rvLeaderboardCricket.isVisible   = sport == "cricket"
+        binding.futsalScrollView.isVisible       = sport == "futsal"
+        binding.volleyballScrollView.isVisible   = sport == "volleyball"
+        binding.headerBadminton.isVisible        = sport == "badminton"
         binding.rvLeaderboardBadminton.isVisible = sport == "badminton"
-        binding.headerTableTennis.isVisible       = sport == "tabletennis"
+        binding.headerTableTennis.isVisible      = sport == "tabletennis"
         binding.rvLeaderboardTableTennis.isVisible = sport == "tabletennis"
-        binding.headerTugOfWar.isVisible       = sport == "tugofwar"
-        binding.rvLeaderboardTugOfWar.isVisible = sport == "tugofwar"
-        binding.headerLudo.isVisible       = sport == "ludo"
-        binding.rvLeaderboardLudo.isVisible = sport == "ludo"
-        binding.headerChess.isVisible       = sport == "chess"
-        binding.rvLeaderboardChess.isVisible = sport == "chess"
-
+        binding.headerTugOfWar.isVisible         = sport == "tugofwar"
+        binding.rvLeaderboardTugOfWar.isVisible  = sport == "tugofwar"
+        binding.headerLudo.isVisible             = sport == "ludo"
+        binding.rvLeaderboardLudo.isVisible      = sport == "ludo"
+        binding.headerChess.isVisible            = sport == "chess"
+        binding.rvLeaderboardChess.isVisible     = sport == "chess"
     }
 
     private fun setLoading(isLoading: Boolean) {
@@ -106,20 +106,19 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         return normalizeSport(fallback) ?: normalizeSport(primary) ?: "cricket"
     }
 
-
-    //naya sport ka lia yahan changes required han
+    // naya sport ka lia yahan changes required han
     private fun normalizeSport(sport: String?): String? {
         val normalized = sport?.trim()?.lowercase()
         return when (normalized) {
-            "futsal", "football" -> "futsal"
-            "cricket" -> "cricket"
-            "volleyball" -> "volleyball"
-            "badminton" -> "badminton"
+            "futsal", "football"          -> "futsal"
+            "cricket"                     -> "cricket"
+            "volleyball"                  -> "volleyball"
+            "badminton"                   -> "badminton"
             "table tennis", "tabletennis" -> "tabletennis"
-            "tug of war", "tugofwar" -> "tugofwar"
-            "ludo" -> "ludo"
-            "chess" -> "chess"
-            else -> null
+            "tug of war", "tugofwar"      -> "tugofwar"
+            "ludo"                        -> "ludo"
+            "chess"                       -> "chess"
+            else                          -> null
         }
     }
 
