@@ -46,6 +46,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var matchResponse: MatchResponse? = null
     private var innings: Int = 1
     private var inningsId: Long? = null
+    private var pendingComment: String? = null
     private var isInningsInitialized = false
     private var isBallPending = false
     private val SOCKET_KEY = "ScoringFragment"
@@ -175,7 +176,26 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val role = prefs.getString("role", "")?.trim().orEmpty()
         val username = prefs.getString("username", "")?.trim().orEmpty()
         val scorer = match?.scorerId?.trim().orEmpty()
-        return role.equals("ADMIN", true) || scorer.equals(username, true)
+        val mediaScorer = match?.mediaScorerId?.trim().orEmpty()
+        return role.equals("ADMIN", true)
+                || scorer.equals(username, true)
+                || mediaScorer.equals(username, true)
+    }
+
+    private fun saveMediaBallId(ballId: Long) {
+        val matchId = matchResponse?.id ?: return
+        requireActivity()
+            .getSharedPreferences("MediaPrefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("media_ball_${matchId}_${ballId}", true)
+            .apply()
+    }
+
+    private fun hasSavedMedia(ballId: Long): Boolean {
+        val matchId = matchResponse?.id ?: return false
+        return requireActivity()
+            .getSharedPreferences("MediaPrefs", MODE_PRIVATE)
+            .getBoolean("media_ball_${matchId}_${ballId}", false)
     }
 
     private fun calculateTeams(match: MatchResponse) {
@@ -600,18 +620,35 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun updateBallContainer(score: ScoreDTO) {
-        val container  = binding.ballContainer
-        val scrollView = binding.ballScrollView
-        val allBalls   = score.cricketBalls ?: return
-
+        val allBalls = score.cricketBalls ?: return
         val sortedBalls = allBalls.sortedBy { it.id ?: 0L }
-        if (sortedBalls.size == displayedBalls.size && sortedBalls == displayedBalls) return
+
+        val existingMediaMap = displayedBalls
+            .filter { it.hasMedia }
+            .associate { it.id to true }
+
+        val mergedBalls = sortedBalls.map { newBall ->
+            val ballId = newBall.id
+            val hasMedia = existingMediaMap.containsKey(ballId)
+                    || (ballId != null && hasSavedMedia(ballId))
+            if (hasMedia) newBall.copy(mediaCount = maxOf(newBall.mediaCount, 1))
+            else newBall
+        }
+
+        if (mergedBalls == displayedBalls) return
 
         displayedBalls.clear()
-        displayedBalls.addAll(sortedBalls)
-        container.removeAllViews()
+        displayedBalls.addAll(mergedBalls)
+        rebuildBallContainer()
+    }
 
-        for (ball in sortedBalls) {
+    private fun rebuildBallContainer() {
+        if (_binding == null || !isAdded) return
+        val container  = binding.ballContainer
+        val scrollView = binding.ballScrollView
+
+        container.removeAllViews()
+        for (ball in displayedBalls) {
             val ballView = BallViewHelper.createBallView(requireContext(), ball)
             ballView.setOnClickListener {
                 ball.id?.let { ballId -> showMediaDialog(ballId) }
@@ -627,20 +664,23 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
 
+        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
         val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
         val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
-        val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
-        val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+        val btnCancel  = dialogView.findViewById<android.widget.TextView>(R.id.btnCancelMedia)
+        val tvGallery  = dialogView.findViewById<android.widget.TextView>(R.id.tvGalleryLabel)
 
         if (isUploading) tvGallery.text = "Uploading..."
 
         btnCamera.setOnClickListener {
+            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
             dialog.dismiss()
             openCamera()
         }
 
         btnGallery.setOnClickListener {
             if (!isUploading) {
+                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                 dialog.dismiss()
                 galleryLauncher.launch("image/*")
             }
@@ -674,6 +714,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         showUploadProgress(true)
         requireContext().toastShort("Uploading...")
 
+        val commentToSend = pendingComment
+
         lifecycleScope.launch {
             try {
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -687,23 +729,32 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
                 val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val ballIdBody  = ballId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.createMedia(matchIdBody, ballIdBody, filePart)
+                    RetrofitInstance.api.createMedia(matchIdBody, ballIdBody, filePart, commentBody)
                 }
 
                 if (response.isSuccessful) {
                     requireContext().toastShort("Upload Successful!")
+                    saveMediaBallId(ballId)
+
+                    val updatedIndex = displayedBalls.indexOfFirst { it.id == ballId }
+                    if (updatedIndex != -1) {
+                        displayedBalls[updatedIndex] = displayedBalls[updatedIndex].copy(mediaCount = 1)
+                        activity?.runOnUiThread { rebuildBallContainer() }
+                    }
                 } else {
-                    requireContext().toastShort(" Upload failed: ${response.code()}")
+                    requireContext().toastShort("Upload failed: ${response.code()}")
                 }
 
             } catch (e: Exception) {
-                requireContext().toastShort(" Upload failed: ${e.message}")
+                requireContext().toastShort("Upload failed: ${e.message}")
             } finally {
                 showUploadProgress(false)
-                isUploading   = false
-                pendingBallId = null
+                isUploading    = false
+                pendingBallId  = null
+                pendingComment = null
             }
         }
     }

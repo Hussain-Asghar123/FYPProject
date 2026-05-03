@@ -43,6 +43,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private val SOCKET_KEY = "BadmintionScoringFragment"
 
     private var pendingEventId: Long? = null
+    private var pendingComment: String? = null
     private var cameraImageUri: Uri?  = null
     private var isUploading           = false
 
@@ -131,11 +132,15 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     }
 
     private fun computeCanEdit() {
-        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role     = prefs.getString("role", "")?.trim().orEmpty()
-        val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer   = matchResponse?.scorerId?.trim().orEmpty()
-        canEdit = role.equals("ADMIN", true) || scorer.equals(username, true)
+        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role        = prefs.getString("role", "")?.trim().orEmpty()
+        val username    = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer      = matchResponse?.scorerId?.trim().orEmpty()
+        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
+
+        canEdit = role.equals("ADMIN", true)
+                || scorer.equals(username, true)
+                || mediaScorer.equals(username, true)
     }
 
     private fun setupBottomTabs() {
@@ -168,10 +173,10 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun setupEventsRecycler() {
         eventsAdapter = BadmintionEventAdapter(eventsList) { event ->
-            showMediaDialog(event.id)
+            if (canEdit) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvEvents.adapter       = eventsAdapter
+        binding.rvEvents.adapter = eventsAdapter
     }
 
     // ── Panel system ─────────────────────────────────────────────
@@ -765,14 +770,29 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         pendingEventId = eventId
         val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
+
+        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
         val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
         val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
         val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
         val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+
         if (isUploading) tvGallery.text = "Uploading"
-        btnCamera.setOnClickListener  { dialog.dismiss(); openCamera() }
-        btnGallery.setOnClickListener { if (!isUploading) { dialog.dismiss(); galleryLauncher.launch("image/*") } }
-        btnCancel.setOnClickListener  { dialog.dismiss() }
+
+        btnCamera.setOnClickListener {
+            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            dialog.dismiss()
+            openCamera()
+        }
+        btnGallery.setOnClickListener {
+            if (!isUploading) {
+                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                dialog.dismiss()
+                galleryLauncher.launch("image/*")
+            }
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
         dialog.setView(dialogView)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
@@ -789,8 +809,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
-
-        // Show progress overlay
         binding.layoutProgressBar.visibility = View.VISIBLE
         toast("Uploading...")
 
@@ -803,8 +821,10 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
                 val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
                 val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val commentToSend = pendingComment
+                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
                 val response    = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
+                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
                 }
                 if (response.isSuccessful) {
                     toast("✅ Upload Successful!")
@@ -819,6 +839,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
                 binding.layoutProgressBar.visibility = View.GONE
                 isUploading    = false
                 pendingEventId = null
+                pendingComment=null
             }
         }
     }

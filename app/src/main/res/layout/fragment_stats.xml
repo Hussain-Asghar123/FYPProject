@@ -18,6 +18,7 @@
             android:orientation="vertical">
 
             <!-- ── Man of Tournament card (now has Edit button for admins) ── -->
+            <!-- ── Man of Tournament card ── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -31,20 +32,16 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Title row: label + Edit button -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerInParent="true"
-                            android:text="Man of the Tournament"
+                            android:text="Men of the Tournament"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
-
-                        <!-- ADDED: Admin-only edit button (visibility set in code) -->
                         <ImageButton
                             android:id="@+id/btnEditMot"
                             android:layout_width="40dp"
@@ -55,24 +52,98 @@
                             android:layout_centerVertical="true"
                             android:tint="@android:color/white"
                             android:visibility="gone" />
+                    </RelativeLayout>
 
+                    <!-- 🥇 Rank 1 -->
+                    <TextView
+                        android:id="@+id/tvMotRank1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textColor="@android:color/white"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:text="🥇  TBD" />
+
+                    <!-- 🥈 Rank 2 -->
+                    <TextView
+                        android:id="@+id/tvMotRank2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="#F0F0F0"
+                        android:textSize="16sp"
+                        android:text="🥈  TBD" />
+
+                    <!-- 🥉 Rank 3 -->
+                    <TextView
+                        android:id="@+id/tvMotRank3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="#E0E0E0"
+                        android:textSize="14sp"
+                        android:text="🥉  TBD" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ── Favourite Player card (fan-vote winner) ── NEW -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardBackgroundColor="#5B21B6"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="🏆  Favourite Player of Tournament"
+                            android:textColor="@android:color/white"
+                            android:textSize="14sp" />
+                        <ImageButton
+                            android:id="@+id/btnEditFavPlayer"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@android:drawable/ic_menu_edit"
+                            android:background="@android:color/transparent"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:tint="@android:color/white"
+                            android:visibility="gone" />
                     </RelativeLayout>
 
                     <TextView
-                        android:id="@+id/tvManOfTournament"
+                        android:id="@+id/tvFavouritePlayer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
                         android:layout_marginTop="8dp"
                         android:textColor="@android:color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"
-                        tools:text="" />
+                        android:text="TBD" />
+
                     <TextView
+                        android:id="@+id/tvFavouritePlayerReason"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Outstanding Performance"
-                        android:textColor="#F0F0F0"
-                        android:textSize="12sp" />
+                        android:layout_gravity="center_horizontal"
+                        android:textColor="#D0C4F7"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

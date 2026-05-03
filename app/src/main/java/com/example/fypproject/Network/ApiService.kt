@@ -296,9 +296,10 @@ interface ApiService {
     @POST("media")
     suspend fun createMedia(
         @Part("matchId") matchId: RequestBody,
-        @Part("ballId") ballId: RequestBody,
-        @Part file: MultipartBody.Part
-    ): Response<Unit>
+        @Part("ballId")  ballId:  RequestBody,
+        @Part           file:    MultipartBody.Part,
+        @Part("comment") comment: RequestBody? = null   // ← added, nullable = optional
+    ): Response<ResponseBody>
 
     @POST("api/favourite-player/vote")
     suspend fun submitVote(
@@ -312,6 +313,18 @@ interface ApiService {
     suspend fun setManOfTournament(
         @Path("tournamentId") tournamentId: Long,
         @Path("playerId") playerId: Long
+    ): ResponseBody
+
+    @GET("api/favourite-player/top-stats/{tournamentId}")
+    suspend fun getTopStatPlayers(
+        @Path("tournamentId") tournamentId: Long
+    ): List<TopVotedPlayerDto>
+
+    @POST("api/favourite-player/tournament/{tournamentId}/man-of-tournament")
+    suspend fun setManOfTournamentRanked(
+        @Path("tournamentId") tournamentId: Long,
+        @Query("playerId") playerId: Long,
+        @Query("rank") rank: Int
     ): ResponseBody
 
 }

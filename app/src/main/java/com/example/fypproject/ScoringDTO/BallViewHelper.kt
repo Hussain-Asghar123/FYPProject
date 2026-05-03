@@ -11,58 +11,102 @@ import android.widget.TextView
 object BallViewHelper {
 
     private val eventAbbreviations = mapOf(
-        "wicket" to "W",
-        "bye" to "B",
-        "legbye" to "LB",
-        "noball" to "NB",
-        "wide" to "WD",
-        "bonus" to "BN",
+        "wicket"   to "W",
+        "bye"      to "B",
+        "legbye"   to "LB",
+        "noball"   to "NB",
+        "wide"     to "WD",
+        "bonus"    to "BN",
         "boundary" to "",
-        "run" to ""
+        "run"      to ""
     )
 
-    fun createBallView(context: Context, ball: CricketBall): TextView {
-        val sizePx = dpToPx(context, 42f)
-        val tv = TextView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
-                marginEnd = dpToPx(context, 6f)
+    fun createBallView(context: Context, ball: CricketBall): android.view.View {
+        val sizePx   = dpToPx(context, 42f)
+        val badgePx  = dpToPx(context, 14f)
+
+        val bgColor = when (ball.eventType) {
+            "wicket"                          -> 0xFFDC2626.toInt()
+            "bye", "legbye", "noball", "wide" -> 0xFF2563EB.toInt()
+            "boundary"                        -> 0xFFFF9800.toInt()
+            "run" -> {
+                val runs = ball.event.toIntOrNull() ?: 0
+                if (runs == 0) 0xFF9E9E9E.toInt() else 0xFF16A34A.toInt()
             }
+            else -> 0xFFCA8A04.toInt()
+        }
+
+        val abbrev = eventAbbreviations[ball.eventType] ?: ball.eventType.uppercase()
+        val label  = if (ball.eventType != "run" && ball.eventType != "boundary") {
+            "${ball.event}$abbrev"
+        } else {
+            ball.event
+        }
+
+        // Ball circle TextView
+        val ballTv = TextView(context).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(sizePx, sizePx)
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             isSingleLine = true
-
-            val bgColor = when (ball.eventType) {
-                "wicket"                          -> 0xFFDC2626.toInt() // Red
-                "bye", "legbye", "noball", "wide" -> 0xFF2563EB.toInt() // Blue
-                "boundary"                        -> 0xFFFF9800.toInt() // Orange (4s and 6s)
-                "run" -> {
-                    val runs = ball.event.toIntOrNull() ?: 0
-                    if (runs == 0) 0xFF9E9E9E.toInt()   // Grey for dot ball
-                    else           0xFF16A34A.toInt()    // Green for 1,2,3 runs
-                }
-                else -> 0xFFCA8A04.toInt() // Yellow (bonus etc)
-            }
-
-            val drawable = GradientDrawable().apply {
+            text = label
+            background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(bgColor)
             }
-            background = drawable
+        }
 
-            val abbrev = eventAbbreviations[ball.eventType] ?: ball.eventType.uppercase()
-            text = if (ball.eventType != "run" && ball.eventType != "boundary") {
-                "${ball.event}$abbrev"
-            } else {
-                ball.event
+        // If no media — return plain ball (same as before)
+        if (!ball.hasMedia) {
+            return TextView(context).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(sizePx, sizePx).apply {
+                    marginEnd = dpToPx(context, 6f)
+                }
+                gravity = Gravity.CENTER
+                setTextColor(Color.WHITE)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                isSingleLine = true
+                text = label
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(bgColor)
+                }
             }
         }
-        return tv
+
+        // Has media — wrap in FrameLayout with 📷 badge
+        val container = android.widget.FrameLayout(context).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                sizePx + dpToPx(context, 6f),
+                sizePx + dpToPx(context, 6f)
+            ).apply {
+                marginEnd = dpToPx(context, 6f)
+            }
+        }
+
+        container.addView(ballTv)
+
+        // 📷 badge — small circle top-right
+        val badge = TextView(context).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                badgePx, badgePx, Gravity.TOP or Gravity.END
+            )
+            text = "📷"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 7f)
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(0xFF1E1E1E.toInt())
+            }
+        }
+
+        container.addView(badge)
+        return container
     }
 
-    private fun dpToPx(context: Context, dp: Float): Int {
-        return TypedValue.applyDimension(
+    private fun dpToPx(context: Context, dp: Float): Int =
+        TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics
         ).toInt()
-    }
 }

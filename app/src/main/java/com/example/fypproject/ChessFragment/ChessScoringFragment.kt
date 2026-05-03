@@ -40,6 +40,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     private var _binding: ChessScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private var pendingComment: String? = null
 
     private var team1Moves = 0
     private var team2Moves = 0
@@ -121,11 +122,15 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     }
 
     private fun computeCanEdit() {
-        val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role = prefs.getString("role", "")?.trim().orEmpty()
-        val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer = matchResponse?.scorerId?.trim().orEmpty()
-        canEdit = role.equals("ADMIN", true) || scorer.equals(username, true)
+        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role        = prefs.getString("role", "")?.trim().orEmpty()
+        val username    = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer      = matchResponse?.scorerId?.trim().orEmpty()
+        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
+
+        canEdit = role.equals("ADMIN", true)
+                || scorer.equals(username, true)
+                || mediaScorer.equals(username, true)
     }
 
     private fun setupBottomTabs() {
@@ -138,7 +143,6 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         val eventId = pendingEventId ?: return
         isUploading = true
 
-        // Show progress overlay
         showUploadProgress(true)
         toast("Uploading...")
 
@@ -151,18 +155,20 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
                 val filePart = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
                 val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val commentToSend = pendingComment
+                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
                 val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
+                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
                 }
                 if (response.isSuccessful) toast("✅ Upload Successful!")
-                else toast("❌ Upload failed: ${response.code()}")
+                else toast(" Upload failed: ${response.code()}")
             } catch (e: Exception) {
-                toast("❌ Upload failed: ${e.message}")
+                toast(" Upload failed: ${e.message}")
             } finally {
-                // Hide progress overlay
                 showUploadProgress(false)
                 isUploading = false
                 pendingEventId = null
+                pendingComment=null
             }
         }
     }
@@ -174,21 +180,31 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
 
     private fun showMediaDialog(eventId: Long?) {
         pendingEventId = eventId
-        val dialog = android.app.AlertDialog.Builder(requireContext()).create()
+        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
-        val btnCamera = dialogView.findViewById<View>(R.id.btnOpenCamera)
+
+        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
+        val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
         val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
-        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
-        val tvGallery = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+        val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
+        val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+
         if (isUploading) tvGallery.text = "Uploading"
-        btnCamera.setOnClickListener { dialog.dismiss(); openCamera() }
+
+        btnCamera.setOnClickListener {
+            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            dialog.dismiss()
+            openCamera()
+        }
         btnGallery.setOnClickListener {
             if (!isUploading) {
+                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                 dialog.dismiss()
                 galleryLauncher.launch("image/*")
             }
         }
         btnCancel.setOnClickListener { dialog.dismiss() }
+
         dialog.setView(dialogView)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
@@ -223,8 +239,8 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         }
     }
     private fun setupEventsRecycler() {
-        eventsAdapter = ChessEventAdapter(eventsList){event ->
-            showMediaDialog(event.id)
+        eventsAdapter = ChessEventAdapter(eventsList) { event ->
+            if (canEdit) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter

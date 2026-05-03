@@ -3,6 +3,7 @@ package com.example.fypproject.DTO
 data class FixturesRequest(
     val tournamentId: Long,
     val scorerId: String?,
+    val mediaScorerUsername: String?,
     val team1Id: Long,
     val team2Id: Long,
     val venue: String,

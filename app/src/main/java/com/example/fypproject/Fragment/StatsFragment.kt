@@ -37,7 +37,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     private var sportName: String  = ""
 
     private val isAdmin: Boolean by lazy {
-        val prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) // "user_prefs" → "MyPrefs"
+        val prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         prefs.getString("role", "").equals("ADMIN", ignoreCase = true)
     }
 
@@ -49,10 +49,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         sportId      = arguments?.getLong("sportId")      ?: -1L
         sportName    = arguments?.getString("sportName").orEmpty()
 
-        // Admin edit button — same as JS isAdmin check
-        binding.btnEditMot.visibility = if (isAdmin) View.VISIBLE else View.GONE
-        binding.btnEditMot.setOnClickListener { openMotEditDialog() }
-
         if (tournamentId != -1L) loadStats()
     }
 
@@ -60,8 +56,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         super.onDestroyView()
         _binding = null
     }
-
-    // ── Data Loading — mirrors JS loadStats() ─────────────────────────
 
     private fun loadStats(retryCount: Int = 0) {
         setLoading(true)
@@ -73,7 +67,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             } catch (e: Exception) {
                 if (e is java.net.SocketTimeoutException && retryCount < 2) {
                     delay(2000)
-                    loadStats(retryCount + 1)  // 2 baar retry
+                    loadStats(retryCount + 1)
                 } else {
                     Log.e("StatsFragment", "loadStats error: ${e.message}", e)
                     showError()
@@ -83,8 +77,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             }
         }
     }
-
-    // ── UI State ──────────────────────────────────────────────────────
 
     private fun setLoading(isLoading: Boolean) {
         if (_binding == null) return
@@ -97,13 +89,10 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         binding.tvEmptyState.text = "No data available"
     }
 
-    // ── Main populate — mirrors JS switch(stats.sport) ────────────────
-
     private fun populateUI(stats: TournamentStatsDto) {
-        // 1. Man of Tournament (always)
         setupManOfTournament(stats)
+        setupFavouritePlayer(stats)
 
-        // 2. Sport switch — same as JS switch(stats.sport)
         when (detectSport(stats)) {
             SPORT_FUTSAL       -> populateFutsalUI(stats)
             SPORT_VOLLEYBALL   -> populateVolleyballUI(stats)
@@ -115,14 +104,10 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             else               -> populateCricketUI(stats)
         }
 
-        // 3. POM awards (always)
         populatePomAwards(stats)
     }
 
-    // ── detectSport — handles ALL variants (space, underscore, id) ────
-
     private fun detectSport(stats: TournamentStatsDto): String {
-        // Priority 1: sportId (from fragment args or API response)
         val effectiveSportId = sportId.takeIf { it > 0 } ?: stats.sportId
         if (effectiveSportId != null && effectiveSportId > 0) {
             val fromId = when (effectiveSportId) {
@@ -139,58 +124,57 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             if (fromId != null) return fromId
         }
 
-        // Priority 2: sport name string — same as JS switch(stats.sport)
-        // JS: case "table tennis": case "tabletennis": → so handle all variants
         val name = (stats.sport ?: sportName).lowercase(Locale.US).trim()
         return when {
-            name == SPORT_FUTSAL                              -> SPORT_FUTSAL
-            name == SPORT_VOLLEYBALL                          -> SPORT_VOLLEYBALL
-            name == SPORT_CRICKET                             -> SPORT_CRICKET
-            name == SPORT_BADMINTON                           -> SPORT_BADMINTON
-            // JS handles "table tennis" AND "tabletennis" — mirror that
+            name == SPORT_FUTSAL                                              -> SPORT_FUTSAL
+            name == SPORT_VOLLEYBALL                                          -> SPORT_VOLLEYBALL
+            name == SPORT_CRICKET                                             -> SPORT_CRICKET
+            name == SPORT_BADMINTON                                           -> SPORT_BADMINTON
             name == "table tennis" || name == "tabletennis"
-                    || name == SPORT_TABLE_TENNIS             -> SPORT_TABLE_TENNIS
-            name == "tug of war" || name == SPORT_TUG_OF_WAR -> SPORT_TUG_OF_WAR
-            name == SPORT_LUDO                                -> SPORT_LUDO
-            name == SPORT_CHESS                               -> SPORT_CHESS
-            // Partial match fallback
-            name.contains("futsal")                           -> SPORT_FUTSAL
-            name.contains("volleyball")                       -> SPORT_VOLLEYBALL
-            name.contains("badminton")                        -> SPORT_BADMINTON
-            name.contains("table")                            -> SPORT_TABLE_TENNIS
-            name.contains("tug")                              -> SPORT_TUG_OF_WAR
-            name.contains("ludo")                             -> SPORT_LUDO
-            name.contains("chess")                            -> SPORT_CHESS
-            // Priority 3: infer from data shape (same as JS default → cricket)
+                    || name == SPORT_TABLE_TENNIS                             -> SPORT_TABLE_TENNIS
+            name == "tug of war" || name == SPORT_TUG_OF_WAR                 -> SPORT_TUG_OF_WAR
+            name == SPORT_LUDO                                                -> SPORT_LUDO
+            name == SPORT_CHESS                                               -> SPORT_CHESS
+            name.contains("futsal")                                           -> SPORT_FUTSAL
+            name.contains("volleyball")                                       -> SPORT_VOLLEYBALL
+            name.contains("badminton")                                        -> SPORT_BADMINTON
+            name.contains("table")                                            -> SPORT_TABLE_TENNIS
+            name.contains("tug")                                              -> SPORT_TUG_OF_WAR
+            name.contains("ludo")                                             -> SPORT_LUDO
+            name.contains("chess")                                            -> SPORT_CHESS
             stats.topGoalScorers.orEmpty().isNotEmpty()
-                    || stats.topAssistants.orEmpty().isNotEmpty() -> SPORT_FUTSAL
-            else -> SPORT_CRICKET
+                    || stats.topAssistants.orEmpty().isNotEmpty()             -> SPORT_FUTSAL
+            else                                                              -> SPORT_CRICKET
         }
     }
 
-    // ── Man of Tournament — mirrors JS ManOfTournament component ──────
-
     private fun setupManOfTournament(stats: TournamentStatsDto) {
-        binding.tvManOfTournament.text = stats.manOfTournament?.playerName ?: "TBD"
+        val medals = listOf("🥇", "🥈", "🥉")
+        val slots  = stats.manOfTournament.orEmpty()
+
+        binding.tvMotRank1.text = "${medals[0]}  ${slots.getOrNull(0)?.playerName ?: "TBD"}"
+        binding.tvMotRank2.text = "${medals[1]}  ${slots.getOrNull(1)?.playerName ?: "TBD"}"
+        binding.tvMotRank3.text = "${medals[2]}  ${slots.getOrNull(2)?.playerName ?: "TBD"}"
+
+        binding.btnEditMot.visibility = if (isAdmin) View.VISIBLE else View.GONE
+        binding.btnEditMot.setOnClickListener { openMotEditDialog() }
     }
 
     private fun openMotEditDialog() {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val candidates: List<TopVotedPlayerDto> = api.getTopVotedPlayers(tournamentId)
+                val candidates = api.getTopStatPlayers(tournamentId)
                 setLoading(false)
-
                 if (candidates.isEmpty()) {
                     Toast.makeText(requireContext(),
-                        "No voted players found for this tournament", Toast.LENGTH_SHORT).show()
+                        "No stat players found for this tournament", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 showMotSelectionDialog(candidates)
-
             } catch (e: Exception) {
                 setLoading(false)
-                Log.e("StatsFragment", "getTopVotedPlayers error: ${e.message}", e)
+                Log.e("StatsFragment", "getTopStatPlayers error: ${e.message}", e)
                 Toast.makeText(requireContext(),
                     "Failed to load players, please try again", Toast.LENGTH_SHORT).show()
             }
@@ -198,24 +182,141 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     }
 
     private fun showMotSelectionDialog(candidates: List<TopVotedPlayerDto>) {
+        val ctx    = requireContext()
+        val medals = listOf("🥇", "🥈", "🥉")
+
+        val rankGroup = RadioGroup(ctx).apply {
+            orientation = RadioGroup.HORIZONTAL
+            setPadding(48, 16, 48, 4)
+        }
+        listOf("Rank 1 🥇", "Rank 2 🥈", "Rank 3 🥉").forEachIndexed { i, label ->
+            RadioButton(ctx).apply {
+                id   = 100 + i
+                text = label
+                rankGroup.addView(this)
+            }
+        }
+        (rankGroup.getChildAt(0) as? RadioButton)?.isChecked = true
+
+        val playerGroup = RadioGroup(ctx).apply {
+            orientation = RadioGroup.VERTICAL
+            setPadding(48, 8, 48, 8)
+        }
+        candidates.forEachIndexed { index, candidate ->
+            RadioButton(ctx).apply {
+                id       = index
+                text     = "${medals.getOrElse(index) { "  "}}  ${candidate.playerName}  (${candidate.votes} stat pts)"
+                textSize = 14f
+                setPadding(16, 12, 16, 12)
+                playerGroup.addView(this)
+            }
+        }
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(TextView(ctx).apply {
+                text = "Select rank slot"
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(ctx, android.R.color.darker_gray))
+                setPadding(48, 16, 48, 4)
+            })
+            addView(rankGroup)
+            addView(TextView(ctx).apply {
+                text = "Select player"
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(ctx, android.R.color.darker_gray))
+                setPadding(48, 8, 48, 4)
+            })
+            addView(playerGroup)
+        }
+
+        AlertDialog.Builder(ctx)
+            .setTitle("Select Man of the Tournament")
+            .setView(container)
+            .setPositiveButton("Confirm & Save") { dialog, _ ->
+                val checkedPlayer = playerGroup.checkedRadioButtonId
+                if (checkedPlayer == -1) {
+                    Toast.makeText(ctx, "Please select a player", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val rank = rankGroup.checkedRadioButtonId - 99
+                saveManOfTournamentRanked(candidates[checkedPlayer].playerId, rank)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun saveManOfTournamentRanked(playerId: Long, rank: Int) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            setLoading(true)
+            try {
+                api.setManOfTournamentRanked(tournamentId, playerId, rank)
+                Toast.makeText(requireContext(),
+                    "Man of the Tournament updated!", Toast.LENGTH_SHORT).show()
+                loadStats()
+            } catch (e: Exception) {
+                Log.e("StatsFragment", "setManOfTournamentRanked error: ${e.message}", e)
+                Toast.makeText(requireContext(),
+                    "Save failed, please try again", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private fun setupFavouritePlayer(stats: TournamentStatsDto) {
+        binding.tvFavouritePlayer.text = stats.favouritePlayer?.playerName ?: "TBD"
+
+        if (stats.favouritePlayer?.reason.isNullOrBlank()) {
+            binding.tvFavouritePlayerReason.visibility = View.GONE
+        } else {
+            binding.tvFavouritePlayerReason.visibility = View.VISIBLE
+            binding.tvFavouritePlayerReason.text = stats.favouritePlayer?.reason
+        }
+
+        binding.btnEditFavPlayer.visibility = if (isAdmin) View.VISIBLE else View.GONE
+        binding.btnEditFavPlayer.setOnClickListener { openFavouritePlayerEditDialog() }
+    }
+
+    private fun openFavouritePlayerEditDialog() {
+        setLoading(true)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val candidates = api.getTopVotedPlayers(tournamentId)
+                setLoading(false)
+                if (candidates.isEmpty()) {
+                    Toast.makeText(requireContext(),
+                        "No voted players found", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                showFavouritePlayerDialog(candidates)
+            } catch (e: Exception) {
+                setLoading(false)
+                Log.e("StatsFragment", "getTopVotedPlayers error: ${e.message}", e)
+                Toast.makeText(requireContext(),
+                    "Failed to load players", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showFavouritePlayerDialog(candidates: List<TopVotedPlayerDto>) {
         val ctx = requireContext()
 
         val radioGroup = RadioGroup(ctx).apply {
             orientation = RadioGroup.VERTICAL
             setPadding(48, 24, 48, 8)
         }
-
         val hint = TextView(ctx).apply {
-            text = "Top 3 favourite players by fan votes"
+            text = "Top fan-voted players"
             textSize = 12f
             setTextColor(ContextCompat.getColor(ctx, android.R.color.darker_gray))
             setPadding(48, 16, 48, 8)
         }
-
         candidates.forEachIndexed { index, candidate ->
             RadioButton(ctx).apply {
-                id = index
-                text = "#${index + 1}  ${candidate.playerName}  (${candidate.votes} votes)"
+                id       = index
+                text     = "#${index + 1}  ${candidate.playerName}  (${candidate.votes} votes)"
                 textSize = 14f
                 setPadding(16, 16, 16, 16)
                 radioGroup.addView(this)
@@ -229,38 +330,38 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
 
         AlertDialog.Builder(ctx)
-            .setTitle("Select Man of the Tournament")
+            .setTitle("Select Favourite Player")
             .setView(container)
             .setPositiveButton("Confirm & Save") { dialog, _ ->
-                val checkedIndex = radioGroup.checkedRadioButtonId
-                if (checkedIndex == -1) {
+                val checked = radioGroup.checkedRadioButtonId
+                if (checked == -1) {
                     Toast.makeText(ctx, "Please select a player", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                saveManOfTournament(candidates[checkedIndex].playerId)
+                saveFavouritePlayer(candidates[checked].playerId)
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun saveManOfTournament(playerId: Long) {
+    private fun saveFavouritePlayer(playerId: Long) {
         viewLifecycleOwner.lifecycleScope.launch {
             setLoading(true)
             try {
-                api.setManOfTournament(tournamentId, playerId)  // ab crash nahi hoga
-                Toast.makeText(requireContext(), "Man of the Tournament updated!", Toast.LENGTH_SHORT).show()
+                api.setManOfTournament(tournamentId, playerId)
+                Toast.makeText(requireContext(),
+                    "Favourite Player updated!", Toast.LENGTH_SHORT).show()
                 loadStats()
             } catch (e: Exception) {
-                Log.e("StatsFragment", "setManOfTournament error: ${e.message}", e)
-                Toast.makeText(requireContext(), "Save failed, please try again", Toast.LENGTH_SHORT).show()
+                Log.e("StatsFragment", "saveFavouritePlayer error: ${e.message}", e)
+                Toast.makeText(requireContext(),
+                    "Save failed, please try again", Toast.LENGTH_SHORT).show()
             } finally {
                 setLoading(false)
             }
         }
     }
-
-    // ── POM Awards — mirrors JS PomList component ─────────────────────
 
     private fun populatePomAwards(stats: TournamentStatsDto) {
         val awards = stats.allAwards.orEmpty()
@@ -278,10 +379,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Cricket — mirrors JS CricketStats ────────────────────────────
-    // Columns: Batsmen → Runs | Balls | 4s | 6s | POM
-    //          Bowlers → Wkts | Runs(runsConceded) | Balls | Eco | POM
-
     private fun populateCricketUI(stats: TournamentStatsDto) {
         showCardHighestScore()
         showBowlersSection()
@@ -289,7 +386,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         binding.tvTopBatsmenTitle.text = "Top Batsmen"
         binding.tvTopBowlersTitle.text = "Top Bowlers"
 
-        // Header labels — same as JS columns
         binding.headerBatsmen.apply {
             tvRuns.text  = "Runs"
             tvBalls.text = "Balls"
@@ -309,7 +405,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             tvPom.text     = "POM"
         }
 
-        // Award cards
         binding.cardBestBatsman.tvLabel.text      = "Best Batsman"
         binding.cardBestBatsman.tvPlayerName.text = stats.bestBatsman?.playerName ?: "TBD"
         binding.cardBestBatsman.tvValue.text      =
@@ -324,7 +419,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         binding.cardHighestScore.tvPlayerName.text = stats.bestFielder?.playerName ?: "TBD"
         binding.cardHighestScore.tvValue.text      = stats.bestFielder?.reason ?: "No Data"
 
-        // RecyclerViews
         val batsmen = stats.topRunScorers.orEmpty()
         if (batsmen.isNotEmpty()) {
             binding.rvTopBatsmen.layoutManager = LinearLayoutManager(context)
@@ -348,17 +442,12 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Futsal — mirrors JS FutsalStats ──────────────────────────────
-    // Scorers:  Goals | Assists | G+A | YC | RC
-    // Assisters: Assists | Goals | G+A
-
     private fun populateFutsalUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
 
         val goalScorers = stats.topGoalScorers.orEmpty()
-        val assistants  = stats.topAssistants.orEmpty()   // @SerializedName handles topAssisters too
+        val assistants  = stats.topAssistants.orEmpty()
 
-        // Award cards — same as JS AwardCard
         binding.cardBestBatsman.tvLabel.text      = "Top Scorer"
         binding.cardBestBatsman.tvPlayerName.text =
             stats.topScorer?.playerName
@@ -375,7 +464,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             stats.topAssist?.reason
                 ?: assistants.maxByOrNull { it.assists }?.let { "${it.assists} assists" } ?: "No Data"
 
-        // Scorers leaderboard
         binding.tvTopBatsmenTitle.text = "Top Scorers"
         binding.headerBatsmen.apply {
             tvRuns.text  = "Goals"
@@ -395,7 +483,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             )
         }
 
-        // Assisters leaderboard — same as JS topAssisters?.length > 0
         if (assistants.isNotEmpty()) {
             showBowlersSection()
             binding.tvTopBowlersTitle.text = "Top Assisters"
@@ -416,10 +503,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             hideBowlersSection()
         }
     }
-
-    // ── Volleyball — mirrors JS VolleyballStats ───────────────────────
-    // Scorers: Points | Aces | Blocks
-    // Servers: Aces | Points | Fantasy
 
     private fun populateVolleyballUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
@@ -479,9 +562,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Badminton — mirrors JS BadmintonStats ─────────────────────────
-    // Columns: Points | Smashes+Aces | Faults
-
     private fun populateBadmintonUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
         hideBowlersSection()
@@ -517,9 +597,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             )
         }
     }
-
-    // ── Table Tennis — mirrors JS TableTennisStats ────────────────────
-    // Columns: Points | Smashes+Aces | Faults
 
     private fun populateTableTennisUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
@@ -557,8 +634,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Tug of War ────────────────────────────────────────────────────
-
     private fun populateTugOfWarUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
         hideBowlersSection()
@@ -594,9 +669,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             )
         }
     }
-
-    // ── Ludo — mirrors JS LudoStats ───────────────────────────────────
-    // Columns: Home Runs | Captures
 
     private fun populateLudoUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
@@ -634,9 +706,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Chess — mirrors JS ChessStats ─────────────────────────────────
-    // Columns: Wins | Checks | POM
-
     private fun populateChessUI(stats: TournamentStatsDto) {
         hideCardHighestScore()
         hideBowlersSection()
@@ -673,8 +742,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // ── Section visibility helpers ────────────────────────────────────
-
     private fun showBowlersSection() {
         binding.tvTopBowlersTitle.visibility  = View.VISIBLE
         binding.headerBowlers.root.visibility = View.VISIBLE
@@ -701,8 +768,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         binding.cardHighestScore.root.layoutParams = p
     }
 
-    // ── Companion ─────────────────────────────────────────────────────
-
     companion object {
         fun newInstance(
             tournamentId: Long,
@@ -721,7 +786,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         private const val SPORT_VOLLEYBALL   = "volleyball"
         private const val SPORT_BADMINTON    = "badminton"
         private const val SPORT_TABLE_TENNIS = "table_tennis"
-        private const val SPORT_TUG_OF_WAR  = "tug_of_war"
+        private const val SPORT_TUG_OF_WAR   = "tug_of_war"
         private const val SPORT_LUDO         = "ludo"
         private const val SPORT_CHESS        = "chess"
     }

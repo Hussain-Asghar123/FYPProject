@@ -11,6 +11,7 @@ data class MatchResponse(
     val team2Id: Long? = null,
     val team2Name: String? = null,
     val scorerId: String? = null,
+    val mediaScorerId: String? = null,
     val status: String? = null,
     val venue: String? = null,
     val date: String? = null,

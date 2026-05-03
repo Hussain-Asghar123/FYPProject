@@ -112,7 +112,6 @@ class CreateTournamnetActivity : AppCompatActivity() {
             return false
         }
 
-        // Sirf tennis (sportId == 1L) ke liye tournament type validate karo
         if (sportId == 1L && binding.rgTournamentType.checkedRadioButtonId == -1) {
             showToast("Select tournament type")
             return false

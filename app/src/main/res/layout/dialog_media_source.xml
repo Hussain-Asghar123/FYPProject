@@ -15,6 +15,23 @@
         android:textColor="#1f2937"
         android:gravity="center"
         android:paddingBottom="20dp"/>
+    <!-- Paste this ABOVE the camera/gallery buttons in dialog_media_source.xml -->
+    <EditText
+        android:id="@+id/etMediaComment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:hint="Add a comment (optional)"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:maxLines="4"
+        android:padding="10dp"
+        android:background="@color/white"
+        android:textSize="13sp"
+        android:textColor="#212121"
+        android:textColorHint="#9E9E9E" />
 
     <!-- Camera Button -->
     <LinearLayout

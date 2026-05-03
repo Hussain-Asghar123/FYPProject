@@ -7,7 +7,11 @@ data class TournamentStatsDto(
     val tournamentName: String?,
     val sport: String? = null,
     val sportId: Long? = null,
-    val manOfTournament: PlayerAwardDto? = null,
+
+    val manOfTournament: List<PlayerAwardDto>? = null,
+
+    val favouritePlayer: PlayerAwardDto? = null,
+
     val bestBatsman: PlayerAwardDto? = null,
     val bestBowler: PlayerAwardDto? = null,
     val bestFielder: PlayerAwardDto? = null,
@@ -20,7 +24,6 @@ data class TournamentStatsDto(
     val topBowlers: List<TopBowlerDto>? = null,
     val topGoalScorers: List<TopFutsalScorerDto>? = null,
 
-    // JS uses "topAssisters" — support both spellings
     @SerializedName(value = "topAssisters", alternate = ["topAssistants"])
     val topAssistants: List<TopFutsalAssistantDto>? = null
 )

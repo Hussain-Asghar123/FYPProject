@@ -35,6 +35,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var matchResponse: MatchResponse? = null
     private var team1Players = listOf<Player>()
     private var team2Players = listOf<Player>()
+    private var pendingComment: String? = null
     private var currentStatus  = "LIVE"
     private var currentHalf    = 1
     private var elapsedMinutes = 0
@@ -109,11 +110,14 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun computeCanEdit() {
-        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role     = prefs.getString("role", "")?.trim().orEmpty()
-        val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer   = matchResponse?.scorerId?.trim().orEmpty()
-        canEdit = role.equals("ADMIN", true) || scorer.equals(username, true)
+        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role        = prefs.getString("role", "")?.trim().orEmpty()
+        val username    = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer      = matchResponse?.scorerId?.trim().orEmpty()
+        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
+        canEdit = role.equals("ADMIN", true)
+                || scorer.equals(username, true)
+                || mediaScorer.equals(username, true)
     }
 
     private fun getBundleData() {
@@ -163,10 +167,10 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
     private fun setupEventsRecycler() {
         eventsAdapter = FutsalEventsAdapter(eventsList) { event ->
-            showMediaDialog(event.id)
+            if (canEdit) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvEvents.adapter       = eventsAdapter
+        binding.rvEvents.adapter = eventsAdapter
     }
 
     private fun showPanel(panel: String) {
@@ -450,6 +454,10 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             }
         }
     }
+    private fun stopTimer() {
+        timerRunnable?.let { handler.removeCallbacks(it) }
+        timerRunnable = null
+    }
 
     private fun unregisterSocketListeners() {
         WebSocketManager.removeStateListener(SOCKET_KEY)
@@ -472,16 +480,29 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             2    -> "2nd Half"
             else -> "Extra Time"
         }
+
+        val previousStatus = currentStatus
         currentStatus = obj.optString("status", currentStatus)
+
         when (currentStatus) {
-            "HALF_TIME"  -> toast(" Half Time!")
-            "EXTRA_TIME" -> toast(" Draw! Extra Time?")
+            "HALF_TIME" -> {
+                stopTimer()
+                toast("Half Time!")
+            }
+            "EXTRA_TIME" -> {
+                toast("Draw! Extra Time?")
+            }
             "COMPLETED", "MATCH_COMPLETE" -> {
+                stopTimer()
                 if (!votingAlreadyTriggered) {
                     votingAlreadyTriggered = true
                     loadAndShowVotingThenSummary()
                 }
             }
+        }
+        val eventType = obj.optString("eventType", "")
+        if (eventType == "START_SECOND_HALF" || eventType == "EXTRA_TIME") {
+
         }
 
         if (obj.optString("comment") == "UNDO") {
@@ -500,7 +521,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         if (obj.has("halfStartTime") && !obj.isNull("halfStartTime")) {
             val start = obj.getLong("halfStartTime")
-            if (start > 0) {
+            if (start > 0 && currentStatus != "HALF_TIME") {
                 halfStartTime = start
                 startTimer(start)
             }
@@ -508,8 +529,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         updateEndHalfButtonText()
 
-        if(pendingSummary){
-            pendingSummary=false
+        if (pendingSummary) {
+            pendingSummary = false
             showFutsalSummary()
         }
     }
@@ -562,7 +583,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun startTimer(startTime: Long) {
-        timerRunnable?.let { handler.removeCallbacks(it) }
+        stopTimer()
         timerRunnable = object : Runnable {
             override fun run() {
                 if (_binding == null) return
@@ -826,14 +847,29 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         pendingEventId = eventId
         val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
+
+        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
         val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
         val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
         val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
         val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
+
         if (isUploading) tvGallery.text = "Uploading"
-        btnCamera.setOnClickListener  { dialog.dismiss(); openCamera() }
-        btnGallery.setOnClickListener { if (!isUploading) { dialog.dismiss(); galleryLauncher.launch("image/*") } }
-        btnCancel.setOnClickListener  { dialog.dismiss() }
+
+        btnCamera.setOnClickListener {
+            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            dialog.dismiss()
+            openCamera()
+        }
+        btnGallery.setOnClickListener {
+            if (!isUploading) {
+                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                dialog.dismiss()
+                galleryLauncher.launch("image/*")
+            }
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
         dialog.setView(dialogView)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
@@ -850,26 +886,37 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
+
+        val commentToSend = pendingComment   // capture before reset
+
+        // progress show (jo pehle se hai wahi rakho — kuch fragments mein progressBar, kuch mein nahi)
         toast("Uploading")
+
         lifecycleScope.launch {
             try {
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
                 val tempFile    = File(requireContext().cacheDir, "upload_${System.currentTimeMillis()}.jpg")
                 tempFile.outputStream().use { out -> inputStream?.copyTo(out) }
+
                 val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
                 val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
                 val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                val response    = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart)
+                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
                 }
-                if (response.isSuccessful) toast(" Upload Successful!")
+
+                if (response.isSuccessful) toast("Upload Successful!")
                 else toast("Upload failed: ${response.code()}")
+
             } catch (e: Exception) {
                 toast("Upload failed: ${e.message}")
             } finally {
                 isUploading    = false
                 pendingEventId = null
+                pendingComment = null
             }
         }
     }

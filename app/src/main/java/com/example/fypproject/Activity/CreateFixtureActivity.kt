@@ -201,7 +201,9 @@ class CreateFixtureActivity : AppCompatActivity() {
         } else null
 
         val scorerIdText = binding.etScorerId.text.toString().trim()
+        val mediaScorerIdText = binding.etMediaScorerId.text.toString().trim()
         val scorerId = if (scorerIdText.isEmpty()) null else scorerIdText
+        val mediaScorerId=if(mediaScorerIdText.isEmpty()) null else mediaScorerIdText
 
         val fixtureRequest = FixturesRequest(
             tournamentId = tournamentId,
@@ -211,7 +213,8 @@ class CreateFixtureActivity : AppCompatActivity() {
             date = dateText,
             time = formattedTime,
             overs = overs ?: 0,
-            scorerId = scorerId
+            scorerId = scorerId,
+            mediaScorerUsername = mediaScorerId
         )
 
         setLoading(true)
