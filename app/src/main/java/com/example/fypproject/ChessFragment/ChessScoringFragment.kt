@@ -98,15 +98,15 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         setupBottomTabs()
         setupSocketConnection()
         fetchPlayers()
-        showTab("scoring")
 
         val status = matchResponse?.status?.uppercase().orEmpty()
+        showTab(if (canEdit) "scoring" else "moves")
         if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
             votingAlreadyTriggered = true
             showPanel("loading")
             loadAndShowVotingThenSummary()
         } else {
-            showPanel("scoring")
+            if (canEdit) showPanel("scoring")
         }
     }
 
@@ -134,6 +134,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     }
 
     private fun setupBottomTabs() {
+        if (!canEdit) binding.tabScoring.visibility = View.GONE
         binding.tabScoring.setOnClickListener { showTab("scoring") }
         binding.tabMoves.setOnClickListener { showTab("moves") }
     }

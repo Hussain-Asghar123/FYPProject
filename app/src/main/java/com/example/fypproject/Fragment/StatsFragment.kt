@@ -66,7 +66,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
                 populateUI(stats)
             } catch (e: Exception) {
                 if (e is java.net.SocketTimeoutException && retryCount < 2) {
-                    delay(2000)
+                    delay(4000)
                     loadStats(retryCount + 1)
                 } else {
                     Log.e("StatsFragment", "loadStats error: ${e.message}", e)

@@ -91,15 +91,15 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         setupEventsRecycler()
         setupBottomTabs()
         registerSocketListeners()
-        showTab("scoring")
 
         val status = matchResponse?.status?.uppercase().orEmpty()
+        showTab(if (canEdit) "scoring" else "events")
         if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
             votingAlreadyTriggered = true
             showPanel("loading")
             loadAndShowVotingThenSummary()
         } else {
-            showPanel("scoring")
+            if (canEdit) showPanel("scoring")
         }
     }
 
@@ -193,8 +193,9 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     }
 
     private fun setupBottomTabs() {
+        if (!canEdit) binding.tabScoring.visibility = View.GONE
         binding.tabScoring.setOnClickListener { showTab("scoring") }
-        binding.tabEvents.setOnClickListener { showTab("events") }
+        binding.tabEvents.setOnClickListener  { showTab("events")  }
     }
 
     private fun showTab(tab: String) {

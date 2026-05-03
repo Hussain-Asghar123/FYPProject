@@ -109,15 +109,15 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         setupBottomTabs()
         setupSocketConnection()
         fetchPlayers()
-        showTab("scoring")
 
         val status = matchResponse?.status?.uppercase().orEmpty()
+        showTab(if (canEdit) "scoring" else "events")
         if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
             votingAlreadyTriggered = true
             showPanel("loading")
             loadAndShowVotingThenSummary()
         } else {
-            showPanel("scoring")
+            if (canEdit) showPanel("scoring")
         }
     }
 
@@ -145,6 +145,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     }
 
     private fun setupBottomTabs() {
+        if (!canEdit) binding.tabScoring.visibility = View.GONE
         binding.tabScoring.setOnClickListener { showTab("scoring") }
         binding.tabEvents.setOnClickListener  { showTab("events")  }
     }

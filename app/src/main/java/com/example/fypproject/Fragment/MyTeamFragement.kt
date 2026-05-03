@@ -139,8 +139,19 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         )
 
         binding.spinnerPlayers.setAdapter(adapter)
-        binding.spinnerPlayers.inputType = android.text.InputType.TYPE_NULL
+        binding.spinnerPlayers.inputType = android.text.InputType.TYPE_CLASS_TEXT
+        binding.spinnerPlayers.threshold=1
         binding.spinnerPlayers.setOnClickListener { binding.spinnerPlayers.showDropDown() }
+        binding.spinnerPlayers.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.spinnerPlayers.showDropDown()
+        }
+        binding.spinnerPlayers.setOnItemClickListener { _, _, position, _ ->
+            val selectedText = binding.spinnerPlayers.text.toString()
+            selectedPlayer = allAvailablePlayers.find {
+                "${it.name} (${it.username})" == selectedText
+            }
+            selectedPlayer?.let { toastShort("Selected: ${it.name}") }
+        }
     }
 
     private fun addPlayerToTeam() {

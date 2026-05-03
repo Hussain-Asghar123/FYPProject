@@ -110,15 +110,15 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         setupBottomTabs()
         setupSocketConnection()
         fetchPlayers()
-        showTab("scoring")
 
         val status = matchResponse?.status?.uppercase().orEmpty()
+        showTab(if (canEdit) "scoring" else "events")
         if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
             votingAlreadyTriggered = true
             showPanel("loading")
             fetchCompletedMatchDataThenVote()
         } else {
-            showPanel("scoring")
+            if (canEdit) showPanel("scoring")
         }
     }
 
@@ -171,6 +171,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     }
 
     private fun setupBottomTabs() {
+        if (!canEdit) binding.tabScoring.visibility = View.GONE
         binding.tabScoring.setOnClickListener { showTab("scoring") }
         binding.tabEvents.setOnClickListener  { showTab("events")  }
     }

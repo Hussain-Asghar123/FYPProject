@@ -81,10 +81,16 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         registerSocketListeners()
         fetchPlayers()
 
-           showTab("scoring")
+
         val status = matchResponse?.status?.uppercase().orEmpty()
-        if (status != "COMPLETED" && status != "MATCH_COMPLETE") {
-            showPanel("scoring")
+        if (canEdit) {
+            showTab("scoring")
+            if (status != "COMPLETED" && status != "MATCH_COMPLETE") {
+                showPanel("scoring")
+            }
+        } else {
+            showTab("events")
+
         }
     }
 
@@ -139,6 +145,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun setupBottomTabs() {
+        if (!canEdit) binding.tabScoring.visibility = View.GONE
         binding.tabScoring.setOnClickListener { showTab("scoring") }
         binding.tabEvents.setOnClickListener  { showTab("events")  }
     }
@@ -184,17 +191,17 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         binding.layoutScoringHeader.visibility = when (panel) {
             "voting", "summary", "loading" -> View.GONE
-            else                           -> View.VISIBLE
+            else -> View.VISIBLE
         }
 
         when (panel) {
-            "scoring" -> { binding.futsalScoring.root.visibility       = View.VISIBLE; setupScoringPanel() }
-            "goal"    -> { binding.goal.root.visibility                 = View.VISIBLE; setupGoalPanel()    }
-            "foul"    -> { binding.foul.root.visibility                 = View.VISIBLE; setupFoulPanel()    }
-            "sub"     -> { binding.subsitute.root.visibility            = View.VISIBLE; setupSubPanel()     }
-            "voting"  ->   binding.layoutVoting.root.visibility         = View.VISIBLE
-            "summary" ->   binding.layoutFutsalSummary.root.visibility  = View.VISIBLE
-            "loading" ->   binding.layoutProgressBar.visibility         = View.VISIBLE
+            "scoring" -> { binding.futsalScoring.root.visibility = View.VISIBLE; setupScoringPanel() }
+            "goal"    -> { binding.goal.root.visibility = View.VISIBLE; setupGoalPanel() }
+            "foul"    -> { binding.foul.root.visibility = View.VISIBLE; setupFoulPanel() }
+            "sub"     -> { binding.subsitute.root.visibility = View.VISIBLE; setupSubPanel() }
+            "voting"  -> binding.layoutVoting.root.visibility = View.VISIBLE
+            "summary" -> binding.layoutFutsalSummary.root.visibility = View.VISIBLE
+            "loading" -> binding.layoutProgressBar.visibility = View.VISIBLE
         }
     }
 
