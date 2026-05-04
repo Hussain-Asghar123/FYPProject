@@ -55,6 +55,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var selectedVotePlayerName: String = ""
     private var voteAdapter1: VotePlayerAdapter? = null
     private var voteAdapter2: VotePlayerAdapter? = null
+    private var availableBatters: List<com.example.fypproject.DTO.TeamPlayerDto> = emptyList()
+    private var availableBowlers: List<com.example.fypproject.DTO.TeamPlayerDto> = emptyList()
 
     private var lastReceivedScore: ScoreDTO? = null
 
@@ -250,6 +252,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             isBallPending = false
             setScoringPanelEnabled(true)
             lastReceivedScore = score
+            score.availableBatters?.let { availableBatters = it }
+            score.availableBowlers?.let { availableBowlers = it }
 
 
             if (isEndingMatch) {
@@ -1673,31 +1677,50 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         rvPlayers.layoutManager = LinearLayoutManager(context)
         btnClose.setOnClickListener { dialog.dismiss() }
 
-        lifecycleScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.getPlayersByTeam(battingTeamId)
-                }
-                if (response.isSuccessful) {
-                    val players = response.body() ?: emptyList()
-                    val adapter = PlayerSelectionAdapter(players) { }
-                    rvPlayers.adapter = adapter
-                    btnConfirm.setOnClickListener {
-                        val selected = adapter.getSelectedPlayer()
-                        if (selected != null) {
-                            sendWicketEvent(dismissalType, outPlayerId, selected.id!!, fielderId, runsOnBall)
-                            dialog.dismiss()
-                            showOnly(binding.layoutMainScoring.root)
-                        } else requireContext().toastShort("Please select new batsman")
-                    }
-                }
-            } catch (e: Exception) {
-                requireContext().toastLong("Error loading players")
-                dialog.dismiss()
+        // ✅ Use availableBatters from WS (same as JS), fallback to API
+        val battersToShow = availableBatters.ifEmpty { null }
+
+        if (battersToShow != null) {
+            val adapter = PlayerSelectionAdapter(battersToShow) { }
+            rvPlayers.adapter = adapter
+            btnConfirm.setOnClickListener {
+                val selected = adapter.getSelectedPlayer()
+                if (selected != null) {
+                    sendWicketEvent(dismissalType, outPlayerId, selected.id!!, fielderId, runsOnBall)
+                    dialog.dismiss()
+                    showOnly(binding.layoutMainScoring.root)
+                } else requireContext().toastShort("Please select new batsman")
             }
+            dialog.setView(dialogView)
+            dialog.show()
+        } else {
+            // fallback: fetch from API
+            lifecycleScope.launch {
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        RetrofitInstance.api.getPlayersByTeam(battingTeamId)
+                    }
+                    if (response.isSuccessful) {
+                        val players = response.body() ?: emptyList()
+                        val adapter = PlayerSelectionAdapter(players) { }
+                        rvPlayers.adapter = adapter
+                        btnConfirm.setOnClickListener {
+                            val selected = adapter.getSelectedPlayer()
+                            if (selected != null) {
+                                sendWicketEvent(dismissalType, outPlayerId, selected.id!!, fielderId, runsOnBall)
+                                dialog.dismiss()
+                                showOnly(binding.layoutMainScoring.root)
+                            } else requireContext().toastShort("Please select new batsman")
+                        }
+                    }
+                } catch (e: Exception) {
+                    requireContext().toastLong("Error loading players")
+                    dialog.dismiss()
+                }
+            }
+            dialog.setView(dialogView)
+            dialog.show()
         }
-        dialog.setView(dialogView)
-        dialog.show()
     }
 
     private fun sendWicketEvent(
@@ -1818,28 +1841,50 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             dialog.dismiss()
             showOnly(binding.layoutMainScoring.root)
         }
-        lifecycleScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.getPlayersByTeam(teamId)
-                }
-                if (response.isSuccessful) {
-                    val players = response.body() ?: emptyList()
-                    val adapter = PlayerSelectionAdapter(players) { }
-                    rvPlayers.adapter = adapter
-                    btnConfirm.setOnClickListener {
-                        val selected = adapter.getSelectedPlayer()
-                        if (selected != null) { handleSelection(selectionType, selected); dialog.dismiss() }
-                        else requireContext().toastShort("Please select a player")
-                    }
-                }
-            } catch (e: Exception) {
-                requireContext().toastLong("Error loading players")
-                dialog.dismiss()
-            }
+
+        // ✅ Bowler: use availableBowlers from WS (same as JS)
+        val preloadedList = when (selectionType) {
+            "bowler" -> availableBowlers.ifEmpty { null }
+            else     -> null
         }
-        dialog.setView(dialogView)
-        dialog.show()
+
+        if (preloadedList != null) {
+            val adapter = PlayerSelectionAdapter(preloadedList) { }
+            rvPlayers.adapter = adapter
+            btnConfirm.setOnClickListener {
+                val selected = adapter.getSelectedPlayer()
+                if (selected != null) { handleSelection(selectionType, selected); dialog.dismiss() }
+                else requireContext().toastShort("Please select a player")
+            }
+            dialog.setView(dialogView)
+            dialog.show()
+        } else {
+            lifecycleScope.launch {
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        RetrofitInstance.api.getPlayersByTeam(teamId)
+                    }
+                    if (response.isSuccessful) {
+                        var players = response.body() ?: emptyList()
+                        if (selectionType == "batsman2") {
+                            players = players.filter { it.id != currentStrikerId }
+                        }
+                        val adapter = PlayerSelectionAdapter(players) { }
+                        rvPlayers.adapter = adapter
+                        btnConfirm.setOnClickListener {
+                            val selected = adapter.getSelectedPlayer()
+                            if (selected != null) { handleSelection(selectionType, selected); dialog.dismiss() }
+                            else requireContext().toastShort("Please select a player")
+                        }
+                    }
+                } catch (e: Exception) {
+                    requireContext().toastLong("Error loading players")
+                    dialog.dismiss()
+                }
+            }
+            dialog.setView(dialogView)
+            dialog.show()
+        }
     }
 
     private fun handleSelection(type: String, player: TeamPlayerDto) {
@@ -1853,6 +1898,10 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 b1Selected = true
             }
             "batsman2" -> {
+                if (player.id == currentStrikerId) {
+                    requireContext().toastShort("Batsman 2 cannot be the same as Batsman 1!")
+                    return
+                }
                 currentNonStrikerId = player.id
                 row2PlayerId        = player.id
                 binding.tvBatsman2Name.text = player.name

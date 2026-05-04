@@ -48,5 +48,7 @@ data class ScoreDTO(
     @SerializedName("batsman1Stats") var batsman1Stats: PlayerStatsDto? = null,
     @SerializedName("batsman2Stats") var batsman2Stats: PlayerStatsDto? = null,
     @SerializedName("bowlerStats")   var bowlerStats: PlayerStatsDto? = null,
+    @SerializedName("availableBatters") var availableBatters: List<com.example.fypproject.DTO.TeamPlayerDto>? = null,
+    @SerializedName("availableBowlers") var availableBowlers: List<com.example.fypproject.DTO.TeamPlayerDto>? = null,
     var cricketBalls: List<CricketBall>? = null
 ) : Serializable

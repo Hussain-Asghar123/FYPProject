@@ -36,6 +36,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     private var sportId: Long      = -1L
     private var sportName: String  = ""
 
+    private var pendingRefresh = false
+
     private val isAdmin: Boolean by lazy {
         val prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         prefs.getString("role", "").equals("ADMIN", ignoreCase = true)
@@ -149,17 +151,16 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     }
 
     private fun setupManOfTournament(stats: TournamentStatsDto) {
-        val medals = listOf("🥇", "🥈", "🥉")
-        val slots  = stats.manOfTournament.orEmpty()
+        val slots = stats.manOfTournament.orEmpty()
 
-        binding.tvMotRank1.text = "${medals[0]}  ${slots.getOrNull(0)?.playerName ?: "TBD"}"
-        binding.tvMotRank2.text = "${medals[1]}  ${slots.getOrNull(1)?.playerName ?: "TBD"}"
-        binding.tvMotRank3.text = "${medals[2]}  ${slots.getOrNull(2)?.playerName ?: "TBD"}"
+        binding.tvMotRank1.text = slots.getOrNull(0)?.playerName ?: "TBD"
+
+        binding.tvMotRank2.visibility = View.GONE
+        binding.tvMotRank3.visibility = View.GONE
 
         binding.btnEditMot.visibility = if (isAdmin) View.VISIBLE else View.GONE
         binding.btnEditMot.setOnClickListener { openMotEditDialog() }
     }
-
     private fun openMotEditDialog() {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
@@ -252,13 +253,12 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             setLoading(true)
             try {
                 api.setManOfTournamentRanked(tournamentId, playerId, rank)
-                Toast.makeText(requireContext(),
-                    "Man of the Tournament updated!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Man of the Tournament updated!", Toast.LENGTH_SHORT).show()
+                pendingRefresh = false   // we reload right now, no need for onResume to do it again
                 loadStats()
             } catch (e: Exception) {
                 Log.e("StatsFragment", "setManOfTournamentRanked error: ${e.message}", e)
-                Toast.makeText(requireContext(),
-                    "Save failed, please try again", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save failed, please try again", Toast.LENGTH_SHORT).show()
             } finally {
                 setLoading(false)
             }
@@ -350,13 +350,12 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             setLoading(true)
             try {
                 api.setManOfTournament(tournamentId, playerId)
-                Toast.makeText(requireContext(),
-                    "Favourite Player updated!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Favourite Player updated!", Toast.LENGTH_SHORT).show()
+                pendingRefresh = false   // reload right now
                 loadStats()
             } catch (e: Exception) {
                 Log.e("StatsFragment", "saveFavouritePlayer error: ${e.message}", e)
-                Toast.makeText(requireContext(),
-                    "Save failed, please try again", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save failed, please try again", Toast.LENGTH_SHORT).show()
             } finally {
                 setLoading(false)
             }
