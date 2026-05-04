@@ -36,7 +36,8 @@ object MatchNavigator {
             "UPCOMING" -> {
                 val isAdmin   = role.equals("ADMIN", ignoreCase = true)
                 val isScorer  = match.scorerId.equals(username, ignoreCase = true)
-                if (isAdmin || isScorer)
+                val isMediaScorer= match.mediaScorerId.equals(username, ignoreCase = true)
+                if (isAdmin || isScorer || isMediaScorer)
                     Intent(context, StartScoringActivity::class.java)
                         .putExtra("match", match)
                 else null

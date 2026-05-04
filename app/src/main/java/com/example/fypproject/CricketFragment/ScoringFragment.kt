@@ -1435,9 +1435,16 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 val response = withContext(Dispatchers.IO) { RetrofitInstance.api.abandonMatch(matchId) }
                 if (response.isSuccessful) {
                     activity?.runOnUiThread {
-                        binding.root.visibility = View.GONE
-                        requireContext().toastLong("Match Abandoned Successfully!")
-                        requireActivity().onBackPressed()
+                        showOnly(binding.layoutMatchSummary.root)
+
+                        binding.layoutMatchSummary.apply {
+                            layoutLoading.visibility = View.GONE
+                            layoutContent.visibility = View.GONE
+                            tvError.visibility       = View.VISIBLE
+                            tvError.text             = "🚫 Match Abandoned"
+                            tvError.setTextColor(android.graphics.Color.parseColor("#E31212"))
+                            tvError.textSize = 24f
+                        }
                     }
                 } else {
                     requireContext().toastShort("Failed to abandon match: ${response.code()}")

@@ -6,15 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.PlayerAwardDto
 import com.example.fypproject.databinding.ItemPomAwardBinding
 
-/**
- * Adapter for the "Player of the Match Awards" list.
- *
- * Requires a simple list item layout: res/layout/item_pom_award.xml
- *   <LinearLayout horizontal>
- *     <TextView android:id="@+id/tvPomPlayerName" />
- *     <TextView android:id="@+id/tvPomReason" />
- *   </LinearLayout>
- */
 class PomAwardAdapter(
     private val items: List<PlayerAwardDto>
 ) : RecyclerView.Adapter<PomAwardAdapter.VH>() {

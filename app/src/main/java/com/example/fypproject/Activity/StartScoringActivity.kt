@@ -1,6 +1,5 @@
 package com.example.fypproject.Activity
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -146,7 +145,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTableTennis -> "Who Serves First?"
             isTugOfWar    -> "Who Starts First?"
             isLudo        -> "Who Starts First?"
-            isChess       -> "Who Plays White?"     // ← YE ADD KARO
+            isChess       -> "Who Plays White?"
             else          -> "Who Won The Toss?"
         }
 
@@ -158,7 +157,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTableTennis -> "🏓 Start Table Tennis Match"
             isLudo        -> "🎲 Start Ludo Match"
             isTugOfWar    -> "🪢 Start Tug of War"
-            isChess       -> "♟️ Start Chess Match"  // ← YE ADD KARO
+            isChess       -> "♟️ Start Chess Match"
             else          -> "Start Match"
         }
     }
@@ -453,9 +452,20 @@ class StartScoringActivity : AppCompatActivity() {
             try {
                 val response = api.abandonMatch(matchId)
                 if (response.isSuccessful) {
-                    toastShort("Match Abandoned")
-                    checkEmptyState()
-                    finish()
+
+                    binding.startScoringBtn.isEnabled   = false
+                    binding.abandonYesBtn.isEnabled     = false
+                    binding.tossTeamABtn.isEnabled       = false
+                    binding.tossTeamBBtn.isEnabled       = false
+                    binding.decisionOption1Btn.isEnabled = false
+                    binding.decisionOption2Btn.isEnabled = false
+
+                    binding.abandonYesBtn.text = "🚫 Match Abandoned"
+                    binding.abandonYesBtn.setBackgroundColor(Color.parseColor("#888888"))
+                    binding.startScoringBtn.text = "🚫 Match Abandoned"
+
+                    toastLong("Match Abandoned Successfully!")
+                    showLoading(false)
                 } else {
                     toastShort("Failed: ${response.code()}")
                     showLoading(false)
