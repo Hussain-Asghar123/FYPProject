@@ -111,13 +111,20 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "events")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
-            votingAlreadyTriggered = true
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
+            votingAlreadyTriggered = true        // ← ADD
             showPanel("loading")
-            loadAndShowVotingThenSummary()
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
     }
     private fun getBundleData() {
@@ -178,6 +185,10 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter
+    }
+    private fun fetchCompletedMatchDataThenVote() {
+        if (_binding == null || !isAdded) return
+        loadAndShowVotingThenSummary()
     }
 
     // ── Panel system ─────────────────────────────────────────────
@@ -512,6 +523,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+
         team1Points = obj.optInt("team1Points",
             obj.optInt("team1Score",
                 obj.optInt("scoreTeam1", team1Points)))
@@ -524,25 +536,24 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             obj.optInt("gamesTeam2", team2Games))
         currentGame = obj.optInt("currentGame",
             obj.optInt("gameNumber", currentGame))
-        gamesToWin  = obj.optInt("gamesToWin",  gamesToWin)
-
-        android.util.Log.d("BADMINTON_UPDATE", "Points: $team1Points-$team2Points, Games: $team1Games-$team2Games")
+        gamesToWin  = obj.optInt("gamesToWin", gamesToWin)
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
+
         val p1 = obj.optJSONArray("team1Players")
         val p2 = obj.optJSONArray("team2Players")
         if (p1 != null && p1.length() > 0)
             team1Players = (0 until p1.length()).mapNotNull { i ->
                 val p = p1.getJSONObject(i)
-                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val id   = p.optInt("id", -1).takeIf { it != -1 }
                 val name = p.optString("name", "").takeIf { it.isNotBlank() }
                 if (id != null && name != null) Player(id, name, "") else null
             }
         if (p2 != null && p2.length() > 0)
             team2Players = (0 until p2.length()).mapNotNull { i ->
                 val p = p2.getJSONObject(i)
-                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val id   = p.optInt("id", -1).takeIf { it != -1 }
                 val name = p.optString("name", "").takeIf { it.isNotBlank() }
                 if (id != null && name != null) Player(id, name, "") else null
             }
@@ -562,33 +573,38 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
         if (obj.has("gameStartTime") && !obj.isNull("gameStartTime")) {
             val start = obj.getLong("gameStartTime")
-            if (start > 0 && start != gameStartTimeMs) {
-                startGameTimer(start)
-            }
+            if (start > 0 && start != gameStartTimeMs) startGameTimer(start)
         }
 
-        // Handle undo confirmation
         if (obj.optString("comment") == "undo" || obj.optBoolean("undo")) {
             toast("↩ Undo successful")
-            android.util.Log.d("BADMINTON_UNDO", "Undo confirmed from server")
         }
 
-        // Always update UI
         updateScoreUI()
         updateSetCircles()
-        if (pendingSummary) {
-            pendingSummary = false
-            showBadmintonSummary()
-            return
-        }
-
 
         isActionPending = false
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
 
-        val status = matchStatus.uppercase()
+        val status = matchStatus.uppercase() // ya matchStatus
+
+// REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()  // Ab data populated hai → safe hai
+            return
+        }
+
+// Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.summary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+// Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
@@ -657,8 +673,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         val matchId   = matchResponse?.id ?: run { showBadmintonSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) {
-            pendingSummary = true
-            showPanel("loading")
+            showBadmintonSummary()
             return
         }
 
@@ -853,7 +868,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             } catch (e: Exception) {
                 toast("❌ Upload failed: ${e.message}")
             } finally {
-                // Hide progress overlay
                 binding.layoutProgressBar.visibility = View.GONE
                 isUploading    = false
                 pendingEventId = null
@@ -863,14 +877,17 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     }
 
     // ── Helpers ──────────────────────────────────────────────────
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().putBoolean("voted_match_$matchId", true).apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)

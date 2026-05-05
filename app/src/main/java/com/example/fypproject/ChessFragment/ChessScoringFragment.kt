@@ -100,13 +100,21 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "moves")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
             showPanel("loading")
-            loadAndShowVotingThenSummary()
+
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("moves")
+            }
         }
     }
 
@@ -629,9 +637,30 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
-        if (pendingSummary) { pendingSummary = false; showChessSummary() }
 
-        val status = matchStatus.uppercase()
+
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+        val status = matchStatus.uppercase() // ya matchStatus
+
+// REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()  // Ab data populated hai → safe hai
+            return
+        }
+
+// Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+// Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
@@ -678,7 +707,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showChessSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) { showChessSummary(); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -800,14 +829,17 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         }
     }
 
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().putBoolean("voted_match_$matchId", true).apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)

@@ -93,23 +93,27 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         registerSocketListeners()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "events")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
             showPanel("loading")
-            loadAndShowVotingThenSummary()
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) {
-            registerSocketListeners()
-        } else {
-            unregisterSocketListeners()
-        }
+        if (!hidden) registerSocketListeners()
+        else unregisterSocketListeners()
     }
 
     override fun onResume() {
@@ -119,6 +123,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     override fun onPause() {
         super.onPause()
+        unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
@@ -136,15 +141,13 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
                     is SocketState.Error -> {
                         toast("Socket Error")
                         isActionPending = false
-                        if (_binding != null && binding.layoutScoring.root.isVisible) {
+                        if (_binding != null && binding.layoutScoring.root.isVisible)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                     is SocketState.Disconnected -> {
                         isActionPending = false
-                        if (_binding != null && binding.layoutScoring.root.isVisible) {
+                        if (_binding != null && binding.layoutScoring.root.isVisible)
                             setScoringButtonsEnabled(true)
-                        }
                     }
                 }
             }
@@ -269,10 +272,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
-
-        val commentToSend = pendingComment   // capture before reset
-
-        // progress show (jo pehle se hai wahi rakho — kuch fragments mein progressBar, kuch mein nahi)
+        val commentToSend = pendingComment
         toast("Uploading")
 
         lifecycleScope.launch {
@@ -319,7 +319,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         when (panel) {
             "scoring" -> { binding.layoutScoring.root.visibility = View.VISIBLE; setupScoringPanel() }
             "confirm" -> { binding.layoutConfirm.root.visibility = View.VISIBLE; setupConfirmPanel() }
-            "voting" -> binding.layoutVoting.root.visibility = View.VISIBLE
+            "voting"  -> binding.layoutVoting.root.visibility = View.VISIBLE
             "summary" -> binding.layoutSummary.root.visibility = View.VISIBLE
             "loading" -> binding.layoutProgressBar.visibility = View.VISIBLE
         }
@@ -508,13 +508,27 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         updateScoreUI()
         updateRopeVisualization()
 
-        if (pendingSummary) { pendingSummary = false; showTugOfWarSummary() }
-
         if (binding.layoutScoring.root.isVisible) {
             setScoringButtonsEnabled(true)
         }
 
         val status = matchStatus.uppercase()
+
+        // REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()
+            return
+        }
+
+        // Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+        // Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
@@ -548,7 +562,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId = matchResponse?.id ?: run { showTugOfWarSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) { showTugOfWarSummary(); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -568,7 +582,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
                 val players1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
                 val players2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
 
-                val onPicked: (TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
+                val onPicked: (com.example.fypproject.DTO.TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
                     else voteAdapter1?.clearSelection()
                     selectedVotePlayerId = player.id
@@ -596,6 +610,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         }
         v.btnSkipVote.setOnClickListener { showTugOfWarSummary() }
     }
+
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
@@ -617,9 +632,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(body)
-                }
+                val response = withContext(Dispatchers.IO) { RetrofitInstance.api.submitVote(body) }
                 when {
                     response.isSuccessful -> {
                         markAsVoted(matchId)
@@ -653,14 +666,17 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         }
     }
 
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().apply { putBoolean("voted_match_$matchId", true) }.apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)

@@ -1035,16 +1035,15 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun hasAlreadyVoted(matchId: Long): Boolean {
-        val prefs = requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-        return prefs.getBoolean("voted_match_$matchId", false)
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
     }
 
     private fun markAsVoted(matchId: Long) {
-        requireActivity()
-            .getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit()
-            .putBoolean("voted_match_$matchId", true)
-            .apply()
+        val accountId = getAccountId()
+        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
     }
 
     private fun getAccountId(): Long {

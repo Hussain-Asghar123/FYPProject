@@ -98,13 +98,20 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "events")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
             showPanel("loading")
-            loadAndShowVotingThenSummary()
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
     }
 
@@ -189,9 +196,8 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         val eventId = pendingEventId   ?: return
         isUploading = true
 
-        val commentToSend = pendingComment   // capture before reset
+        val commentToSend = pendingComment
 
-        // progress show (jo pehle se hai wahi rakho — kuch fragments mein progressBar, kuch mein nahi)
         toast("Uploading")
 
         lifecycleScope.launch {
@@ -487,7 +493,6 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
-    // 3. onHiddenChanged ADD karo:
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) setupSocketListeners()
@@ -549,13 +554,30 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
             setScoringButtonsEnabled(true)
         }
 
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
         val status = matchStatus.uppercase()
+
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()
+            return
+        }
+
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
-        if (pendingSummary) { pendingSummary = false; showLudoSummary() }
     }
 
     private fun sendEvent(json: JSONObject) {
@@ -586,7 +608,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showLudoSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) { showLudoSummary(); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -638,7 +660,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showLudoSummary()   // ← apne fragment ka summary function yahan likh do
+            showLudoSummary()
             return
         }
 
@@ -708,14 +730,17 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         }
     }
 
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().putBoolean("voted_match_$matchId", true).apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)

@@ -29,6 +29,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
 import java.io.File
+import kotlin.concurrent.timerTask
 
 class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var _binding: FutsalScoringFragmentBinding? = null
@@ -85,13 +86,20 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        if (canEdit) {
-            showTab("scoring")
-            if (status != "COMPLETED" && status != "MATCH_COMPLETE") {
-                showPanel("scoring")
-            }
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
+            votingAlreadyTriggered = true
+            showPanel("loading")
         } else {
-            showTab("events")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
     }
 
@@ -134,13 +142,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
         binding.teamA.text = matchResponse?.team1Name ?: "Team A"
         binding.teamB.text = matchResponse?.team2Name ?: "Team B"
-
-        val status = matchResponse?.status?.uppercase().orEmpty()
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
-            votingAlreadyTriggered = true
-            showPanel("loading")
-            loadAndShowVotingThenSummary()
-        }
     }
 
     private fun setupBottomTabs() {
@@ -155,7 +156,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         binding.eventsTabContent.visibility  = if (isScoring) View.GONE    else View.VISIBLE
         binding.tabScoring.isSelected        = isScoring
         binding.tabEvents.isSelected         = !isScoring
-
         binding.tabScoring.setTextColor(
             if (isScoring) android.graphics.Color.parseColor("#E31212")
             else           android.graphics.Color.parseColor("#888888")
@@ -164,7 +164,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             if (!isScoring) android.graphics.Color.parseColor("#E31212")
             else            android.graphics.Color.parseColor("#888888")
         )
-
         if (!isScoring) {
             binding.tvNoEvents.visibility = if (eventsList.isEmpty()) View.VISIBLE else View.GONE
             eventsAdapter.notifyDataSetChanged()
@@ -309,7 +308,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
     }
 
-    // ── BUG 2 FIX: Scorer se same player assist mein na aaye ──
     private fun refreshGoalPlayerSpinners() {
         val g         = binding.goal
         val goalTypes = listOf("Select Goal Type", "NORMAL", "PENALTY", "FREE_KICK", "OWN_GOAL")
@@ -317,10 +315,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         val players   = if (goalType == "OWN_GOAL") getOpposingPlayers(goalTeamId)
         else getOnFieldPlayers(goalTeamId)
 
-        // Scorer spinner setup
         g.spinnerPlayer.setupWithPlayers("Select Scorer", players)
 
-        // Jab scorer change ho, assist list se woh player hatao
         g.spinnerPlayer.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
                 @Suppress("UNCHECKED_CAST")
@@ -334,7 +330,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Default assist (full list — scorer select hone par update ho jaega)
         g.spinnerAssist.setupWithPlayers("Select Assist (Optional)", players)
     }
 
@@ -491,6 +486,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun handleServerUpdate(obj: JSONObject) {
+        if (_binding == null) return
+
         isActionPending = false
         setScoringButtonsEnabled(true)
 
@@ -499,14 +496,23 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         lastTeam1Score = t1
         lastTeam2Score = t2
         binding.score.text = "$t1 - $t2"
+
         val onField1 = obj.optJSONArray("team1OnField")
         val onField2 = obj.optJSONArray("team2OnField")
         if (onField1 != null && onField1.length() > 0)
             team1Active = (0 until onField1.length()).map { onField1.getJSONObject(it) }
-                .mapNotNull { p -> val id = p.optInt("id", -1).takeIf { it != -1 }; val name = p.optString("name","").takeIf { it.isNotBlank() }; if (id != null && name != null) Player(id, name, "") else null }
+                .mapNotNull { p ->
+                    val id   = p.optInt("id", -1).takeIf { it != -1 }
+                    val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                    if (id != null && name != null) Player(id, name, "") else null
+                }
         if (onField2 != null && onField2.length() > 0)
             team2Active = (0 until onField2.length()).map { onField2.getJSONObject(it) }
-                .mapNotNull { p -> val id = p.optInt("id", -1).takeIf { it != -1 }; val name = p.optString("name","").takeIf { it.isNotBlank() }; if (id != null && name != null) Player(id, name, "") else null }
+                .mapNotNull { p ->
+                    val id   = p.optInt("id", -1).takeIf { it != -1 }
+                    val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                    if (id != null && name != null) Player(id, name, "") else null
+                }
 
         currentHalf = obj.optInt("currentHalf", currentHalf)
         binding.tvPeriod.text = when (currentHalf) {
@@ -518,15 +524,9 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         currentStatus = obj.optString("status", currentStatus)
 
         when (currentStatus) {
-            "HALF_TIME"  -> { stopTimer(); toast("Half Time!") }
-            "EXTRA_TIME" -> toast("Draw! Extra Time?")
-            "COMPLETED", "MATCH_COMPLETE" -> {
-                stopTimer()
-                if (!votingAlreadyTriggered) {
-                    votingAlreadyTriggered = true
-                    loadAndShowVotingThenSummary()
-                }
-            }
+            "HALF_TIME"                    -> { stopTimer(); toast("Half Time!") }
+            "EXTRA_TIME"                   -> toast("Draw! Extra Time?")
+            "COMPLETED", "MATCH_COMPLETE" -> stopTimer()
         }
 
         if (obj.optString("comment") == "UNDO") {
@@ -552,15 +552,27 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
 
         updateEndHalfButtonText()
-        if (pendingSummary) {
-            pendingSummary = false
-            showFutsalSummary()
+
+        val status = currentStatus.uppercase()
+
+        // REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()
             return
         }
 
-        if (pendingSummary) {
-            pendingSummary = false
-            showFutsalSummary()
+        // Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutFutsalSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+        // Live match abhi complete hua
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
+            votingAlreadyTriggered = true
+            loadAndShowVotingThenSummary()
         }
     }
 
@@ -634,24 +646,30 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
                 }
                 team1Players = r1.body().orEmpty().toScoringPlayers()
                 team2Players = r2.body().orEmpty().toScoringPlayers()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                toast("Failed to load players")
-            }
+
+                val playing1 = matchResponse?.team1PlayingIds?.map { it.toInt() }?.toSet()
+                val playing2 = matchResponse?.team2PlayingIds?.map { it.toInt() }?.toSet()
+
+                if (team1Active.isEmpty() && !playing1.isNullOrEmpty())
+                    team1Active = team1Players.filter { it.id in playing1 }
+
+                if (team2Active.isEmpty() && !playing2.isNullOrEmpty())
+                    team2Active = team2Players.filter { it.id in playing2 }
+
+            } catch (_: Exception) { toast("Failed to load players") }
         }
     }
 
     private fun hasAlreadyVoted(matchId: Long): Boolean {
-        val prefs = requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-        return prefs.getBoolean("voted_match_$matchId", false)
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
     }
 
     private fun markAsVoted(matchId: Long) {
-        requireActivity()
-            .getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit()
-            .putBoolean("voted_match_$matchId", true)
-            .apply()
+        val accountId = getAccountId()
+        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
     }
 
     private fun getAccountId(): Long {
@@ -659,18 +677,14 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         return prefs.getLong("id", -1L)
     }
 
-
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
 
         val matchId   = matchResponse?.id ?: run { showFutsalSummary(); return }
         val accountId = getAccountId()
 
-        votingAlreadyTriggered = true
-
         if (hasAlreadyVoted(matchId)) {
-            pendingSummary = true
-            showPanel("loading")
+            showFutsalSummary()
             return
         }
 
@@ -722,7 +736,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         v.btnSubmitVote.setOnClickListener {
             val playerId = selectedVotePlayerId ?: return@setOnClickListener
-            submitVote(matchId, accountId, playerId)
+            val feedback = v.etVoteFeedback.text?.toString()?.trim()
+            submitVote(matchId, accountId, playerId, feedback)
         }
         v.btnSkipVote.setOnClickListener { showFutsalSummary() }
     }

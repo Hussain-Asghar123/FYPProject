@@ -114,13 +114,20 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "events")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
             showPanel("loading")
-            fetchCompletedMatchDataThenVote()
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
     }
 
@@ -597,30 +604,34 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         updateScoreUI()
         updateSetCircles()
 
-        if (pendingSummary) {
-            pendingSummary = false
-            showVolleyBallSummary()
-            return
-        }
 
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
 
-        val status = matchStatus.uppercase()
+        val status = matchStatus.uppercase() // ya matchStatus
 
+// REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
             votingAlreadyTriggered &&
             binding.layoutProgressBar.visibility == View.VISIBLE) {
-            loadAndShowVotingThenSummary()
+            loadAndShowVotingThenSummary()  // Ab data populated hai → safe hai
             return
         }
 
+// Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.summary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+// Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
+
     }
 
     private fun parseVolleyballEvent(obj: JSONObject) {
@@ -669,8 +680,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
      private fun fetchCompletedMatchDataThenVote() {
         if (_binding == null || !isAdded) return
-         pendingSummary = true
-         showPanel("loading")
+         loadAndShowVotingThenSummary()
     }
 
     private fun showVolleyBallSummary() {
@@ -702,8 +712,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         val matchId   = matchResponse?.id ?: run { showVolleyBallSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) {
-            pendingSummary = true
-            showPanel("loading")
+           showVolleyBallSummary()
             return
         }
 
@@ -824,6 +833,17 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
                 }
                 team1Players = r1.body().orEmpty().toScoringPlayers()
                 team2Players = r2.body().orEmpty().toScoringPlayers()
+
+                // ← Yeh add karo
+                val playing1 = matchResponse?.team1PlayingIds?.map { it.toInt() }?.toSet()
+                val playing2 = matchResponse?.team2PlayingIds?.map { it.toInt() }?.toSet()
+
+                if (team1Active.isEmpty() && !playing1.isNullOrEmpty())
+                    team1Active = team1Players.filter { it.id in playing1 }
+
+                if (team2Active.isEmpty() && !playing2.isNullOrEmpty())
+                    team2Active = team2Players.filter { it.id in playing2 }
+
             } catch (_: Exception) { toast("Failed to load players") }
         }
     }
@@ -907,14 +927,17 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         }
     }
 
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().putBoolean("voted_match_$matchId", true).apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)

@@ -321,7 +321,7 @@
                 android:id="@+id/progressBarLoading"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:indeterminateTint="#1E293B"/>
+                android:indeterminateTint="#E31212"/>
         </LinearLayout>
 
     </FrameLayout>

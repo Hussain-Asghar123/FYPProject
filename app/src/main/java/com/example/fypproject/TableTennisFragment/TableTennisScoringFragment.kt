@@ -111,14 +111,44 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
-        showTab(if (canEdit) "scoring" else "events")
-        if (status == "COMPLETED" || status == "MATCH_COMPLETE") {
+        val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
+
+        if (isCompleted) {
+            binding.scoringTabContent.visibility = View.VISIBLE
+            binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
             showPanel("loading")
-            loadAndShowVotingThenSummary()
         } else {
-            if (canEdit) showPanel("scoring")
+            if (canEdit) {
+                showTab("scoring")
+                showPanel("scoring")
+            } else {
+                showTab("events")
+            }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupSocketListeners()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners()
+        else unregisterSocketListeners()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterSocketListeners()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        timerTask?.cancel()
+        unregisterSocketListeners()
+        _binding = null
     }
 
     private fun getBundleData() {
@@ -178,6 +208,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter
     }
+
     private fun showPanel(panel: String) {
         binding.futsalScoring.root.visibility = View.GONE
         binding.goal.root.visibility = View.GONE
@@ -192,19 +223,10 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
 
         when (panel) {
-            "scoring" -> {
-                binding.futsalScoring.root.visibility = View.VISIBLE; setupScoringPanel()
-            }
-
-            "point" -> {
-                binding.goal.root.visibility = View.VISIBLE; setupPointPanel()
-            }
-
-            "foul" -> {
-                binding.foul.root.visibility = View.VISIBLE; setupFoulPanel()
-            }
-
-            "voting" -> binding.layoutVoting.root.visibility = View.VISIBLE
+            "scoring" -> { binding.futsalScoring.root.visibility = View.VISIBLE; setupScoringPanel() }
+            "point"   -> { binding.goal.root.visibility = View.VISIBLE; setupPointPanel() }
+            "foul"    -> { binding.foul.root.visibility = View.VISIBLE; setupFoulPanel() }
+            "voting"  -> binding.layoutVoting.root.visibility = View.VISIBLE
             "summary" -> binding.layoutFutsalSummary.root.visibility = View.VISIBLE
             "loading" -> binding.layoutProgressBar.visibility = View.VISIBLE
         }
@@ -464,6 +486,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         pointsPerGame = obj.optInt("pointsPerGame", pointsPerGame)
         currentGame = obj.optInt("currentGame", currentGame)
         gamesToWin  = obj.optInt("gamesToWin",  gamesToWin)
+
         val p1 = obj.optJSONArray("team1Players")
         val p2 = obj.optJSONArray("team2Players")
         if (p1 != null && p1.length() > 0)
@@ -508,17 +531,28 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
         updateScoreUI()
         updateGameCircles()
-        if (pendingSummary) {
-            pendingSummary = false
-            showTableTennisSummary()
-            return
-        }
 
         if (binding.futsalScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
 
         val status = matchStatus.uppercase()
+
+        // REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
+            votingAlreadyTriggered &&
+            binding.layoutProgressBar.visibility == View.VISIBLE) {
+            loadAndShowVotingThenSummary()
+            return
+        }
+
+        // Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
+            binding.layoutFutsalSummary.root.visibility == View.VISIBLE) {
+            return
+        }
+
+        // Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
@@ -564,7 +598,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     private fun sendEvent(json: JSONObject) {
         json.put("matchId", matchResponse?.id ?: 0)
         android.util.Log.d("WS_DEBUG", "isConnected: ${WebSocketManager.isConnected()}")
-        android.util.Log.d("WS_DEBUG", "Sending: ${json}")
+        android.util.Log.d("WS_DEBUG", "Sending: $json")
         WebSocketManager.send(json.toString())
     }
 
@@ -589,11 +623,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showTableTennisSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) {
-            pendingSummary = true
-            showPanel("loading")
-            return
-        }
+        if (hasAlreadyVoted(matchId)) { showTableTennisSummary(); return }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -641,10 +671,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
         v.btnSkipVote.setOnClickListener { showTableTennisSummary() }
     }
+
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showTableTennisSummary()   // ← apne fragment ka summary function yahan likh do
+            showTableTennisSummary()
             return
         }
 
@@ -662,9 +693,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(body)
-                }
+                val response = withContext(Dispatchers.IO) { RetrofitInstance.api.submitVote(body) }
                 when {
                     response.isSuccessful -> {
                         markAsVoted(matchId)
@@ -757,10 +786,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
-
-        val commentToSend = pendingComment   // capture before reset
-
-        // progress show (jo pehle se hai wahi rakho — kuch fragments mein progressBar, kuch mein nahi)
+        val commentToSend = pendingComment
         toast("Uploading")
 
         lifecycleScope.launch {
@@ -792,14 +818,17 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         }
     }
 
-    private fun hasAlreadyVoted(matchId: Long) =
-        requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .getBoolean("voted_match_$matchId", false)
+    private fun hasAlreadyVoted(matchId: Long): Boolean {
+        val accountId = getAccountId()
+        return requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
+            .getBoolean("voted_match_${matchId}_user_${accountId}", false)
+    }
 
-    private fun markAsVoted(matchId: Long) =
+    private fun markAsVoted(matchId: Long) {
+        val accountId = getAccountId()
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
-            .edit().putBoolean("voted_match_$matchId", true).apply()
-
+            .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
+    }
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)
@@ -841,29 +870,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         val name = dto.name
         if (id == null || name.isNullOrBlank()) null
         else Player(id = id, name = name, status = "")
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        setupSocketListeners()
-    }
-    override fun onHiddenChanged(hidden: Boolean) {
-        super.onHiddenChanged(hidden)
-        if (!hidden) setupSocketListeners()
-        else unregisterSocketListeners()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        unregisterSocketListeners()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        timerTask?.cancel()
-        unregisterSocketListeners()
-        _binding = null
     }
 
     companion object {
