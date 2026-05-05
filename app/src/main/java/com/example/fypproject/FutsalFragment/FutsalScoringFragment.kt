@@ -679,6 +679,8 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
+        binding.scoringTabContent.visibility = View.VISIBLE
+        binding.eventsTabContent.visibility  = View.GONE
 
         val matchId   = matchResponse?.id ?: run { showFutsalSummary(); return }
         val accountId = getAccountId()

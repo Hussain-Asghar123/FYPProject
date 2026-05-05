@@ -621,6 +621,8 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
+        binding.scoringTabContent.visibility = View.VISIBLE
+        binding.eventsTabContent.visibility  = View.GONE
         val matchId   = matchResponse?.id ?: run { showTableTennisSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) { showTableTennisSummary(); return }

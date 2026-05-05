@@ -560,6 +560,8 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
+        binding.scoringTabContent.visibility = View.VISIBLE
+        binding.eventsTabContent.visibility  = View.GONE
         val matchId = matchResponse?.id ?: run { showTugOfWarSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) { showTugOfWarSummary(); return }

@@ -670,6 +670,8 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
+        binding.scoringTabContent.visibility = View.VISIBLE
+        binding.eventsTabContent.visibility  = View.GONE
         val matchId   = matchResponse?.id ?: run { showBadmintonSummary(); return }
         val accountId = getAccountId()
         if (hasAlreadyVoted(matchId)) {
