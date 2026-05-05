@@ -599,7 +599,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showTugOfWarSummary()   // ← apne fragment ka summary function yahan likh do
+            showTugOfWarSummary()
             return
         }
 

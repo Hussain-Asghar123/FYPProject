@@ -214,7 +214,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         if (!canEdit) {
             binding.layoutScoring.btnPoint.visibility        = View.GONE
             binding.layoutScoring.btnFoul.visibility         = View.GONE
-            binding.layoutScoring.btnSubstitution.visibility = View.GONE
             binding.layoutScoring.btnEndSet.visibility       = View.GONE
             binding.layoutScoring.btnUndo.visibility         = View.GONE
             return
@@ -230,7 +229,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             selectedFoulTeamId = null
             showPanel("foul")
         }
-        binding.layoutScoring.btnSubstitution.setOnClickListener { showPanel("sub") }
 
         binding.layoutScoring.btnEndSet.setOnClickListener {
             if (isActionPending) return@setOnClickListener
@@ -256,7 +254,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         listOf(
             binding.layoutScoring.btnPoint,
             binding.layoutScoring.btnFoul,
-            binding.layoutScoring.btnSubstitution,
             binding.layoutScoring.btnEndSet,
             binding.layoutScoring.btnUndo
         ).forEach {
@@ -515,8 +512,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
-
-        // Try multiple possible field names for scores
         team1Points = obj.optInt("team1Points",
             obj.optInt("team1Score",
                 obj.optInt("scoreTeam1", team1Points)))
@@ -535,6 +530,22 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
+        val p1 = obj.optJSONArray("team1Players")
+        val p2 = obj.optJSONArray("team2Players")
+        if (p1 != null && p1.length() > 0)
+            team1Players = (0 until p1.length()).mapNotNull { i ->
+                val p = p1.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
+        if (p2 != null && p2.length() > 0)
+            team2Players = (0 until p2.length()).mapNotNull { i ->
+                val p = p2.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
 
         val eventsArray = obj.optJSONArray("badmintonEvents")
         if (eventsArray != null) {
@@ -565,10 +576,13 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         // Always update UI
         updateScoreUI()
         updateSetCircles()
+        if (pendingSummary) {
+            pendingSummary = false
+            showBadmintonSummary()
+            return
+        }
 
-        android.util.Log.d("BADMINTON_UPDATE", "UI Updated - Points: $team1Points-$team2Points")
 
-        // Reset action pending and re-enable buttons
         isActionPending = false
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
@@ -580,7 +594,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
-        if (pendingSummary) { pendingSummary = false; showBadmintonSummary() }
     }
 
 
@@ -643,7 +656,11 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showBadmintonSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) {
+            pendingSummary = true
+            showPanel("loading")
+            return
+        }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -695,7 +712,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showBadmintonSummary()   // ← apne fragment ka summary function yahan likh do
+            showBadmintonSummary()
             return
         }
 

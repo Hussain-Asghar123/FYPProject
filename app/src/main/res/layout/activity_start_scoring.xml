@@ -245,7 +245,464 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ── TOSS SECTION — Tug of War ke liye ye poora hidden hoga ── -->
+            <!-- ══════════════════════════════════════════════
+                 SPORT CONFIG SECTIONS
+                 ══════════════════════════════════════════════ -->
+
+            <!-- VOLLEYBALL CONFIG -->
+            <LinearLayout
+                android:id="@+id/volleyballConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Match Configuration"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/purple_500"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:gravity="center">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginEnd="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Sets to Win" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnSetsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvSetsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="3" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnSetsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginHorizontal="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Points/Set" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="25" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginStart="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Final Set Pts" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnFinalPtsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvFinalPtsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="15" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnFinalPtsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvVbSummary" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Best of 5 sets · 25 pts each · 15 pts tiebreak"
+                    android:textSize="10sp" android:textColor="@android:color/darker_gray"
+                    android:gravity="center" android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- TABLE TENNIS CONFIG -->
+            <LinearLayout
+                android:id="@+id/tableTennisConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Match Configuration" android:textStyle="bold" android:textSize="12sp"
+                    android:textAllCaps="true" android:textColor="#1565C0" android:layout_marginBottom="8dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:weightSum="2" android:gravity="center">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginEnd="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Games to Win" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnTtGamesDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvTtGamesValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="4" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="#1565C0" android:gravity="center"/>
+                            <Button android:id="@+id/btnTtGamesIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginStart="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Points/Game" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnTtPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvTtPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="11" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="#1565C0" android:gravity="center"/>
+                            <Button android:id="@+id/btnTtPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvTtSummary" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Best of 7 · 11 pts each · True deuce (no cap)"
+                    android:textSize="10sp" android:textColor="@android:color/darker_gray"
+                    android:gravity="center" android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- BADMINTON CONFIG -->
+            <LinearLayout
+                android:id="@+id/badmintonConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Match Configuration" android:textStyle="bold" android:textSize="12sp"
+                    android:textAllCaps="true" android:textColor="@color/purple_500" android:layout_marginBottom="8dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:weightSum="3" android:gravity="center">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginEnd="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Games to Win" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnBdSetsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvBdSetsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="2" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnBdSetsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginHorizontal="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Points/Game" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnBdPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvBdPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="21" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnBdPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                        android:padding="6dp" android:background="@drawable/rounded_card_bg" android:layout_marginStart="4dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Deuce Cap" android:textSize="9sp" android:textAllCaps="true"
+                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal" android:gravity="center">
+                            <Button android:id="@+id/btnBdFinalPtsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                            <TextView android:id="@+id/tvBdFinalPtsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:text="30" android:textSize="20sp" android:textStyle="bold"
+                                android:textColor="@color/purple_500" android:gravity="center"/>
+                            <Button android:id="@+id/btnBdFinalPtsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvBdSummary" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Best of 3 games · 21 pts each · 30 pts cap"
+                    android:textSize="10sp" android:textColor="@android:color/darker_gray"
+                    android:gravity="center" android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- TUG OF WAR CONFIG -->
+            <LinearLayout
+                android:id="@+id/tugOfWarConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Match Configuration" android:textStyle="bold" android:textSize="12sp"
+                    android:textAllCaps="true" android:textColor="#F59E0B" android:layout_marginBottom="8dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:gravity="center" android:padding="6dp"
+                    android:background="@drawable/rounded_card_bg">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Rounds to Win" android:textSize="9sp" android:textAllCaps="true"
+                        android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center">
+                        <Button android:id="@+id/btnTowRoundsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
+                        <TextView android:id="@+id/tvTowRoundsValue" android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="3" android:textSize="20sp" android:textStyle="bold"
+                            android:textColor="#F59E0B" android:gravity="center"/>
+                        <Button android:id="@+id/btnTowRoundsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvTowSummary" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Best of 5 rounds" android:textSize="10sp"
+                    android:textColor="@android:color/darker_gray" android:gravity="center" android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- CHESS CONFIG -->
+            <LinearLayout
+                android:id="@+id/chessConfigSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Match Configuration" android:textStyle="bold" android:textSize="12sp"
+                    android:textAllCaps="true" android:textColor="#455A64" android:layout_marginBottom="8dp"/>
+
+                <androidx.cardview.widget.CardView android:layout_width="match_parent"
+                    android:layout_height="wrap_content" app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp" app:cardBackgroundColor="#FFFFFF">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center" android:padding="16dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="♟️" android:textSize="40sp" android:layout_marginEnd="16dp"/>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Chess Match" android:textSize="16sp" android:textStyle="bold" android:textColor="#1C1C1C"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Toss winner chooses White or Black pieces"
+                                android:textSize="12sp" android:textColor="#888888" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <TextView android:id="@+id/tvChessSummary" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="♟️ Classic Chess · Toss winner picks color"
+                    android:textSize="10sp" android:textColor="@android:color/darker_gray"
+                    android:gravity="center" android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- ══════════════════════════════════════════════
+                 ── INLINE SQUAD SECTION (NEW — replaces overlay) ──
+                 ══════════════════════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/squadCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <!-- Section title -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👤 SELECT PLAYING SQUAD"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.08"
+                        android:textColor="#E31212"
+                        android:layout_marginBottom="10dp"/>
+
+                    <!-- Format toggle: Singles / Doubles -->
+                    <LinearLayout
+                        android:id="@+id/formatSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="4dp">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSingles"
+                                android:layout_width="0dp"
+                                android:layout_height="44dp"
+                                android:layout_weight="1"
+                                android:text="Singles (1v1)"
+                                android:textColor="@android:color/white"
+                                android:textStyle="bold"
+                                android:textSize="13sp"
+                                app:backgroundTint="#4CAF50"
+                                app:cornerRadius="8dp"
+                                android:layout_marginEnd="6dp"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnDoubles"
+                                android:layout_width="0dp"
+                                android:layout_height="44dp"
+                                android:layout_weight="1"
+                                android:text="Doubles (2v2)"
+                                android:textColor="#333333"
+                                android:textStyle="bold"
+                                android:textSize="13sp"
+                                app:backgroundTint="#E0E0E0"
+                                app:cornerRadius="8dp"
+                                android:layout_marginStart="6dp"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Singles: 1 player per team · Doubles: 2 players per team"
+                            android:textSize="10sp"
+                            android:textColor="@android:color/darker_gray"
+                            android:gravity="center"/>
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E5E7EB"
+                        android:layout_marginBottom="10dp"/>
+
+                    <!-- Team header row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:id="@+id/tvSquadTeam1Label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Team 1"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#3B82F6"/>
+
+                        <TextView
+                            android:id="@+id/tvSquadTeam2Label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Team 2"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#F43F5E"
+                            android:gravity="end"/>
+                    </LinearLayout>
+
+                    <!-- Two-column player list -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Team 1 players column -->
+                        <LinearLayout
+                            android:id="@+id/llTeam1Players"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginEnd="4dp"/>
+
+                        <!-- Team 2 players column -->
+                        <LinearLayout
+                            android:id="@+id/llTeam2Players"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Squad hint -->
+                    <TextView
+                        android:id="@+id/tvSquadHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tap players to select them"
+                        android:textSize="10sp"
+                        android:textColor="#AAAAAA"
+                        android:gravity="center"
+                        android:layout_marginTop="8dp"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ── TOSS SECTION ── -->
             <LinearLayout
                 android:id="@+id/tossSection"
                 android:layout_width="match_parent"
@@ -293,493 +750,6 @@
                         app:cornerRadius="8dp"
                         android:layout_marginStart="8dp"/>
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- ══════════════════════════════════════════════
-                 VOLLEYBALL CONFIG SECTION (existing)
-                 ══════════════════════════════════════════════ -->
-            <LinearLayout
-                android:id="@+id/volleyballConfigSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Match Configuration"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textAllCaps="true"
-                    android:textColor="@color/purple_500"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="3"
-                    android:gravity="center">
-
-                    <!-- Sets to Win -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginEnd="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Sets to Win" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnSetsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvSetsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="3" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnSetsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Points per Set -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginHorizontal="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Points/Set" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="25" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Final Set Points -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginStart="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Final Set Pts" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnFinalPtsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvFinalPtsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="15" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnFinalPtsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvVbSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Best of 5 sets · 25 pts each · 15 pts tiebreak"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"
-                    android:layout_marginTop="6dp"/>
-            </LinearLayout>
-
-            <!-- ══════════════════════════════════════════════
-                 TABLE TENNIS CONFIG SECTION (NEW)
-                 ══════════════════════════════════════════════ -->
-            <LinearLayout
-                android:id="@+id/tableTennisConfigSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Match Configuration"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textAllCaps="true"
-                    android:textColor="#1565C0"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="2"
-                    android:gravity="center">
-
-                    <!-- Games to Win -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginEnd="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Games to Win" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnTtGamesDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvTtGamesValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="4" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="#1565C0" android:gravity="center"/>
-                            <Button android:id="@+id/btnTtGamesIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Points per Game -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginStart="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Points/Game" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnTtPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvTtPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="11" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="#1565C0" android:gravity="center"/>
-                            <Button android:id="@+id/btnTtPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvTtSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Best of 7 · 11 pts each · True deuce (no cap)"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"
-                    android:layout_marginTop="6dp"/>
-            </LinearLayout>
-
-            <!-- ══════════════════════════════════════════════
-                 BADMINTON CONFIG SECTION (NEW)
-                 ══════════════════════════════════════════════ -->
-            <LinearLayout
-                android:id="@+id/badmintonConfigSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Match Configuration"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textAllCaps="true"
-                    android:textColor="@color/purple_500"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="3"
-                    android:gravity="center">
-
-                    <!-- Games to Win (Badminton) -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginEnd="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Games to Win" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnBdSetsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvBdSetsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="2" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnBdSetsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Points per Game (Badminton) -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginHorizontal="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Points/Game" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnBdPointsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvBdPointsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="21" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnBdPointsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Deuce Cap (Badminton) -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:background="@drawable/rounded_card_bg"
-                        android:layout_marginStart="4dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Deuce Cap" android:textSize="9sp" android:textAllCaps="true"
-                            android:textColor="@android:color/darker_gray" android:layout_marginBottom="6dp"/>
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:orientation="horizontal" android:gravity="center">
-                            <Button android:id="@+id/btnBdFinalPtsDecrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="−" android:textSize="16sp" android:padding="0dp"/>
-                            <TextView android:id="@+id/tvBdFinalPtsValue" android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="30" android:textSize="20sp" android:textStyle="bold"
-                                android:textColor="@color/purple_500" android:gravity="center"/>
-                            <Button android:id="@+id/btnBdFinalPtsIncrement" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="36dp" android:layout_height="36dp" android:text="+" android:textSize="16sp" android:padding="0dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvBdSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Best of 3 games · 21 pts each · 30 pts cap"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"
-                    android:layout_marginTop="6dp"/>
-            </LinearLayout>
-
-            <!-- TUG OF WAR CONFIG SECTION -->
-            <LinearLayout
-                android:id="@+id/tugOfWarConfigSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Match Configuration"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textAllCaps="true"
-                    android:textColor="#F59E0B"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="6dp"
-                    android:background="@drawable/rounded_card_bg">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rounds to Win"
-                        android:textSize="9sp"
-                        android:textAllCaps="true"
-                        android:textColor="@android:color/darker_gray"
-                        android:layout_marginBottom="6dp"/>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
-
-                        <Button
-                            android:id="@+id/btnTowRoundsDecrement"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:text="−"
-                            android:textSize="16sp"
-                            android:padding="0dp"/>
-
-                        <TextView
-                            android:id="@+id/tvTowRoundsValue"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="3"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="#F59E0B"
-                            android:gravity="center"/>
-
-                        <Button
-                            android:id="@+id/btnTowRoundsIncrement"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:text="+"
-                            android:textSize="16sp"
-                            android:padding="0dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvTowSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Best of 5 rounds"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"
-                    android:layout_marginTop="6dp"/>
-            </LinearLayout>
-
-            <!-- ══ CHESS CONFIG SECTION ══ -->
-            <LinearLayout
-                android:id="@+id/chessConfigSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Match Configuration"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textAllCaps="true"
-                    android:textColor="#455A64"
-                    android:layout_marginBottom="8dp"/>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="#FFFFFF">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:padding="16dp">
-
-                        <!-- Chess piece icon -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="♟️"
-                            android:textSize="40sp"
-                            android:layout_marginEnd="16dp"/>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Chess Match"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="#1C1C1C"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Toss winner chooses White or Black pieces"
-                                android:textSize="12sp"
-                                android:textColor="#888888"
-                                android:layout_marginTop="4dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <TextView
-                    android:id="@+id/tvChessSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="♟️ Classic Chess · Toss winner picks color"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"
-                    android:layout_marginTop="6dp"/>
-
             </LinearLayout>
 
             <!-- ── DECISION SECTION ── -->

@@ -1,18 +1,25 @@
 package com.example.fypproject.Activity
 
 import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.Utils.MatchNavigator
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.ActivityStartScoringBinding
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class StartScoringActivity : AppCompatActivity() {
@@ -39,10 +46,22 @@ class StartScoringActivity : AppCompatActivity() {
     private var bdPointsPerSet: Int = 21
     private var bdFinalSetPoints: Int = 30
 
-    private var scorerUsername: String = ""
+    private var bdFormat: String = "singles"
+    private var ttFormat: String = "singles"
 
-    private val colorSelected = Color.parseColor("#4CAF50")
-    private val colorDefault  = Color.parseColor("#E31212")
+    private var squadTeam1 = listOf<TeamPlayerDto>()
+    private var squadTeam2 = listOf<TeamPlayerDto>()
+
+    // Inline selection sets — live state for the two columns
+    private val sel1 = mutableSetOf<Long>()
+    private val sel2 = mutableSetOf<Long>()
+
+    // Exposed as lists for payload building
+    private val team1PlayingIds get() = sel1.toMutableList()
+    private val team2PlayingIds get() = sel2.toMutableList()
+
+    private val colorGreen = Color.parseColor("#4CAF50")
+    private val colorRed   = Color.parseColor("#E31212")
 
     private val isCricket     get() = sportId == 1L
     private val isFutsal      get() = sportId == 2L
@@ -51,19 +70,21 @@ class StartScoringActivity : AppCompatActivity() {
     private val isBadminton   get() = sportId == 5L
     private val isLudo        get() = sportId == 6L
     private val isTugOfWar    get() = sportId == 7L
+    private val isChess       get() = sportId == 8L
 
-    private val isChess get() = sportId == 8L
+    private val needsLineup get() = isFutsal || isVolleyball || isBadminton || isTableTennis
 
     private val sportDecisions = mapOf(
-        1L to Pair("Bat",             "Bowl"),
-        2L to Pair("Kickoff",         "Choose Side"),
-        3L to Pair("Give Service",    "Take Service"),
-        4L to Pair("Choose Service",  "Choose Side"),
-        5L to Pair("Choose Service",  "Choose Side"),
-        6L to null,
-        7L to null,
-        8L to Pair("White",           "Black")
+        1L to Pair("Bat", "Bowl"),
+        8L to Pair("White", "Black"),
     )
+
+    private val maxPerTeam: Int
+        get() = when {
+            isBadminton   -> if (bdFormat == "singles") 1 else 2
+            isTableTennis -> if (ttFormat == "singles") 1 else 2
+            else          -> Int.MAX_VALUE
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,69 +95,49 @@ class StartScoringActivity : AppCompatActivity() {
         matchId   = matchData?.id      ?: intent.getLongExtra("matchId", -1L)
         sportId   = matchData?.sportId ?: intent.getLongExtra("sportId", -1L)
 
-        if (matchId <= 0L) {
-            toastShort("Invalid match")
-            finish()
-            return
-        }
+        if (matchId <= 0L) { toastShort("Invalid match"); finish(); return }
 
         setupButtons()
-
-        if (matchData != null) {
-            bindDataToUI()
-        } else {
-            fetchMatchDetails()
-        }
-
+        if (matchData != null) bindDataToUI() else fetchMatchDetails()
         setupSportUI()
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Sport UI
+    // ─────────────────────────────────────────────────────────────
     private fun setupSportUI() {
-        binding.oversRow.visibility = if (isCricket) View.VISIBLE else View.GONE
+        binding.oversRow.visibility                 = if (isCricket)     View.VISIBLE else View.GONE
+        binding.volleyballConfigSection.visibility  = if (isVolleyball)  View.VISIBLE else View.GONE
+        binding.tableTennisConfigSection.visibility = if (isTableTennis) View.VISIBLE else View.GONE
+        binding.tugOfWarConfigSection.visibility    = if (isTugOfWar)    View.VISIBLE else View.GONE
+        binding.badmintonConfigSection.visibility   = if (isBadminton)   View.VISIBLE else View.GONE
+        binding.chessConfigSection.visibility       = if (isChess)       View.VISIBLE else View.GONE
 
-        binding.volleyballConfigSection.visibility =
-            if (isVolleyball) View.VISIBLE else View.GONE
-        if (isVolleyball) {
-            refreshVolleyballLabels()
-            setupVolleyballSteppers()
-        }
+        // Format section is now INSIDE the squad card — show the card visibility based on sport
+        binding.formatSection?.visibility = if (isBadminton || isTableTennis) View.VISIBLE else View.GONE
 
-        binding.tableTennisConfigSection.visibility =
-            if (isTableTennis) View.VISIBLE else View.GONE
-        if (isTableTennis) {
-            refreshTableTennisLabels()
-            setupTableTennisSteppers()
-        }
-        binding.tugOfWarConfigSection.visibility =
-            if (isTugOfWar) View.VISIBLE else View.GONE
-        if (isTugOfWar) {
-            towRounds = matchData?.sets ?: 3
-            refreshTugOfWarLabels()
-            setupTugOfWarSteppers()
-        }
-
-        binding.badmintonConfigSection.visibility =
-            if (isBadminton) View.VISIBLE else View.GONE
-        if (isBadminton) {
-            bdSets          = matchData?.sets           ?: 2
-            bdPointsPerSet  = matchData?.pointsPerSet   ?: 21
+        if (isBadminton || isTableTennis) setupFormatToggle()
+        if (isVolleyball)  { refreshVolleyballLabels();  setupVolleyballSteppers()  }
+        if (isTableTennis) { refreshTableTennisLabels(); setupTableTennisSteppers() }
+        if (isTugOfWar)    { towRounds = matchData?.sets ?: 3; refreshTugOfWarLabels(); setupTugOfWarSteppers() }
+        if (isBadminton)   {
+            bdSets           = matchData?.sets           ?: 2
+            bdPointsPerSet   = matchData?.pointsPerSet   ?: 21
             bdFinalSetPoints = matchData?.finalSetPoints ?: 30
-            refreshBadmintonLabels()
-            setupBadmintonSteppers()
+            refreshBadmintonLabels(); setupBadmintonSteppers()
         }
 
-        val decisions = sportDecisions[sportId]
-        if (decisions != null) {
-            binding.decisionSection.visibility   = View.VISIBLE
-            binding.decisionOption1Btn.text      = decisions.first
-            binding.decisionOption2Btn.text      = decisions.second
-            updateDecisionLabel()
+        // Show squad card shell if this sport needs lineup; players load after fetch
+        if (needsLineup && matchData?.status?.uppercase() == "UPCOMING") {
+            binding.squadCard.visibility = View.VISIBLE
+            binding.tvSquadTeam1Label.text = matchData?.team1Name ?: "Team 1"
+            binding.tvSquadTeam2Label.text = matchData?.team2Name ?: "Team 2"
+            fetchSquads()
         } else {
-            binding.decisionSection.visibility = View.GONE
+            binding.squadCard.visibility = View.GONE
         }
 
         binding.tossSection.visibility = View.VISIBLE
-
         binding.tossLabel.text = when {
             isCricket     -> "Who Won The Toss?"
             isFutsal      -> "Who Kicks Off?"
@@ -147,6 +148,16 @@ class StartScoringActivity : AppCompatActivity() {
             isLudo        -> "Who Starts First?"
             isChess       -> "Who Plays White?"
             else          -> "Who Won The Toss?"
+        }
+
+        val decisions = sportDecisions[sportId]
+        if (decisions != null) {
+            binding.decisionSection.visibility = View.VISIBLE
+            binding.decisionOption1Btn.text    = decisions.first
+            binding.decisionOption2Btn.text    = decisions.second
+            updateDecisionLabel()
+        } else {
+            binding.decisionSection.visibility = View.GONE
         }
 
         binding.startScoringBtn.text = when {
@@ -162,108 +173,234 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Format toggle (Singles / Doubles)
+    // ─────────────────────────────────────────────────────────────
+    private fun setupFormatToggle() {
+        val btnSingles = binding.btnSingles ?: return
+        val btnDoubles = binding.btnDoubles ?: return
+
+        fun highlight() {
+            val fmt = if (isBadminton) bdFormat else ttFormat
+            btnSingles.setBackgroundColor(if (fmt == "singles") colorGreen else Color.parseColor("#E0E0E0"))
+            btnDoubles.setBackgroundColor(if (fmt == "doubles") colorGreen else Color.parseColor("#E0E0E0"))
+            btnSingles.setTextColor(if (fmt == "singles") Color.WHITE else Color.parseColor("#333333"))
+            btnDoubles.setTextColor(if (fmt == "doubles") Color.WHITE else Color.parseColor("#333333"))
+        }
+        highlight()
+
+        btnSingles.setOnClickListener {
+            if (isBadminton) bdFormat = "singles" else ttFormat = "singles"
+            sel1.clear(); sel2.clear()
+            highlight()
+            if (squadTeam1.isNotEmpty()) refreshInlineSquadColumns()
+        }
+        btnDoubles.setOnClickListener {
+            if (isBadminton) bdFormat = "doubles" else ttFormat = "doubles"
+            sel1.clear(); sel2.clear()
+            highlight()
+            if (squadTeam1.isNotEmpty()) refreshInlineSquadColumns()
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Squad fetch
+    // ─────────────────────────────────────────────────────────────
+    private fun fetchSquads() {
+        val t1 = matchData?.team1Id ?: return
+        val t2 = matchData?.team2Id ?: return
+        lifecycleScope.launch {
+            showLoading(true)
+            try {
+                val r1 = async(Dispatchers.IO) { api.getPlayersByTeam(t1) }
+                val r2 = async(Dispatchers.IO) { api.getPlayersByTeam(t2) }
+                squadTeam1 = r1.await().body() ?: emptyList()
+                squadTeam2 = r2.await().body() ?: emptyList()
+            } catch (e: Exception) {
+                toastShort("Could not load players")
+            } finally {
+                showLoading(false)
+            }
+            // Populate columns directly inside the card — no overlay
+            refreshInlineSquadColumns()
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Inline squad columns — builds player buttons inside the card
+    // ─────────────────────────────────────────────────────────────
+    private fun refreshInlineSquadColumns() {
+        buildPlayerColumn(squadTeam1, sel1, binding.llTeam1Players)
+        buildPlayerColumn(squadTeam2, sel2, binding.llTeam2Players)
+        updateSquadHint()
+    }
+
+    private fun buildPlayerColumn(
+        squad: List<TeamPlayerDto>,
+        sel: MutableSet<Long>,
+        col: LinearLayout
+    ) {
+        col.removeAllViews()
+        val dp = resources.displayMetrics.density
+
+        if (squad.isEmpty()) {
+            col.addView(TextView(this).apply {
+                text = "No players"
+                textSize = 12f
+                setTextColor(Color.parseColor("#AAAAAA"))
+                setPadding((4*dp).toInt(), (4*dp).toInt(), (4*dp).toInt(), (4*dp).toInt())
+            })
+            return
+        }
+
+        val cap = maxPerTeam
+        squad.forEach { player ->
+            val id = player.id ?: return@forEach
+            val isSelected = id in sel
+            val isCapped   = !isSelected && sel.size >= cap
+
+            val btn = TextView(this).apply {
+                text     = player.name ?: "Player"
+                textSize = 12f
+                setTypeface(null, Typeface.BOLD)
+                setPadding((10*dp).toInt(), (10*dp).toInt(), (10*dp).toInt(), (10*dp).toInt())
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = (6*dp).toInt() }
+                background = GradientDrawable().apply {
+                    setColor(when {
+                        isSelected -> colorGreen
+                        isCapped   -> Color.parseColor("#E0E0E0")
+                        else       -> Color.parseColor("#F1F5F9")
+                    })
+                    cornerRadius = 8 * dp
+                }
+                setTextColor(when {
+                    isSelected -> Color.WHITE
+                    isCapped   -> Color.parseColor("#AAAAAA")
+                    else       -> Color.parseColor("#1e293b")
+                })
+                alpha = if (isCapped) 0.5f else 1f
+            }
+
+            if (!isCapped) {
+                btn.setOnClickListener {
+                    if (id in sel) sel.remove(id) else sel.add(id)
+                    // Rebuild both columns so cap-state updates cross-column (futsal counts are independent)
+                    buildPlayerColumn(squad, sel, col)
+                    updateSquadHint()
+                }
+            }
+            col.addView(btn)
+        }
+    }
+
+    private fun updateSquadHint() {
+        val cap = maxPerTeam
+        binding.tvSquadHint?.text = when {
+            cap == Int.MAX_VALUE -> "${sel1.size} selected · ${sel2.size} selected"
+            sel1.size == cap && sel2.size == cap -> "✓ Squad confirmed — ${sel1.size} per team"
+            else -> "Select ${if (cap == 1) "1 player" else "$cap players"} per team  (${sel1.size}/$cap · ${sel2.size}/$cap)"
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Steppers
+    // ─────────────────────────────────────────────────────────────
     private fun setupVolleyballSteppers() {
-        binding.btnSetsDecrement.setOnClickListener {
-            if (vbSets > 1) { vbSets--; refreshVolleyballLabels() }
-        }
-        binding.btnSetsIncrement.setOnClickListener {
-            vbSets++; refreshVolleyballLabels()
-        }
-        binding.btnPointsDecrement.setOnClickListener {
-            if (vbPointsPerSet > 5) { vbPointsPerSet--; refreshVolleyballLabels() }
-        }
-        binding.btnPointsIncrement.setOnClickListener {
-            vbPointsPerSet++; refreshVolleyballLabels()
-        }
-        binding.btnFinalPtsDecrement.setOnClickListener {
-            if (vbFinalSetPoints > 5) { vbFinalSetPoints--; refreshVolleyballLabels() }
-        }
-        binding.btnFinalPtsIncrement.setOnClickListener {
-            vbFinalSetPoints++; refreshVolleyballLabels()
-        }
+        binding.btnSetsDecrement.setOnClickListener { if (vbSets > 1) { vbSets--; refreshVolleyballLabels() } }
+        binding.btnSetsIncrement.setOnClickListener { vbSets++; refreshVolleyballLabels() }
+        binding.btnPointsDecrement.setOnClickListener { if (vbPointsPerSet > 5) { vbPointsPerSet--; refreshVolleyballLabels() } }
+        binding.btnPointsIncrement.setOnClickListener { vbPointsPerSet++; refreshVolleyballLabels() }
+        binding.btnFinalPtsDecrement.setOnClickListener { if (vbFinalSetPoints > 5) { vbFinalSetPoints--; refreshVolleyballLabels() } }
+        binding.btnFinalPtsIncrement.setOnClickListener { vbFinalSetPoints++; refreshVolleyballLabels() }
     }
 
     private fun refreshVolleyballLabels() {
         binding.tvSetsValue.text     = vbSets.toString()
         binding.tvPointsValue.text   = vbPointsPerSet.toString()
         binding.tvFinalPtsValue.text = vbFinalSetPoints.toString()
-        binding.tvVbSummary.text     =
-            "Best of ${vbSets * 2 - 1} sets · $vbPointsPerSet pts each · $vbFinalSetPoints pts tiebreak"
+        binding.tvVbSummary.text     = "Best of ${vbSets * 2 - 1} sets · $vbPointsPerSet pts each · $vbFinalSetPoints pts tiebreak"
     }
 
     private fun setupTableTennisSteppers() {
-        binding.btnTtGamesDecrement.setOnClickListener {
-            if (ttGames > 1) { ttGames--; refreshTableTennisLabels() }
-        }
-        binding.btnTtGamesIncrement.setOnClickListener {
-            ttGames++; refreshTableTennisLabels()
-        }
-        binding.btnTtPointsDecrement.setOnClickListener {
-            if (ttPointsPerGame > 5) { ttPointsPerGame--; refreshTableTennisLabels() }
-        }
-        binding.btnTtPointsIncrement.setOnClickListener {
-            ttPointsPerGame++; refreshTableTennisLabels()
-        }
-    }
-
-    private fun setupTugOfWarSteppers() {
-        binding.btnTowRoundsDecrement.setOnClickListener {
-            if (towRounds > 1) { towRounds--; refreshTugOfWarLabels() }
-        }
-        binding.btnTowRoundsIncrement.setOnClickListener {
-            towRounds++; refreshTugOfWarLabels()
-        }
-    }
-
-    private fun refreshTugOfWarLabels() {
-        binding.tvTowRoundsValue.text = towRounds.toString()
-        binding.tvTowSummary.text =
-            "Best of ${towRounds * 2 - 1} rounds"
+        binding.btnTtGamesDecrement.setOnClickListener { if (ttGames > 1) { ttGames--; refreshTableTennisLabels() } }
+        binding.btnTtGamesIncrement.setOnClickListener { ttGames++; refreshTableTennisLabels() }
+        binding.btnTtPointsDecrement.setOnClickListener { if (ttPointsPerGame > 5) { ttPointsPerGame--; refreshTableTennisLabels() } }
+        binding.btnTtPointsIncrement.setOnClickListener { ttPointsPerGame++; refreshTableTennisLabels() }
     }
 
     private fun refreshTableTennisLabels() {
         binding.tvTtGamesValue.text  = ttGames.toString()
         binding.tvTtPointsValue.text = ttPointsPerGame.toString()
-        binding.tvTtSummary.text     =
-            "Best of ${ttGames * 2 - 1} · $ttPointsPerGame pts each · True deuce (no cap)"
+        binding.tvTtSummary.text     = "Best of ${ttGames * 2 - 1} · $ttPointsPerGame pts each · True deuce (no cap)"
+    }
+
+    private fun setupTugOfWarSteppers() {
+        binding.btnTowRoundsDecrement.setOnClickListener { if (towRounds > 1) { towRounds--; refreshTugOfWarLabels() } }
+        binding.btnTowRoundsIncrement.setOnClickListener { towRounds++; refreshTugOfWarLabels() }
+    }
+
+    private fun refreshTugOfWarLabels() {
+        binding.tvTowRoundsValue.text = towRounds.toString()
+        binding.tvTowSummary.text     = "Best of ${towRounds * 2 - 1} rounds"
     }
 
     private fun setupBadmintonSteppers() {
-        binding.btnBdSetsDecrement.setOnClickListener {
-            if (bdSets > 1) { bdSets--; refreshBadmintonLabels() }
-        }
-        binding.btnBdSetsIncrement.setOnClickListener {
-            bdSets++; refreshBadmintonLabels()
-        }
-        binding.btnBdPointsDecrement.setOnClickListener {
-            if (bdPointsPerSet > 5) { bdPointsPerSet--; refreshBadmintonLabels() }
-        }
-        binding.btnBdPointsIncrement.setOnClickListener {
-            bdPointsPerSet++; refreshBadmintonLabels()
-        }
-        binding.btnBdFinalPtsDecrement.setOnClickListener {
-            if (bdFinalSetPoints > 5) { bdFinalSetPoints--; refreshBadmintonLabels() }
-        }
-        binding.btnBdFinalPtsIncrement.setOnClickListener {
-            bdFinalSetPoints++; refreshBadmintonLabels()
-        }
+        binding.btnBdSetsDecrement.setOnClickListener { if (bdSets > 1) { bdSets--; refreshBadmintonLabels() } }
+        binding.btnBdSetsIncrement.setOnClickListener { bdSets++; refreshBadmintonLabels() }
+        binding.btnBdPointsDecrement.setOnClickListener { if (bdPointsPerSet > 5) { bdPointsPerSet--; refreshBadmintonLabels() } }
+        binding.btnBdPointsIncrement.setOnClickListener { bdPointsPerSet++; refreshBadmintonLabels() }
+        binding.btnBdFinalPtsDecrement.setOnClickListener { if (bdFinalSetPoints > 5) { bdFinalSetPoints--; refreshBadmintonLabels() } }
+        binding.btnBdFinalPtsIncrement.setOnClickListener { bdFinalSetPoints++; refreshBadmintonLabels() }
     }
 
     private fun refreshBadmintonLabels() {
         binding.tvBdSetsValue.text     = bdSets.toString()
         binding.tvBdPointsValue.text   = bdPointsPerSet.toString()
         binding.tvBdFinalPtsValue.text = bdFinalSetPoints.toString()
-        binding.tvBdSummary.text       =
-            "Best of ${bdSets * 2 - 1} games · $bdPointsPerSet pts each · $bdFinalSetPoints pts cap"
+        binding.tvBdSummary.text       = "Best of ${bdSets * 2 - 1} games · $bdPointsPerSet pts each · $bdFinalSetPoints pts cap"
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  UI helpers
+    // ─────────────────────────────────────────────────────────────
     private fun updateDecisionLabel() {
-        val selectedTeamName = when (selectedTossWinnerId) {
+        val name = when (selectedTossWinnerId) {
             matchData?.team1Id -> matchData?.team1Name ?: "Team"
             matchData?.team2Id -> matchData?.team2Name ?: "Team"
             else               -> "..."
         }
-        binding.decisionLabel.text = "$selectedTeamName Decided To?"
+        binding.decisionLabel.text = "$name Decided To?"
+    }
+
+    private fun bindDataToUI() {
+        val match = matchData ?: return
+        binding.teamAName.text  = match.team1Name ?: "Team A"
+        binding.teamBName.text  = match.team2Name ?: "Team B"
+        binding.venueText.text  = match.venue     ?: "-"
+        binding.dateText.text   = match.date?.split("T")?.get(0) ?: "-"
+        binding.timeText.text   = match.time      ?: "-"
+        binding.scorerText.text = match.scorerId  ?: "-"
+        if (isCricket) binding.oversText.text = if (match.overs != null) "${match.overs} Overs" else "-"
+        binding.tossTeamABtn.text = match.team1Name ?: "Team A"
+        binding.tossTeamBBtn.text = match.team2Name ?: "Team B"
+        // Also set squad card team labels
+        binding.tvSquadTeam1Label.text = match.team1Name ?: "Team 1"
+        binding.tvSquadTeam2Label.text = match.team2Name ?: "Team 2"
+        when (match.status?.uppercase()) {
+            "COMPLETED", "ABANDONED" -> {
+                binding.startScoringBtn.isEnabled    = false; binding.startScoringBtn.alpha    = 0.5f
+                binding.abandonYesBtn.isEnabled      = false; binding.abandonYesBtn.alpha      = 0.5f
+                binding.tossTeamABtn.isEnabled       = false; binding.tossTeamBBtn.isEnabled   = false
+                binding.decisionOption1Btn.isEnabled = false; binding.decisionOption2Btn.isEnabled = false
+            }
+            "LIVE" -> {
+                binding.startScoringBtn.isEnabled = false; binding.startScoringBtn.alpha = 0.5f
+                binding.abandonYesBtn.text = "Abandon (Live)"
+            }
+        }
     }
 
     private fun fetchMatchDetails() {
@@ -274,85 +411,47 @@ class StartScoringActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     matchData = response.body()
                     sportId   = matchData?.sportId ?: sportId
-                    bindDataToUI()
-                    setupSportUI()
-                    checkEmptyState()
-                } else {
-                    toastShort("Failed to fetch match (${response.code()})")
-                    checkEmptyState()
-                }
-            } catch (e: Exception) {
-                toastLong("Network error: ${e.message}")
-                checkEmptyState()
-            } finally {
-                showLoading(false)
-            }
+                    bindDataToUI(); setupSportUI(); checkEmptyState()
+                } else { toastShort("Failed to fetch match (${response.code()})"); checkEmptyState() }
+            } catch (e: Exception) { toastLong("Network error: ${e.message}"); checkEmptyState()
+            } finally { showLoading(false) }
         }
     }
 
-    private fun bindDataToUI() {
-        val match = matchData ?: return
-
-        binding.teamAName.text  = match.team1Name ?: "Team A"
-        binding.teamBName.text  = match.team2Name ?: "Team B"
-        binding.venueText.text  = match.venue ?: "-"
-        binding.dateText.text   = match.date?.split("T")?.get(0) ?: "-"
-        binding.timeText.text   = match.time ?: "-"
-        binding.scorerText.text = match.scorerId ?: "-"
-
-        if (isCricket) {
-            binding.oversText.text = if (match.overs != null) "${match.overs} Overs" else "-"
-        }
-
-        binding.tossTeamABtn.text = match.team1Name ?: "Team A"
-        binding.tossTeamBBtn.text = match.team2Name ?: "Team B"
-
-        when (match.status?.uppercase()) {
-            "COMPLETED", "ABANDONED" -> {
-                binding.startScoringBtn.isEnabled   = false
-                binding.startScoringBtn.alpha        = 0.5f
-                binding.abandonYesBtn.isEnabled     = false
-                binding.abandonYesBtn.alpha          = 0.5f
-                binding.tossTeamABtn.isEnabled       = false
-                binding.tossTeamBBtn.isEnabled       = false
-                binding.decisionOption1Btn.isEnabled = false
-                binding.decisionOption2Btn.isEnabled = false
-            }
-            "LIVE" -> {
-                binding.startScoringBtn.isEnabled = false
-                binding.startScoringBtn.alpha      = 0.5f
-                binding.abandonYesBtn.text         = "Abandon (Live)"
-            }
-        }
-    }
-
+    // ─────────────────────────────────────────────────────────────
+    //  Buttons
+    // ─────────────────────────────────────────────────────────────
     private fun setupButtons() {
         binding.backButton.setOnClickListener { finish() }
-
         binding.tossTeamABtn.setOnClickListener {
             selectedTossWinnerId = matchData?.team1Id
-            highlightButton(binding.tossTeamABtn, binding.tossTeamBBtn)
-            updateDecisionLabel()
+            highlightBtn(binding.tossTeamABtn, binding.tossTeamBBtn); updateDecisionLabel()
         }
         binding.tossTeamBBtn.setOnClickListener {
             selectedTossWinnerId = matchData?.team2Id
-            highlightButton(binding.tossTeamBBtn, binding.tossTeamABtn)
-            updateDecisionLabel()
+            highlightBtn(binding.tossTeamBBtn, binding.tossTeamABtn); updateDecisionLabel()
         }
-
         binding.decisionOption1Btn.setOnClickListener {
             selectedDecision = binding.decisionOption1Btn.text.toString()
-            highlightButton(binding.decisionOption1Btn, binding.decisionOption2Btn)
+            highlightBtn(binding.decisionOption1Btn, binding.decisionOption2Btn)
         }
         binding.decisionOption2Btn.setOnClickListener {
             selectedDecision = binding.decisionOption2Btn.text.toString()
-            highlightButton(binding.decisionOption2Btn, binding.decisionOption1Btn)
+            highlightBtn(binding.decisionOption2Btn, binding.decisionOption1Btn)
         }
-
         binding.startScoringBtn.setOnClickListener {
             val decisionNeeded   = sportDecisions[sportId] != null
             val tossSelected     = selectedTossWinnerId != null
             val decisionSelected = selectedDecision != null || !decisionNeeded
+
+            // Validate squad selection if required
+            if (needsLineup && squadTeam1.isNotEmpty()) {
+                val cap = maxPerTeam
+                if (cap != Int.MAX_VALUE && (sel1.size != cap || sel2.size != cap)) {
+                    val label = if (cap == 1) "1 player" else "$cap players"
+                    toastShort("Select exactly $label per team"); return@setOnClickListener
+                }
+            }
 
             when {
                 !tossSelected     -> toastShort("Select Toss Winner First")
@@ -360,130 +459,103 @@ class StartScoringActivity : AppCompatActivity() {
                 else              -> startMatchCall()
             }
         }
-
         binding.abandonYesBtn.setOnClickListener { showAbandonDialog() }
         binding.abandonNoBtn.setOnClickListener  { toastShort("Action cancelled") }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Start match
+    // ─────────────────────────────────────────────────────────────
     private fun startMatchCall() {
         showLoading(true)
         binding.startScoringBtn.isEnabled = false
         binding.startScoringBtn.alpha     = 0.7f
 
         val decisionToSend = when {
+            isCricket     -> selectedDecision
             isFutsal      -> "KICKOFF"
             isVolleyball  -> "SERVE"
             isBadminton   -> "SERVE"
             isTableTennis -> "SERVE"
             isLudo        -> "START"
             isTugOfWar    -> "PULL"
-            isChess       -> "WHITE"
+            isChess       -> selectedDecision?.uppercase() ?: "WHITE"
             else          -> selectedDecision
         }
 
         val payload = matchData?.copy(
-            tossWinnerId   = selectedTossWinnerId,
-            decision       = decisionToSend,
-            scorerId       = scorerUsername.ifBlank { matchData?.scorerId },
-            status         = "LIVE",
-            sets           = when {
-                isVolleyball  -> vbSets
-                isTableTennis -> ttGames
-                isBadminton   -> bdSets
-                isTugOfWar    -> towRounds
-                else          -> matchData?.sets
-            },
-            pointsPerSet   = when {
-                isVolleyball  -> vbPointsPerSet
-                isTableTennis -> ttPointsPerGame
-                isBadminton   -> bdPointsPerSet
-                else          -> matchData?.pointsPerSet
-            },
-            finalSetPoints = when {
-                isVolleyball  -> vbFinalSetPoints
-                isTableTennis -> 0
-                isBadminton   -> bdFinalSetPoints
-                else          -> matchData?.finalSetPoints
-            },
+            tossWinnerId    = selectedTossWinnerId,
+            decision        = decisionToSend,
+            status          = "LIVE",
+            sets            = when { isVolleyball -> vbSets; isTableTennis -> ttGames; isBadminton -> bdSets; isTugOfWar -> towRounds; else -> matchData?.sets },
+            pointsPerSet    = when { isVolleyball -> vbPointsPerSet; isTableTennis -> ttPointsPerGame; isBadminton -> bdPointsPerSet; else -> matchData?.pointsPerSet },
+            finalSetPoints  = when { isVolleyball -> vbFinalSetPoints; isTableTennis -> 0; isBadminton -> bdFinalSetPoints; else -> matchData?.finalSetPoints },
+            team1PlayingIds = if (needsLineup) team1PlayingIds.ifEmpty { null } else null,
+            team2PlayingIds = if (needsLineup) team2PlayingIds.ifEmpty { null } else null,
         ) ?: run {
-            toastShort("Match data missing")
-            showLoading(false)
-            binding.startScoringBtn.isEnabled = true
-            binding.startScoringBtn.alpha     = 1f
-            return
+            toastShort("Match data missing"); showLoading(false)
+            binding.startScoringBtn.isEnabled = true; binding.startScoringBtn.alpha = 1f; return
         }
 
         lifecycleScope.launch {
             try {
                 val response = api.startMatch(matchId, payload)
                 if (response.isSuccessful) {
-                    MatchNavigator.navigate(this@StartScoringActivity, payload)
-                    finish()
+                    MatchNavigator.navigate(this@StartScoringActivity, payload); finish()
                 } else {
-                    toastShort("Failed: ${response.code()}")
-                    showLoading(false)
-                    binding.startScoringBtn.isEnabled = true
-                    binding.startScoringBtn.alpha     = 1f
+                    toastShort("Failed: ${response.code()}"); showLoading(false)
+                    binding.startScoringBtn.isEnabled = true; binding.startScoringBtn.alpha = 1f
                 }
             } catch (e: Exception) {
-                toastLong("Network error: ${e.message}")
-                showLoading(false)
-                binding.startScoringBtn.isEnabled = true
-                binding.startScoringBtn.alpha     = 1f
+                toastLong("Network error: ${e.message}"); showLoading(false)
+                binding.startScoringBtn.isEnabled = true; binding.startScoringBtn.alpha = 1f
             }
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Abandon
+    // ─────────────────────────────────────────────────────────────
     private fun showAbandonDialog() {
         AlertDialog.Builder(this)
             .setTitle("Are you sure?")
             .setMessage("Match will be abandoned. This cannot be undone.")
             .setPositiveButton("Yes, Abandon") { _, _ -> abandonMatchCall() }
-            .setNegativeButton("No, Cancel", null)
-            .show()
+            .setNegativeButton("No, Cancel", null).show()
     }
 
     private fun abandonMatchCall() {
         showLoading(true)
-        binding.abandonYesBtn.isEnabled = false
-        binding.abandonYesBtn.alpha     = 0.5f
-
+        binding.abandonYesBtn.isEnabled = false; binding.abandonYesBtn.alpha = 0.5f
         lifecycleScope.launch {
             try {
                 val response = api.abandonMatch(matchId)
                 if (response.isSuccessful) {
-
-                    binding.startScoringBtn.isEnabled   = false
-                    binding.abandonYesBtn.isEnabled     = false
-                    binding.tossTeamABtn.isEnabled       = false
-                    binding.tossTeamBBtn.isEnabled       = false
-                    binding.decisionOption1Btn.isEnabled = false
-                    binding.decisionOption2Btn.isEnabled = false
-
-                    binding.abandonYesBtn.text = "🚫 Match Abandoned"
+                    binding.startScoringBtn.isEnabled    = false
+                    binding.abandonYesBtn.isEnabled      = false
+                    binding.tossTeamABtn.isEnabled       = false; binding.tossTeamBBtn.isEnabled = false
+                    binding.decisionOption1Btn.isEnabled = false; binding.decisionOption2Btn.isEnabled = false
+                    binding.abandonYesBtn.text           = "🚫 Match Abandoned"
                     binding.abandonYesBtn.setBackgroundColor(Color.parseColor("#888888"))
-                    binding.startScoringBtn.text = "🚫 Match Abandoned"
-
-                    toastLong("Match Abandoned Successfully!")
-                    showLoading(false)
+                    binding.startScoringBtn.text         = "🚫 Match Abandoned"
+                    toastLong("Match Abandoned Successfully!"); showLoading(false)
                 } else {
-                    toastShort("Failed: ${response.code()}")
-                    showLoading(false)
-                    binding.abandonYesBtn.isEnabled = true
-                    binding.abandonYesBtn.alpha     = 1f
+                    toastShort("Failed: ${response.code()}"); showLoading(false)
+                    binding.abandonYesBtn.isEnabled = true; binding.abandonYesBtn.alpha = 1f
                 }
             } catch (e: Exception) {
-                toastLong("Network error: ${e.message}")
-                showLoading(false)
-                binding.abandonYesBtn.isEnabled = true
-                binding.abandonYesBtn.alpha     = 1f
+                toastLong("Network error: ${e.message}"); showLoading(false)
+                binding.abandonYesBtn.isEnabled = true; binding.abandonYesBtn.alpha = 1f
             }
         }
     }
 
-    private fun highlightButton(selected: MaterialButton, unselected: MaterialButton) {
-        selected.setBackgroundColor(colorSelected)
-        unselected.setBackgroundColor(colorDefault)
+    // ─────────────────────────────────────────────────────────────
+    //  Utils
+    // ─────────────────────────────────────────────────────────────
+    private fun highlightBtn(selected: MaterialButton, unselected: MaterialButton) {
+        selected.setBackgroundColor(colorGreen)
+        unselected.setBackgroundColor(colorRed)
     }
 
     private fun showLoading(show: Boolean) {
@@ -491,9 +563,6 @@ class StartScoringActivity : AppCompatActivity() {
     }
 
     private fun checkEmptyState() {
-        val isEmpty = matchData == null
-        if (isEmpty) {
-            toastShort("No match data available")
-        }
+        if (matchData == null) toastShort("No match data available")
     }
 }

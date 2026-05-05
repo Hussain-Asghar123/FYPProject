@@ -29,12 +29,15 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
 import java.io.File
+
 class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var _binding: FutsalScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
     private var team1Players = listOf<Player>()
     private var team2Players = listOf<Player>()
+    private var team1Active = listOf<Player>()
+    private var team2Active = listOf<Player>()
     private var pendingComment: String? = null
     private var currentStatus  = "LIVE"
     private var currentHalf    = 1
@@ -81,7 +84,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         registerSocketListeners()
         fetchPlayers()
 
-
         val status = matchResponse?.status?.uppercase().orEmpty()
         if (canEdit) {
             showTab("scoring")
@@ -90,7 +92,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             }
         } else {
             showTab("events")
-
         }
     }
 
@@ -99,17 +100,15 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         registerSocketListeners()
     }
 
-    // 5. onHiddenChanged() ADD karo
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) registerSocketListeners()
         else unregisterSocketListeners()
     }
 
-    // 6. onDestroyView() update karo
     override fun onDestroyView() {
         super.onDestroyView()
-        unregisterSocketListeners()  // purani null lines hatao
+        unregisterSocketListeners()
         timerRunnable?.let { handler.removeCallbacks(it) }
         handler.removeCallbacksAndMessages(null)
         _binding = null
@@ -267,6 +266,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         val g = binding.goal
         goalTeamId = null
         g.tvClose.setOnClickListener { showPanel("scoring") }
+
         val teamNames = listOf("Select Team",
             matchResponse?.team1Name ?: "Team A",
             matchResponse?.team2Name ?: "Team B")
@@ -309,13 +309,32 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
     }
 
+    // ── BUG 2 FIX: Scorer se same player assist mein na aaye ──
     private fun refreshGoalPlayerSpinners() {
         val g         = binding.goal
         val goalTypes = listOf("Select Goal Type", "NORMAL", "PENALTY", "FREE_KICK", "OWN_GOAL")
         val goalType  = goalTypes.getOrNull(g.goalTypeSpinner.selectedItemPosition)
         val players   = if (goalType == "OWN_GOAL") getOpposingPlayers(goalTeamId)
-        else                         getActivePlayers(goalTeamId)
-        g.spinnerPlayer.setupWithPlayers("Select Scorer",            players)
+        else getOnFieldPlayers(goalTeamId)
+
+        // Scorer spinner setup
+        g.spinnerPlayer.setupWithPlayers("Select Scorer", players)
+
+        // Jab scorer change ho, assist list se woh player hatao
+        g.spinnerPlayer.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                @Suppress("UNCHECKED_CAST")
+                val scorerId = (g.spinnerPlayer.tag as? List<Int?>)?.getOrNull(pos)
+                val assistPlayers = if (scorerId != null)
+                    players.filter { it.id != scorerId }
+                else
+                    players
+                g.spinnerAssist.setupWithPlayers("Select Assist (Optional)", assistPlayers)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Default assist (full list — scorer select hone par update ho jaega)
         g.spinnerAssist.setupWithPlayers("Select Assist (Optional)", players)
     }
 
@@ -369,7 +388,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun refreshFoulPlayerSpinner() {
-        binding.foul.spinnerPlayer.setupWithPlayers("Select Player", getActivePlayers(foulTeamId))
+        binding.foul.spinnerPlayer.setupWithPlayers("Select Player", getOnFieldPlayers(foulTeamId))
     }
 
     private fun highlightCard(selected: String) {
@@ -427,10 +446,9 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun refreshSubSpinners() {
-        val s       = binding.subsitute
-        val players = getActivePlayers(subTeamId)
-        s.spinnerPlaying.setupWithPlayers("Select Player Out", players)
-        s.spinnerBenched.setupWithPlayers("Select Player In",  players)
+        val s = binding.subsitute
+        s.spinnerPlaying.setupWithPlayers("Select Player Out", getOnFieldPlayers(subTeamId))
+        s.spinnerBenched.setupWithPlayers("Select Player In",  getBenchPlayers(subTeamId))
     }
 
     private fun registerSocketListeners() {
@@ -461,6 +479,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             }
         }
     }
+
     private fun stopTimer() {
         timerRunnable?.let { handler.removeCallbacks(it) }
         timerRunnable = null
@@ -480,6 +499,14 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         lastTeam1Score = t1
         lastTeam2Score = t2
         binding.score.text = "$t1 - $t2"
+        val onField1 = obj.optJSONArray("team1OnField")
+        val onField2 = obj.optJSONArray("team2OnField")
+        if (onField1 != null && onField1.length() > 0)
+            team1Active = (0 until onField1.length()).map { onField1.getJSONObject(it) }
+                .mapNotNull { p -> val id = p.optInt("id", -1).takeIf { it != -1 }; val name = p.optString("name","").takeIf { it.isNotBlank() }; if (id != null && name != null) Player(id, name, "") else null }
+        if (onField2 != null && onField2.length() > 0)
+            team2Active = (0 until onField2.length()).map { onField2.getJSONObject(it) }
+                .mapNotNull { p -> val id = p.optInt("id", -1).takeIf { it != -1 }; val name = p.optString("name","").takeIf { it.isNotBlank() }; if (id != null && name != null) Player(id, name, "") else null }
 
         currentHalf = obj.optInt("currentHalf", currentHalf)
         binding.tvPeriod.text = when (currentHalf) {
@@ -488,17 +515,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             else -> "Extra Time"
         }
 
-        val previousStatus = currentStatus
         currentStatus = obj.optString("status", currentStatus)
 
         when (currentStatus) {
-            "HALF_TIME" -> {
-                stopTimer()
-                toast("Half Time!")
-            }
-            "EXTRA_TIME" -> {
-                toast("Draw! Extra Time?")
-            }
+            "HALF_TIME"  -> { stopTimer(); toast("Half Time!") }
+            "EXTRA_TIME" -> toast("Draw! Extra Time?")
             "COMPLETED", "MATCH_COMPLETE" -> {
                 stopTimer()
                 if (!votingAlreadyTriggered) {
@@ -506,10 +527,6 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
                     loadAndShowVotingThenSummary()
                 }
             }
-        }
-        val eventType = obj.optString("eventType", "")
-        if (eventType == "START_SECOND_HALF" || eventType == "EXTRA_TIME") {
-
         }
 
         if (obj.optString("comment") == "UNDO") {
@@ -535,6 +552,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         }
 
         updateEndHalfButtonText()
+        if (pendingSummary) {
+            pendingSummary = false
+            showFutsalSummary()
+            return
+        }
 
         if (pendingSummary) {
             pendingSummary = false
@@ -543,14 +565,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     }
 
     private fun parseAndAddEvent(obj: JSONObject) {
-        android.util.Log.d("EVENT_JSON", obj.toString())
-
         val eventType = obj.optString("eventType", "").ifEmpty { return }
         if (eventType in listOf("END_HALF", "START_SECOND_HALF", "EXTRA_TIME")) return
 
-        val eventId = obj.optLong("id", System.currentTimeMillis())
-
-        val teamId = obj.optLong("teamId", -1L)
+        val eventId  = obj.optLong("id", System.currentTimeMillis())
+        val teamId   = obj.optLong("teamId", -1L)
         val teamName = when (teamId) {
             matchResponse?.team1Id -> matchResponse?.team1Name ?: "Team A"
             matchResponse?.team2Id -> matchResponse?.team2Name ?: "Team B"
@@ -640,6 +659,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         return prefs.getLong("id", -1L)
     }
 
+
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
 
@@ -710,7 +730,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
         if (accountId == -1L) {
             toast("Account not found. Please login again.")
-            showFutsalSummary()   // ← apne fragment ka summary function yahan likh do
+            showFutsalSummary()
             return
         }
 
@@ -728,9 +748,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(body)
-                }
+                val response = withContext(Dispatchers.IO) { RetrofitInstance.api.submitVote(body) }
                 when {
                     response.isSuccessful -> {
                         markAsVoted(matchId)
@@ -787,68 +805,41 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         s.tvMatchResult.text = "$icon $result"
 
         val team1Goals = eventsList.filter {
-            it.eventType == "GOAL" &&
-                    it.teamName.equals(t1Name, ignoreCase = true)
+            it.eventType == "GOAL" && it.teamName.equals(t1Name, ignoreCase = true)
         }
         val team2Goals = eventsList.filter {
-            it.eventType == "GOAL" &&
-                    it.teamName.equals(t2Name, ignoreCase = true)
+            it.eventType == "GOAL" && it.teamName.equals(t2Name, ignoreCase = true)
         }
 
         s.layoutTeam1Goals.removeAllViews()
-        if (team1Goals.isEmpty()) {
-            addSummaryRow(s.layoutTeam1Goals, "No goals", "")
-        } else {
-            team1Goals.forEach { ev ->
-                val min = ev.eventTimeSeconds / 60
-                addSummaryRow(s.layoutTeam1Goals, ev.scorerName ?: "Unknown", "${min}'")
-            }
+        if (team1Goals.isEmpty()) addSummaryRow(s.layoutTeam1Goals, "No goals", "")
+        else team1Goals.forEach { ev ->
+            addSummaryRow(s.layoutTeam1Goals, ev.scorerName ?: "Unknown", "${ev.eventTimeSeconds / 60}'")
         }
 
         s.layoutTeam2Goals.removeAllViews()
-        if (team2Goals.isEmpty()) {
-            addSummaryRow(s.layoutTeam2Goals, "No goals", "")
-        } else {
-            team2Goals.forEach { ev ->
-                val min = ev.eventTimeSeconds / 60
-                addSummaryRow(s.layoutTeam2Goals, ev.scorerName ?: "Unknown", "${min}'")
-            }
+        if (team2Goals.isEmpty()) addSummaryRow(s.layoutTeam2Goals, "No goals", "")
+        else team2Goals.forEach { ev ->
+            addSummaryRow(s.layoutTeam2Goals, ev.scorerName ?: "Unknown", "${ev.eventTimeSeconds / 60}'")
         }
 
-        val t1Yellow = eventsList.count {
-            it.eventType == "YELLOW_CARD" && it.teamName.equals(t1Name, ignoreCase = true)
-        }
-        val t2Yellow = eventsList.count {
-            it.eventType == "YELLOW_CARD" && it.teamName.equals(t2Name, ignoreCase = true)
-        }
-        val t1Red = eventsList.count {
-            it.eventType == "RED_CARD" && it.teamName.equals(t1Name, ignoreCase = true)
-        }
-        val t2Red = eventsList.count {
-            it.eventType == "RED_CARD" && it.teamName.equals(t2Name, ignoreCase = true)
-        }
-        val t1Fouls = eventsList.count {
-            it.eventType == "FOUL" && it.teamName.equals(t1Name, ignoreCase = true)
-        }
-        val t2Fouls = eventsList.count {
-            it.eventType == "FOUL" && it.teamName.equals(t2Name, ignoreCase = true)
-        }
+        val t1Yellow = eventsList.count { it.eventType == "YELLOW_CARD" && it.teamName.equals(t1Name, ignoreCase = true) }
+        val t2Yellow = eventsList.count { it.eventType == "YELLOW_CARD" && it.teamName.equals(t2Name, ignoreCase = true) }
+        val t1Red    = eventsList.count { it.eventType == "RED_CARD"    && it.teamName.equals(t1Name, ignoreCase = true) }
+        val t2Red    = eventsList.count { it.eventType == "RED_CARD"    && it.teamName.equals(t2Name, ignoreCase = true) }
+        val t1Fouls  = eventsList.count { it.eventType == "FOUL"        && it.teamName.equals(t1Name, ignoreCase = true) }
+        val t2Fouls  = eventsList.count { it.eventType == "FOUL"        && it.teamName.equals(t2Name, ignoreCase = true) }
 
         s.tvTeam1Stats.text = "🟨 $t1Yellow   🟥 $t1Red   ⚠️ $t1Fouls fouls"
         s.tvTeam2Stats.text = "🟨 $t2Yellow   🟥 $t2Red   ⚠️ $t2Fouls fouls"
     }
 
-    private fun addSummaryRow(
-        container: LinearLayout,
-        name: String,
-        stat: String
-    ) {
+    private fun addSummaryRow(container: android.widget.LinearLayout, name: String, stat: String) {
         val row = layoutInflater.inflate(R.layout.item_performer_row, container, false)
         row.findViewById<TextView>(R.id.tvPlayerName).text = name
         row.findViewById<TextView>(R.id.tvPlayerStat).text = stat
         container.addView(row)
     }
-
 
     private fun showMediaDialog(eventId: Long?) {
         pendingEventId = eventId
@@ -893,10 +884,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         val matchId = matchResponse?.id ?: return
         val eventId = pendingEventId   ?: return
         isUploading = true
-
-        val commentToSend = pendingComment   // capture before reset
-
-        // progress show (jo pehle se hai wahi rakho — kuch fragments mein progressBar, kuch mein nahi)
+        val commentToSend = pendingComment
         toast("Uploading")
 
         lifecycleScope.launch {
@@ -933,14 +921,21 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         WebSocketManager.send(json.toString())
     }
 
-    private fun getActivePlayers(teamId: Long?)   =
+    private fun getActivePlayers(teamId: Long?) =
         if (teamId == matchResponse?.team1Id) team1Players else team2Players
 
     private fun getOpposingPlayers(teamId: Long?) =
         if (teamId == matchResponse?.team1Id) team2Players else team1Players
 
-    private fun toast(msg: String) = requireContext().toastShort(msg)
+    private fun getOnFieldPlayers(teamId: Long?): List<Player> =
+        if (teamId == matchResponse?.team1Id) team1Active else team2Active
 
+    private fun getBenchPlayers(teamId: Long?): List<Player> {
+        val onFieldIds = getOnFieldPlayers(teamId).map { it.id }.toSet()
+        return getActivePlayers(teamId).filter { it.id !in onFieldIds }
+    }
+
+    private fun toast(msg: String) = requireContext().toastShort(msg)
 
     private fun Spinner.setup(items: List<String>, onSelect: (Int) -> Unit) {
         adapter = makeAdapter(items)

@@ -64,23 +64,6 @@
             android:layout_marginTop="12dp">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSubstitution"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="70dp"
-                android:text=" Substitution"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:cornerRadius="10dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-
-            <View android:layout_width="10dp" android:layout_height="match_parent"/>
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEndSet"
                 android:layout_width="0dp"
                 android:layout_weight="1"

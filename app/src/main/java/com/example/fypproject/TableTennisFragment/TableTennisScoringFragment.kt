@@ -464,6 +464,22 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         pointsPerGame = obj.optInt("pointsPerGame", pointsPerGame)
         currentGame = obj.optInt("currentGame", currentGame)
         gamesToWin  = obj.optInt("gamesToWin",  gamesToWin)
+        val p1 = obj.optJSONArray("team1Players")
+        val p2 = obj.optJSONArray("team2Players")
+        if (p1 != null && p1.length() > 0)
+            team1Players = (0 until p1.length()).mapNotNull { i ->
+                val p = p1.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
+        if (p2 != null && p2.length() > 0)
+            team2Players = (0 until p2.length()).mapNotNull { i ->
+                val p = p2.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
@@ -492,6 +508,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
         updateScoreUI()
         updateGameCircles()
+        if (pendingSummary) {
+            pendingSummary = false
+            showTableTennisSummary()
+            return
+        }
 
         if (binding.futsalScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
@@ -503,7 +524,6 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
-        if (pendingSummary) { pendingSummary = false; showTableTennisSummary() }
     }
 
     private fun parseTableTennisEvent(obj: JSONObject) {
@@ -569,7 +589,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showTableTennisSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) {
+            pendingSummary = true
+            showPanel("loading")
+            return
+        }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting

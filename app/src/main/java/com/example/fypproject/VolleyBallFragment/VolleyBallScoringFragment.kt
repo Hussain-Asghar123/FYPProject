@@ -65,6 +65,8 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
     private var team1Players = listOf<Player>()
     private var team2Players = listOf<Player>()
+    private var team1Active = listOf<Player>()
+    private var team2Active = listOf<Player>()
     private var canEdit      = false
 
     private var isCompletedAndWaitingForData = false
@@ -306,8 +308,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         val teamIds = listOf<Long?>(null, matchResponse?.team1Id, matchResponse?.team2Id)
         p.spinnerTeam.setup(teamNames) { pos ->
             selectedPointTeamId = teamIds[pos]
-            val players = if (selectedPointTeamId == matchResponse?.team1Id)
-                team1Players else team2Players
+            val players = getOnFieldPlayers(selectedPointTeamId)
             refreshPlayerSpinner(players)
         }
 
@@ -398,9 +399,8 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
         s.spinnerTeam.setup(teamNames) { pos ->
             subTeamId = teamIds[pos]
-            val players = if (subTeamId == matchResponse?.team1Id) team1Players else team2Players
-            s.spinnerPlaying.setupWithPlayers("Select Player OUT", players)
-            s.spinnerBenched.setupWithPlayers("Select Player IN",  players)
+            s.spinnerPlaying.setupWithPlayers("Select Player OUT", getOnFieldPlayers(subTeamId))
+            s.spinnerBenched.setupWithPlayers("Select Player IN",  getBenchPlayers(subTeamId))
         }
 
         s.spinnerPlaying.setupEmpty("Select Player OUT")
@@ -554,6 +554,22 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         setsToWin     = obj.optInt("setsToWin",     setsToWin)
         team1Timeouts = obj.optInt("team1Timeouts", team1Timeouts)
         team2Timeouts = obj.optInt("team2Timeouts", team2Timeouts)
+        val onField1 = obj.optJSONArray("team1OnField")
+        val onField2 = obj.optJSONArray("team2OnField")
+        if (onField1 != null && onField1.length() > 0)
+            team1Active = (0 until onField1.length()).mapNotNull { i ->
+                val p = onField1.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
+        if (onField2 != null && onField2.length() > 0)
+            team2Active = (0 until onField2.length()).mapNotNull { i ->
+                val p = onField2.getJSONObject(i)
+                val id = p.optInt("id", -1).takeIf { it != -1 }
+                val name = p.optString("name", "").takeIf { it.isNotBlank() }
+                if (id != null && name != null) Player(id, name, "") else null
+            }
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
@@ -581,11 +597,16 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         updateScoreUI()
         updateSetCircles()
 
+        if (pendingSummary) {
+            pendingSummary = false
+            showVolleyBallSummary()
+            return
+        }
+
         if (binding.layoutScoring.root.visibility == View.VISIBLE) {
             setScoringButtonsEnabled(true)
         }
 
-        if (pendingSummary) { pendingSummary = false; showVolleyBallSummary() }
         val status = matchStatus.uppercase()
 
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
@@ -648,16 +669,8 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
      private fun fetchCompletedMatchDataThenVote() {
         if (_binding == null || !isAdded) return
-
-        isCompletedAndWaitingForData = true
-
-        lifecycleScope.launch {
-            delay(5000)
-            if (_binding != null && isCompletedAndWaitingForData) {
-                isCompletedAndWaitingForData = false
-                loadAndShowVotingThenSummary()
-            }
-        }
+         pendingSummary = true
+         showPanel("loading")
     }
 
     private fun showVolleyBallSummary() {
@@ -688,7 +701,11 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         if (_binding == null || !isAdded) return
         val matchId   = matchResponse?.id ?: run { showVolleyBallSummary(); return }
         val accountId = getAccountId()
-        if (hasAlreadyVoted(matchId)) { pendingSummary = true; showPanel("loading"); return }
+        if (hasAlreadyVoted(matchId)) {
+            pendingSummary = true
+            showPanel("loading")
+            return
+        }
 
         binding.layoutProgressBar.visibility = View.VISIBLE
         val v = binding.layoutVoting
@@ -903,6 +920,16 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             .getLong("id", -1L)
 
     private fun toast(msg: String) = context?.toastShort(msg)
+
+    private fun getOnFieldPlayers(teamId: Long?): List<Player> {
+        return if (teamId == matchResponse?.team1Id) team1Active else team2Active
+    }
+
+    private fun getBenchPlayers(teamId: Long?): List<Player> {
+        val all = if (teamId == matchResponse?.team1Id) team1Players else team2Players
+        val onFieldIds = getOnFieldPlayers(teamId).map { it.id }.toSet()
+        return all.filter { it.id !in onFieldIds }
+    }
 
     private fun Spinner.setup(items: List<String>, onSelect: (Int) -> Unit) {
         adapter = makeAdapter(items)
