@@ -56,6 +56,9 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private var gamesToWin    = 2
     private var matchStatus   = "LIVE"
     private var gameStartTimeMs = 0L
+
+    private var pointsPerGame = 21
+    private var maxPoints     = 30
     private var isActionPending = false
 
     private var team1Players = listOf<Player>()
@@ -256,6 +259,11 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             sendEvent(JSONObject().put("undo", true))
         }
 
+        binding.layoutScoring.btnSub.setOnClickListener {
+            if (isActionPending) return@setOnClickListener
+            showPanel("sub")
+        }
+
         setScoringButtonsEnabled(true)
     }
 
@@ -266,7 +274,8 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             binding.layoutScoring.btnPoint,
             binding.layoutScoring.btnFoul,
             binding.layoutScoring.btnEndSet,
-            binding.layoutScoring.btnUndo
+            binding.layoutScoring.btnUndo,
+            binding.layoutScoring.btnSub
         ).forEach {
             it.isEnabled = enabled
             it.alpha     = alpha
@@ -410,6 +419,11 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         val gameLabel   = if (totalGames == maxGames - 1) "Decider" else "Game $currentGame"
         binding.tvSetValue.text = gameLabel
 
+        val isDeuce = team1Points >= pointsPerGame - 1 &&
+                team2Points >= pointsPerGame - 1
+        binding.tvDeuce.visibility = if (isDeuce) View.VISIBLE else View.GONE
+        binding.tvDeuce.text = "⚔️ DEUCE — Lead by 2 to win (max $maxPoints)"
+
     }
 
     // ── Set Circles ──────────────────────────────────────────────
@@ -537,7 +551,8 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         currentGame = obj.optInt("currentGame",
             obj.optInt("gameNumber", currentGame))
         gamesToWin  = obj.optInt("gamesToWin", gamesToWin)
-
+        pointsPerGame = obj.optInt("pointsPerGame", pointsPerGame)
+        maxPoints     = obj.optInt("maxPoints",     maxPoints)
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
 
@@ -636,13 +651,16 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
         val gameNum = obj.optInt("gameNumber", currentGame)
 
+        val scoreSnapshot = obj.safeString("scoreSnapshot")
+
         eventsList.add(0, BadmintonEvent(
             id               = eventId,
             eventType        = eventType,
             eventTimeSeconds = eventTimeSeconds,
             gameNumber       = gameNum,
             playerName       = playerName,
-            teamName         = teamName
+            teamName         = teamName,
+            scoreSnapshot = scoreSnapshot
         ))
     }
 

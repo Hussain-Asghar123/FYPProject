@@ -1,6 +1,7 @@
 package com.example.fypproject.LudoFragment
 
 import android.content.Context.MODE_PRIVATE
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -30,8 +31,6 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
-import java.util.Timer
-import java.util.TimerTask
 
 class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
 
@@ -40,24 +39,15 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     private var matchResponse: MatchResponse? = null
 
     private var pendingComment: String? = null
-
     private val SOCKET_KEY = "LudoScoringFragment"
 
-    private var team1HomeRuns   = 0
-    private var team2HomeRuns   = 0
-    private var team1Captures   = 0
-    private var team2Captures   = 0
-    private var pendingSummary = false
-    private var matchStatus     = "LIVE"
-    private var matchStartTimeMs = 0L
-    private var isActionPending  = false
-    private var timerEverStarted = false
+    private var team1HomeRuns = 0
+    private var team2HomeRuns = 0
+    private var matchStatus   = "LIVE"
+    private var isActionPending = false
 
-    private var activePanel: String? = null
-
-    private var team1Players = listOf<Player>()
-    private var team2Players = listOf<Player>()
-    private var canEdit      = false
+    private var selectedTeamId: Long? = null
+    private var canEdit = false
 
     private var votingAlreadyTriggered = false
     private var selectedVotePlayerId: Long? = null
@@ -67,12 +57,6 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
 
     private val eventsList = mutableListOf<LudoEvent>()
     private lateinit var eventsAdapter: LudoEventAdapter
-
-    private var timerTask: TimerTask? = null
-    private val timer = Timer()
-
-    private var selectedTeamId: Long?  = null
-    private var selectedPlayerId: Int? = null
 
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri?  = null
@@ -95,7 +79,6 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         setupEventsRecycler()
         setupBottomTabs()
         setupSocketConnection()
-        fetchPlayers()
 
         val status = matchResponse?.status?.uppercase().orEmpty()
         val isCompleted = status == "COMPLETED" || status == "MATCH_COMPLETE"
@@ -127,15 +110,14 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
     }
 
     private fun computeCanEdit() {
-        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role        = prefs.getString("role", "")?.trim().orEmpty()
-        val username    = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
-
+        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role     = prefs.getString("role", "")?.trim().orEmpty()
+        val username = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer   = matchResponse?.scorerId?.trim().orEmpty()
+        val media    = matchResponse?.mediaScorerId?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+                || media.equals(username, true)
     }
 
     private fun setupBottomTabs() {
@@ -152,108 +134,10 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         binding.rvEvents.adapter = eventsAdapter
     }
 
-    private fun showMediaDialog(eventId: Long?) {
-        pendingEventId = eventId
-        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
-        val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
-
-        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
-        val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
-        val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
-        val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
-        val tvGallery  = dialogView.findViewById<TextView>(R.id.tvGalleryLabel)
-
-        if (isUploading) tvGallery.text = "Uploading"
-
-        btnCamera.setOnClickListener {
-            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-            dialog.dismiss()
-            openCamera()
-        }
-        btnGallery.setOnClickListener {
-            if (!isUploading) {
-                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-                dialog.dismiss()
-                galleryLauncher.launch("image/*")
-            }
-        }
-        btnCancel.setOnClickListener { dialog.dismiss() }
-
-        dialog.setView(dialogView)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
-    }
-
-    private fun openCamera() {
-        val imageFile = File(requireContext().cacheDir, "camera_${System.currentTimeMillis()}.jpg")
-        cameraImageUri = FileProvider.getUriForFile(
-            requireContext(), "${requireContext().packageName}.provider", imageFile)
-        cameraLauncher.launch(cameraImageUri!!)
-    }
-
-    private fun uploadMediaFile(uri: Uri) {
-        val matchId = matchResponse?.id ?: return
-        val eventId = pendingEventId   ?: return
-        isUploading = true
-
-        val commentToSend = pendingComment
-
-        toast("Uploading")
-
-        lifecycleScope.launch {
-            try {
-                val inputStream = requireContext().contentResolver.openInputStream(uri)
-                val tempFile    = File(requireContext().cacheDir, "upload_${System.currentTimeMillis()}.jpg")
-                tempFile.outputStream().use { out -> inputStream?.copyTo(out) }
-
-                val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
-                val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
-                val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
-
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
-                }
-
-                if (response.isSuccessful) toast("Upload Successful!")
-                else toast("Upload failed: ${response.code()}")
-
-            } catch (e: Exception) {
-                toast("Upload failed: ${e.message}")
-            } finally {
-                isUploading    = false
-                pendingEventId = null
-                pendingComment = null
-            }
-        }
-    }
-    private fun showTab(tab: String) {
-        val isScoring = tab == "scoring"
-        binding.scoringTabContent.visibility = if (isScoring) View.VISIBLE else View.GONE
-        binding.eventsTabContent.visibility  = if (isScoring) View.GONE    else View.VISIBLE
-        binding.tabScoring.isSelected        = isScoring
-        binding.tabEvents.isSelected         = !isScoring
-        binding.tabScoring.setTextColor(
-            if (isScoring) android.graphics.Color.parseColor("#E31212")
-            else           android.graphics.Color.parseColor("#888888")
-        )
-        binding.tabEvents.setTextColor(
-            if (!isScoring) android.graphics.Color.parseColor("#E31212")
-            else            android.graphics.Color.parseColor("#888888")
-        )
-        if (!isScoring) {
-            binding.tvNoEvents.visibility =
-                if (eventsList.isEmpty()) View.VISIBLE else View.GONE
-            eventsAdapter.notifyDataSetChanged()
-        }
-    }
 
     private fun showPanel(panel: String) {
         binding.layoutScoring.root.visibility  = View.GONE
         binding.layoutHomeRun.root.visibility  = View.GONE
-        binding.layoutCapture.root.visibility  = View.GONE
-        binding.layoutWin.root.visibility      = View.GONE
         binding.layoutVoting.root.visibility   = View.GONE
         binding.layoutSummary.root.visibility  = View.GONE
         binding.layoutProgressBar.visibility   = View.GONE
@@ -265,9 +149,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
 
         when (panel) {
             "scoring" -> { binding.layoutScoring.root.visibility = View.VISIBLE; setupScoringPanel() }
-            "homeRun" -> { binding.layoutHomeRun.root.visibility = View.VISIBLE; setupTeamPlayerPanel(binding.layoutHomeRun, "HOME_RUN") }
-            "capture" -> { binding.layoutCapture.root.visibility = View.VISIBLE; setupTeamPlayerPanel(binding.layoutCapture, "CAPTURE") }
-            "win"     -> { binding.layoutWin.root.visibility     = View.VISIBLE; setupWinPanel()     }
+            "homeRun" -> { binding.layoutHomeRun.root.visibility = View.VISIBLE; setupHomeRunPanel() }
             "voting"  ->   binding.layoutVoting.root.visibility  = View.VISIBLE
             "summary" ->   binding.layoutSummary.root.visibility = View.VISIBLE
             "loading" ->   binding.layoutProgressBar.visibility  = View.VISIBLE
@@ -276,132 +158,65 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
 
     private fun setupScoringPanel() {
         updateScoreUI()
-
         if (!canEdit) {
-            binding.layoutScoring.btnHomeRun.visibility      = View.GONE
-            binding.layoutScoring.btnCapture.visibility      = View.GONE
-            binding.layoutScoring.btnDeclareWinner.visibility = View.GONE
-            binding.layoutScoring.btnEndMatch.visibility     = View.GONE
-            binding.layoutScoring.btnUndo.visibility         = View.GONE
+            binding.layoutScoring.btnHomeRun.visibility = View.GONE
+            binding.layoutScoring.btnUndo.visibility    = View.GONE
             return
         }
-
         binding.layoutScoring.btnHomeRun.setOnClickListener {
             if (isActionPending) return@setOnClickListener
-            resetWizard()
+            selectedTeamId = null
             showPanel("homeRun")
         }
-
-        binding.layoutScoring.btnCapture.setOnClickListener {
-            if (isActionPending) return@setOnClickListener
-            resetWizard()
-            showPanel("capture")
-        }
-
-        binding.layoutScoring.btnDeclareWinner.setOnClickListener {
-            if (isActionPending) return@setOnClickListener
-            showPanel("win")
-        }
-
-        binding.layoutScoring.btnEndMatch.setOnClickListener {
-            if (isActionPending) return@setOnClickListener
-            isActionPending = true
-            setScoringButtonsEnabled(false)
-            sendEvent(JSONObject().put("eventType", "END_MATCH"))
-        }
-
         binding.layoutScoring.btnUndo.setOnClickListener {
             if (isActionPending) return@setOnClickListener
             isActionPending = true
             setScoringButtonsEnabled(false)
             sendEvent(JSONObject().put("undo", true))
         }
-
         setScoringButtonsEnabled(!isActionPending)
     }
 
-    private fun setupTeamPlayerPanel(
-        panelBinding: com.example.fypproject.databinding.LayoutLudoTeamPlayerBinding,
-        eventType: String
-    ) {
-        resetWizard()
-        val title = when (eventType) {
-            "HOME_RUN" -> "🏠 Record Home Run"
-            "CAPTURE"  -> "⚔️ Record Capture"
-            else       -> "Record Event"
+    private fun setupHomeRunPanel() {
+        val p = binding.layoutHomeRun
+        p.tvTitle.text = "🏠 Whose Home Run?"
+        p.tvClose.setOnClickListener { showPanel("scoring") }
+
+        val t1Name = matchResponse?.team1Name ?: "Team A"
+        val t2Name = matchResponse?.team2Name ?: "Team B"
+        val t1Id   = matchResponse?.team1Id
+        val t2Id   = matchResponse?.team2Id
+
+        p.btnTeam1.text = "🏠 $t1Name"
+        p.btnTeam2.text = "🏠 $t2Name"
+        p.btnTeam1.setBackgroundColor(Color.parseColor("#CC0000"))
+        p.btnTeam2.setBackgroundColor(Color.parseColor("#CC0000"))
+        p.btnConfirm.isEnabled = false
+        p.btnConfirm.alpha     = 0.5f
+        selectedTeamId = null
+
+        p.btnTeam1.setOnClickListener {
+            selectedTeamId = t1Id
+            p.btnTeam1.setBackgroundColor(Color.parseColor("#10B981"))
+            p.btnTeam2.setBackgroundColor(Color.parseColor("#CC0000"))
+            p.btnConfirm.isEnabled = true
+            p.btnConfirm.alpha     = 1f
         }
-        panelBinding.tvTitle.text = title
-
-        panelBinding.tvClose.setOnClickListener { showPanel("scoring") }
-
-        panelBinding.layoutStep1.visibility = View.VISIBLE
-        panelBinding.layoutStep2.visibility = View.GONE
-
-        val teamNames = listOf("Select Team",
-            matchResponse?.team1Name ?: "Team A",
-            matchResponse?.team2Name ?: "Team B")
-        val teamIds = listOf<Long?>(null, matchResponse?.team1Id, matchResponse?.team2Id)
-
-        panelBinding.spinnerTeam.setup(teamNames) { pos ->
-            selectedTeamId = teamIds[pos]
-            if (selectedTeamId != null) {
-                val players = if (selectedTeamId == matchResponse?.team1Id)
-                    team1Players else team2Players
-                panelBinding.spinnerPlayer.setupWithPlayers("Select Player (Optional)", players)
-                panelBinding.layoutStep2.visibility = View.VISIBLE
-            }
+        p.btnTeam2.setOnClickListener {
+            selectedTeamId = t2Id
+            p.btnTeam2.setBackgroundColor(Color.parseColor("#10B981"))
+            p.btnTeam1.setBackgroundColor(Color.parseColor("#CC0000"))
+            p.btnConfirm.isEnabled = true
+            p.btnConfirm.alpha     = 1f
         }
-
-        panelBinding.btnConfirm.setOnClickListener {
-            val teamId = selectedTeamId
-            if (teamId == null) { toast("Select Team"); return@setOnClickListener }
+        p.btnConfirm.setOnClickListener {
+            val teamId = selectedTeamId ?: return@setOnClickListener
             if (isActionPending) return@setOnClickListener
             isActionPending = true
             setScoringButtonsEnabled(false)
-            val json = JSONObject().put("eventType", eventType).put("teamId", teamId)
-            val pid = panelBinding.spinnerPlayer.selectedId()
-            if (pid != null) json.put("playerId", pid)
-            sendEvent(json)
+            sendEvent(JSONObject().put("eventType", "HOME_RUN").put("teamId", teamId))
             showPanel("scoring")
         }
-
-        panelBinding.btnSkipPlayer.setOnClickListener {
-            val teamId = selectedTeamId
-            if (teamId == null) { toast("Select Team"); return@setOnClickListener }
-            if (isActionPending) return@setOnClickListener
-            isActionPending = true
-            setScoringButtonsEnabled(false)
-            sendEvent(JSONObject().put("eventType", eventType).put("teamId", teamId))
-            showPanel("scoring")
-        }
-
-        panelBinding.btnBack.setOnClickListener {
-            panelBinding.layoutStep2.visibility = View.GONE
-            selectedTeamId = null
-        }
-    }
-
-    private fun setupWinPanel() {
-        val w = binding.layoutWin
-        w.tvClose.setOnClickListener { showPanel("scoring") }
-        w.btnTeam1Win.text = "🔵 ${matchResponse?.team1Name ?: "Team A"}"
-        w.btnTeam2Win.text = "🔴 ${matchResponse?.team2Name ?: "Team B"}"
-
-        w.btnTeam1Win.setOnClickListener {
-            if (isActionPending) return@setOnClickListener
-            isActionPending = true
-            setScoringButtonsEnabled(false)
-            sendEvent(JSONObject().put("eventType", "WIN").put("teamId", matchResponse?.team1Id))
-            showPanel("scoring")
-        }
-        w.btnTeam2Win.setOnClickListener {
-            if (isActionPending) return@setOnClickListener
-            isActionPending = true
-            setScoringButtonsEnabled(false)
-            sendEvent(JSONObject().put("eventType", "WIN").put("teamId", matchResponse?.team2Id))
-            showPanel("scoring")
-        }
-        w.btnCancel.setOnClickListener { showPanel("scoring") }
     }
 
     private fun setScoringButtonsEnabled(enabled: Boolean) {
@@ -409,9 +224,6 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         val alpha = if (enabled) 1f else 0.45f
         listOf(
             binding.layoutScoring.btnHomeRun,
-            binding.layoutScoring.btnCapture,
-            binding.layoutScoring.btnDeclareWinner,
-            binding.layoutScoring.btnEndMatch,
             binding.layoutScoring.btnUndo
         ).forEach {
             it.isEnabled = enabled
@@ -419,68 +231,32 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         }
     }
 
-    private fun resetWizard() {
-        selectedTeamId  = null
-        selectedPlayerId = null
-    }
-
     private fun updateScoreUI() {
         if (_binding == null) return
         binding.tvTeam1HomeRuns.text = team1HomeRuns.toString()
         binding.tvTeam2HomeRuns.text = team2HomeRuns.toString()
-        binding.tvTeam1Captures.text = "⚔️ $team1Captures captures"
-        binding.tvTeam2Captures.text = "⚔️ $team2Captures captures"
     }
 
-    private fun startMatchTimer(startTime: Long) {
-        timerTask?.cancel()
-        matchStartTimeMs = startTime
-        timerEverStarted = true
-
-        activity?.runOnUiThread {
-            if (_binding != null) binding.tvTimer.visibility = View.VISIBLE
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || matchStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - matchStartTimeMs) / 1000
-                    binding.tvTimer.text = "${String.format("%02d:%02d", elapsed / 60, elapsed % 60)}"
-                }
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
-    }
 
     private fun setupSocketListeners() {
         WebSocketManager.addStateListener(SOCKET_KEY) { state ->
             activity?.runOnUiThread {
                 when (state) {
-                    is SocketState.Connected -> { /* silent */ }
-                    is SocketState.Error -> {
-                        toast("Socket Error")
+                    is SocketState.Error, is SocketState.Disconnected -> {
                         isActionPending = false
                         if (_binding != null &&
                             binding.layoutScoring.root.visibility == View.VISIBLE)
                             setScoringButtonsEnabled(true)
                     }
-                    is SocketState.Disconnected -> {
-                        isActionPending = false
-                        if (_binding != null &&
-                            binding.layoutScoring.root.visibility == View.VISIBLE)
-                            setScoringButtonsEnabled(true)
-                    }
+                    else -> {}
                 }
             }
         }
         WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
-            android.util.Log.d("LUDO_SOCKET", "Raw: $jsonString")
             activity?.runOnUiThread {
                 try {
                     handleServerUpdate(JSONObject(jsonString))
                 } catch (e: Exception) {
-                    android.util.Log.e("LUDO_SOCKET", "Parse error: ${e.message}")
                     isActionPending = false
                     if (_binding != null) setScoringButtonsEnabled(true)
                 }
@@ -493,24 +269,14 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
-    override fun onHiddenChanged(hidden: Boolean) {
-        super.onHiddenChanged(hidden)
-        if (!hidden) setupSocketListeners()
-        else unregisterSocketListeners()
-    }
-    private fun setupSocketConnection() {
-        setupSocketListeners()
-    }
+    private fun setupSocketConnection() = setupSocketListeners()
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
-
         isActionPending = false
 
         team1HomeRuns = obj.optInt("team1HomeRuns", team1HomeRuns)
         team2HomeRuns = obj.optInt("team2HomeRuns", team2HomeRuns)
-        team1Captures = obj.optInt("team1Captures", team1Captures)
-        team2Captures = obj.optInt("team2Captures", team2Captures)
 
         val rawStatus = obj.optString("status", "")
         if (rawStatus.isNotEmpty() && rawStatus != "null") matchStatus = rawStatus
@@ -519,18 +285,15 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         if (eventsArray != null) {
             eventsList.clear()
             for (i in 0 until eventsArray.length()) {
-                val ev = eventsArray.getJSONObject(i)
+                val ev        = eventsArray.getJSONObject(i)
                 val eventType = ev.optString("eventType", "").ifEmpty { continue }
-
-                fun JSONObject.safeString(key: String) =
-                    if (isNull(key)) "" else optString(key, "")
-                        .let { if (it == "null") "" else it }
-
+                fun JSONObject.safeStr(key: String) =
+                    if (isNull(key)) "" else optString(key, "").let { if (it == "null") "" else it }
                 eventsList.add(0, LudoEvent(
                     id               = ev.optLong("id", System.currentTimeMillis()),
                     eventType        = eventType,
-                    teamName         = ev.safeString("teamName").ifEmpty { null },
-                    playerName       = ev.safeString("playerName").ifEmpty { null },
+                    teamName         = ev.safeStr("teamName").ifEmpty { null },
+                    playerName       = ev.safeStr("playerName").ifEmpty { null },
                     eventTimeSeconds = ev.optInt("eventTimeSeconds", 0).takeIf { it > 0 }
                 ))
             }
@@ -539,25 +302,15 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
             eventsAdapter.notifyDataSetChanged()
         }
 
-        if (obj.has("matchStartTime") && !obj.isNull("matchStartTime")) {
-            val start = obj.getLong("matchStartTime")
-            if (start > 0 && (start != matchStartTimeMs || !timerEverStarted)) {
-                startMatchTimer(start)
-            }
-        }
-
         if (obj.optString("comment") == "UNDO") toast("↩ Undo successful")
 
         updateScoreUI()
 
-        if (binding.layoutScoring.root.visibility == View.VISIBLE) {
+        if (binding.layoutScoring.root.visibility == View.VISIBLE)
             setScoringButtonsEnabled(true)
-        }
 
         if (binding.layoutVoting.root.visibility == View.VISIBLE ||
-            binding.layoutSummary.root.visibility == View.VISIBLE) {
-            return
-        }
+            binding.layoutSummary.root.visibility == View.VISIBLE) return
 
         val status = matchStatus.uppercase()
 
@@ -568,14 +321,8 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
             return
         }
 
-        if (binding.layoutVoting.root.visibility == View.VISIBLE ||
-            binding.layoutSummary.root.visibility == View.VISIBLE) {
-            return
-        }
-
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
-            timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
     }
@@ -584,6 +331,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         json.put("matchId", matchResponse?.id ?: 0)
         WebSocketManager.send(json.toString())
     }
+
 
     private fun showLudoSummary() {
         if (_binding == null || !isAdded) return
@@ -595,14 +343,13 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         s.tvTeam2Name.text     = t2Name
         s.tvTeam1HomeRuns.text = team1HomeRuns.toString()
         s.tvTeam2HomeRuns.text = team2HomeRuns.toString()
-        s.tvTeam1Captures.text = "⚔️ $team1Captures captures"
-        s.tvTeam2Captures.text = "⚔️ $team2Captures captures"
         s.tvMatchResult.text   = when {
             team1HomeRuns > team2HomeRuns -> "🏆 $t1Name Wins!"
             team2HomeRuns > team1HomeRuns -> "🏆 $t2Name Wins!"
             else -> "🤝 Match Draw!"
         }
     }
+
 
     private fun loadAndShowVotingThenSummary() {
         if (_binding == null || !isAdded) return
@@ -632,7 +379,7 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
 
                 val onPicked: (TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
-                    else                              voteAdapter1?.clearSelection()
+                    else voteAdapter1?.clearSelection()
                     selectedVotePlayerId   = player.id
                     selectedVotePlayerName = player.name ?: ""
                     v.tvSelectedVotePlayer.text             = selectedVotePlayerName
@@ -659,13 +406,8 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         v.btnSkipVote.setOnClickListener { showLudoSummary() }
     }
 
-    private fun submitVote(matchId: Long, accountId: Long, playerId: Long, feedback: String? = null) {
-        if (accountId == -1L) {
-            toast("Account not found. Please login again.")
-            showLudoSummary()
-            return
-        }
-
+    private fun submitVote(matchId: Long, accountId: Long, playerId: Long) {
+        if (accountId == -1L) { toast("Account not found."); showLudoSummary(); return }
         val v = binding.layoutVoting
         v.btnSubmitVote.isEnabled = false
         v.btnSubmitVote.text      = "Submitting…"
@@ -675,33 +417,15 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
             put("matchId",   matchId)
             put("accountId", accountId)
             put("playerId",  playerId)
-            if (!feedback.isNullOrBlank()) put("feedback", feedback)
         }
-
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.submitVote(body)
-                }
+                val response = withContext(Dispatchers.IO) { RetrofitInstance.api.submitVote(body) }
                 when {
-                    response.isSuccessful -> {
-                        markAsVoted(matchId)
-                        toast("Vote submitted!")
-                        showLudoSummary()
-                    }
-                    response.code() == 409 -> {
-                        markAsVoted(matchId)
-                        toast("Already voted!")
-                        showLudoSummary()
-                    }
-                    response.code() == 404 -> {
-                        toast("Match or player not found.")
-                        v.btnSubmitVote.isEnabled = true
-                        v.btnSubmitVote.text      = "Submit & View Summary"
-                        v.btnSkipVote.isEnabled   = true
-                    }
+                    response.isSuccessful   -> { markAsVoted(matchId); toast("Vote submitted!"); showLudoSummary() }
+                    response.code() == 409  -> { markAsVoted(matchId); toast("Already voted!"); showLudoSummary() }
                     else -> {
-                        toast("Vote failed (${response.code()}). Try again.")
+                        toast("Vote failed (${response.code()}).")
                         v.btnSubmitVote.isEnabled = true
                         v.btnSubmitVote.text      = "Submit & View Summary"
                         v.btnSkipVote.isEnabled   = true
@@ -716,21 +440,84 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         }
     }
 
-    private fun fetchPlayers() {
-        val t1 = matchResponse?.team1Id ?: return
-        val t2 = matchResponse?.team2Id ?: return
+
+    private fun showMediaDialog(eventId: Long?) {
+        pendingEventId = eventId
+        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
+        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
+        val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
+        val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
+        val btnCancel  = dialogView.findViewById<TextView>(R.id.btnCancelMedia)
+
+        btnCamera.setOnClickListener {
+            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            dialog.dismiss(); openCamera()
+        }
+        btnGallery.setOnClickListener {
+            if (!isUploading) {
+                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                dialog.dismiss(); galleryLauncher.launch("image/*")
+            }
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.setView(dialogView)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
+    }
+
+    private fun openCamera() {
+        val imageFile = File(requireContext().cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = FileProvider.getUriForFile(
+            requireContext(), "${requireContext().packageName}.provider", imageFile)
+        cameraLauncher.launch(cameraImageUri!!)
+    }
+
+    private fun uploadMediaFile(uri: Uri) {
+        val matchId = matchResponse?.id ?: return
+        val eventId = pendingEventId   ?: return
+        isUploading = true
+        val commentToSend = pendingComment
+        toast("Uploading")
         lifecycleScope.launch {
             try {
-                val (r1, r2) = withContext(Dispatchers.IO) {
-                    val d1 = async { RetrofitInstance.api.getPlayersByTeam(t1) }
-                    val d2 = async { RetrofitInstance.api.getPlayersByTeam(t2) }
-                    d1.await() to d2.await()
+                val inputStream = requireContext().contentResolver.openInputStream(uri)
+                val tempFile    = File(requireContext().cacheDir, "upload_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { out -> inputStream?.copyTo(out) }
+                val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+                val filePart    = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
+                val matchIdBody = matchId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val eventIdBody = eventId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val commentBody = commentToSend?.toRequestBody("text/plain".toMediaTypeOrNull())
+                val response    = withContext(Dispatchers.IO) {
+                    RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
                 }
-                team1Players = r1.body().orEmpty().toScoringPlayers()
-                team2Players = r2.body().orEmpty().toScoringPlayers()
-            } catch (_: Exception) { toast("Failed to load players") }
+                if (response.isSuccessful) toast("Upload Successful!")
+                else toast("Upload failed: ${response.code()}")
+            } catch (e: Exception) {
+                toast("Upload failed: ${e.message}")
+            } finally {
+                isUploading = false; pendingEventId = null; pendingComment = null
+            }
         }
     }
+
+
+    private fun showTab(tab: String) {
+        val isScoring = tab == "scoring"
+        binding.scoringTabContent.visibility = if (isScoring) View.VISIBLE else View.GONE
+        binding.eventsTabContent.visibility  = if (isScoring) View.GONE    else View.VISIBLE
+        binding.tabScoring.setTextColor(
+            if (isScoring) Color.parseColor("#E31212") else Color.parseColor("#888888"))
+        binding.tabEvents.setTextColor(
+            if (!isScoring) Color.parseColor("#E31212") else Color.parseColor("#888888"))
+        if (!isScoring) {
+            binding.tvNoEvents.visibility =
+                if (eventsList.isEmpty()) View.VISIBLE else View.GONE
+            eventsAdapter.notifyDataSetChanged()
+        }
+    }
+
 
     private fun hasAlreadyVoted(matchId: Long): Boolean {
         val accountId = getAccountId()
@@ -743,56 +530,22 @@ class LudoScoringFragment : Fragment(R.layout.ludo_scoring_fragment) {
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
             .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
     }
+
     private fun getAccountId() =
-        requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-            .getLong("id", -1L)
+        requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE).getLong("id", -1L)
 
     private fun toast(msg: String) = context?.toastShort(msg)
 
-    private fun Spinner.setup(items: List<String>, onSelect: (Int) -> Unit) {
-        adapter = makeAdapter(items)
-        onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) = onSelect(pos)
-            override fun onNothingSelected(p: AdapterView<*>?) {}
-        }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) setupSocketListeners() else unregisterSocketListeners()
     }
 
-    private fun Spinner.setupWithPlayers(placeholder: String, players: List<Player>) {
-        adapter = makeAdapter(listOf(placeholder) + players.map { it.name })
-        tag     = listOf<Int?>(null) + players.map { it.id }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun Spinner.selectedId(): Int? {
-        val ids = tag as? List<Int?> ?: return null
-        val pos = selectedItemPosition
-        return if (pos in ids.indices) ids[pos] else null
-    }
-
-    private fun makeAdapter(items: List<String>) =
-        ArrayAdapter(requireContext(), R.layout.spinner_item, items).also {
-            it.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        }
-
-    private fun List<TeamPlayerDto>.toScoringPlayers() = mapNotNull { dto ->
-        val id   = dto.id?.toInt()
-        val name = dto.name
-        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name,status="")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setupSocketListeners()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        unregisterSocketListeners()
-    }
-
+    override fun onResume()  { super.onResume();  setupSocketListeners()      }
+    override fun onPause()   { super.onPause();   unregisterSocketListeners() }
     override fun onDestroyView() {
         super.onDestroyView()
-        timerTask?.cancel()
         unregisterSocketListeners()
         _binding = null
     }

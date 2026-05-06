@@ -22,6 +22,8 @@ data class MatchResponse(
     val sportId: Long? = null,
     val overs: Int? = null,
     val inningsId: Long? = null,
+    val halfDurationMins: Int? = null,
+    val matchFormat: String? = null,
 
     // ── Cricket extras ─────────────────────────────────────────
     val battingTeamId: Long? = null,

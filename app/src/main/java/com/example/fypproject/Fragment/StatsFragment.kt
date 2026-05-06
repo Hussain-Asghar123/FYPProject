@@ -67,8 +67,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
                 val stats = api.getTournamentStats(tournamentId)
                 populateUI(stats)
             } catch (e: Exception) {
-                if (e is java.net.SocketTimeoutException && retryCount < 2) {
-                    delay(4000)
+                if (e is java.net.SocketTimeoutException && retryCount < 5) {
+                    delay(18000)
                     loadStats(retryCount + 1)
                 } else {
                     Log.e("StatsFragment", "loadStats error: ${e.message}", e)
@@ -254,7 +254,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             try {
                 api.setManOfTournamentRanked(tournamentId, playerId, rank)
                 Toast.makeText(requireContext(), "Man of the Tournament updated!", Toast.LENGTH_SHORT).show()
-                pendingRefresh = false   // we reload right now, no need for onResume to do it again
+                pendingRefresh = false
                 loadStats()
             } catch (e: Exception) {
                 Log.e("StatsFragment", "setManOfTournamentRanked error: ${e.message}", e)

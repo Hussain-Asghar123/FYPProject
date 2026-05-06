@@ -260,6 +260,12 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             binding.layoutScoring.btnUndo.visibility         = View.GONE
             return
         }
+        if (canEdit) {
+            binding.layoutScoring.btnEditLineup.visibility = View.VISIBLE
+            binding.layoutScoring.btnEditLineup.setOnClickListener { showLineupEditor() }
+        } else {
+            binding.layoutScoring.btnEditLineup.visibility = View.GONE
+        }
 
         binding.layoutScoring.btnPoint.setOnClickListener {
             if (isActionPending) return@setOnClickListener
@@ -293,6 +299,80 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         }
 
         setScoringButtonsEnabled(!isActionPending)
+    }
+
+    private fun showLineupEditor() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
+        val view   = layoutInflater.inflate(R.layout.bottom_sheet_lineup_editor, null)
+        dialog.setContentView(view)
+
+        view.findViewById<TextView>(R.id.tvLineupTeam1Label).text = matchResponse?.team1Name ?: "Team 1"
+        view.findViewById<TextView>(R.id.tvLineupTeam2Label).text = matchResponse?.team2Name ?: "Team 2"
+        view.findViewById<TextView>(R.id.tvLineupClose).setOnClickListener { dialog.dismiss() }
+
+        val col1 = view.findViewById<android.widget.LinearLayout>(R.id.llLineupTeam1)
+        val col2 = view.findViewById<android.widget.LinearLayout>(R.id.llLineupTeam2)
+
+        buildLineupColumn(col1, team1Players, team1Active.toMutableList()) { updated ->
+            team1Active = updated
+        }
+        buildLineupColumn(col2, team2Players, team2Active.toMutableList()) { updated ->
+            team2Active = updated
+        }
+
+        view.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.btnSaveLineup
+        ).setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun buildLineupColumn(
+        col: android.widget.LinearLayout,
+        allPlayers: List<Player>,
+        onField: MutableList<Player>,
+        onUpdate: (List<Player>) -> Unit
+    ) {
+        col.removeAllViews()
+        val dp = resources.displayMetrics.density
+
+        allPlayers.forEach { player ->
+            val isOnField = onField.any { it.id == player.id }
+
+            val btn = android.widget.TextView(requireContext()).apply {
+                text = player.name
+                textSize = 12f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setPadding((10*dp).toInt(), (10*dp).toInt(), (10*dp).toInt(), (10*dp).toInt())
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = (6*dp).toInt() }
+
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(
+                        if (isOnField) android.graphics.Color.parseColor("#059669")
+                        else android.graphics.Color.parseColor("#F1F5F9")
+                    )
+                    cornerRadius = 8 * dp
+                }
+                setTextColor(
+                    if (isOnField) android.graphics.Color.WHITE
+                    else android.graphics.Color.parseColor("#1e293b")
+                )
+            }
+
+            btn.setOnClickListener {
+                val currentlyOn = onField.any { it.id == player.id }
+                if (currentlyOn) onField.removeAll { it.id == player.id }
+                else onField.add(player)
+                onUpdate(onField.toList())
+                // Rebuild column
+                buildLineupColumn(col, allPlayers, onField, onUpdate)
+            }
+
+            col.addView(btn)
+        }
     }
 
     private fun setupPointPanel() {

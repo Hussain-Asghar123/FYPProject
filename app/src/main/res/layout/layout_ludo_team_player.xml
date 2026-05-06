@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="24dp">
 
             <TextView
                 android:id="@+id/tvClose"
@@ -36,109 +36,67 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Record Event"
+                android:text="🏠 Whose Home Run?"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginStart="12dp"/>
+
         </LinearLayout>
 
-        <!-- Step 1: Team -->
-        <LinearLayout
-            android:id="@+id/layoutStep1"
-            android:layout_width="match_parent"
+        <!-- Label -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:text="SELECT TEAM"
+            android:textColor="#FFCCCC"
+            android:textSize="10sp"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TEAM"
-                android:textColor="#FFCCCC"
-                android:textSize="10sp"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="8dp"/>
-
-            <Spinner
-                android:id="@+id/spinnerTeam"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/bg_spinner_white_outline"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:textColor="#000000"
-                android:popupBackground="@android:color/white"/>
-
-        </LinearLayout>
-
-        <!-- Step 2: Player -->
-        <LinearLayout
-            android:id="@+id/layoutStep2"
+        <!-- Team 1 Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTeam1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_height="64dp"
+            android:text="Team A"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="#CC0000"
+            app:cornerRadius="12dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp"
+            android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PLAYER (OPTIONAL)"
-                android:textColor="#FFCCCC"
-                android:textSize="10sp"
-                android:letterSpacing="0.15"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
+        <!-- Team 2 Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTeam2"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="Team B"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="#CC0000"
+            app:cornerRadius="12dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp"
+            android:layout_marginBottom="24dp"/>
 
-            <Spinner
-                android:id="@+id/spinnerPlayer"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/bg_spinner_white_outline"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:textColor="#000000"
-                android:popupBackground="@android:color/white"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnConfirm"
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_marginTop="20dp"
-                android:text="CONFIRM"
-                android:textColor="#ffffff"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:backgroundTint="#10B981"
-                app:cornerRadius="12dp"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSkipPlayer"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="8dp"
-                android:text="Skip Player"
-                android:textColor="#333333"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="#F3F4F6"
-                app:cornerRadius="10dp"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBack"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="8dp"
-                android:text="Back"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:cornerRadius="10dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-
-        </LinearLayout>
+        <!-- Confirm Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="CONFIRM HOME RUN"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:enabled="false"
+            android:alpha="0.5"
+            app:backgroundTint="#10B981"
+            app:cornerRadius="12dp"/>
 
     </LinearLayout>
 </ScrollView>

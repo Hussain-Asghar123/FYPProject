@@ -83,14 +83,6 @@
                         android:textSize="12sp"
                         android:textColor="#888888"/>
 
-                    <TextView
-                        android:id="@+id/tvTeam1Captures"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⚔️ 0 captures"
-                        android:textSize="12sp"
-                        android:textColor="#60A5FA"
-                        android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
 
@@ -138,14 +130,6 @@
                         android:textSize="12sp"
                         android:textColor="#888888"/>
 
-                    <TextView
-                        android:id="@+id/tvTeam2Captures"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⚔️ 0 captures"
-                        android:textSize="12sp"
-                        android:textColor="#FB7185"
-                        android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
 

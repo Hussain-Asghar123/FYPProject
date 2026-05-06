@@ -378,6 +378,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
         val isDeuce = team1Points >= pointsPerGame - 1 && team2Points >= pointsPerGame - 1
         binding.tvDeuce.visibility = if (isDeuce) View.VISIBLE else View.GONE
+        binding.tvDeuce.text = "⚔️ DEUCE — Lead by 2 to win (target: $pointsPerGame)"
     }
 
     private fun updateGameCircles() {

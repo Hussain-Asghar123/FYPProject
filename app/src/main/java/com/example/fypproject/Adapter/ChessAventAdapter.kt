@@ -27,26 +27,34 @@ class ChessEventAdapter(
     }
 
     override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
-        val event = events[position]
+        val ev = events[position]
 
-        val icon = when (event.eventType?.uppercase()) {
-            "MOVE"        -> "♟️"
-            "CHECK"       -> "⚔️"
-            "CHECKMATE"   -> "♛"
+        // ✅ JS: icons exact match
+        val icon = when (ev.eventType?.uppercase()) {
+            "CHECKMATE"   -> "♟️"
+            "DRAW_AGREED" -> "🤝"
+            "STALEMATE"   -> "🤝"
             "RESIGN"      -> "🏳️"
             "TIMEOUT"     -> "⏰"
-            "STALEMATE"   -> "🤝"
-            "DRAW_AGREED" -> "🤝"
-            "END_MATCH"   -> "🏁"
-            else          -> "📌"
+            else          -> "🏁"
         }
 
-        holder.tvEventType.text  = "$icon ${event.eventType?.replace("_", " ") ?: ""}"
-        holder.tvTeamName.text   = event.teamName ?: ""
-        holder.tvNotation.text   = event.moveNotation ?: ""
-        holder.tvMoveNumber.text = if (event.moveNumber != null) "#${event.moveNumber}" else ""
+        // ✅ JS: RESULT_LABELS match
+        val label = when (ev.eventType?.uppercase()) {
+            "CHECKMATE"   -> "Checkmate"
+            "DRAW_AGREED" -> "Draw Agreed"
+            "STALEMATE"   -> "Stalemate"
+            "RESIGN"      -> "Resignation"
+            "TIMEOUT"     -> "Timeout"
+            else          -> ev.eventType?.replace("_", " ") ?: ""
+        }
 
-        holder.itemView.setOnClickListener { onEventClick(event) }
+        holder.tvEventType.text  = "$icon $label"
+        holder.tvTeamName.text   = ev.teamName   ?: ""
+        holder.tvNotation.text   = ev.moveNotation ?: ""
+        holder.tvMoveNumber.text = if (ev.moveNumber != null) "#${ev.moveNumber}" else ""
+
+        holder.itemView.setOnClickListener { onEventClick(ev) }
     }
 
     override fun getItemCount() = events.size

@@ -23,5 +23,5 @@ data class BadmintonEvent(
     val playerName: String?    = null,
     val eventTimeSeconds: Int? = null,
     val gameNumber: Int?       = null,
-    val scoreSnapshot: String? = null
+    val scoreSnapshot: String? = ""
 )

@@ -14,11 +14,12 @@ class BadmintionEventAdapter(
 ) : RecyclerView.Adapter<BadmintionEventAdapter.EventViewHolder>() {
 
     inner class EventViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvEventType  : TextView = view.findViewById(R.id.tvEventType)
-        val tvTeamName   : TextView = view.findViewById(R.id.tvTeamName)
-        val tvPlayerName : TextView = view.findViewById(R.id.tvPlayerName)
-        val tvTime       : TextView = view.findViewById(R.id.tvTime)
-        val tvSetNumber  : TextView = view.findViewById(R.id.tvSetNumber)
+        val tvEventType   : TextView = view.findViewById(R.id.tvEventType)
+        val tvTeamName    : TextView = view.findViewById(R.id.tvTeamName)
+        val tvPlayerName  : TextView = view.findViewById(R.id.tvPlayerName)
+        val tvTime        : TextView = view.findViewById(R.id.tvTime)
+        val tvSetNumber   : TextView = view.findViewById(R.id.tvSetNumber)
+        val tvScore       : TextView = view.findViewById(R.id.tvScore) // ← ADD (scoreSnapshot)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
@@ -30,15 +31,17 @@ class BadmintionEventAdapter(
     override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
         val event = events[position]
 
+        // ← FIXED: icon mapping JS ke sath match karta hai
         val icon = when (event.eventType?.uppercase()) {
-            "POINT"        -> "🏸"
-            "ACE"          -> "🎯"
-            "FOUL"         -> "⚠️"
-            "NET_FAULT"    -> "🔴"
-            "SERVICE_FAULT"-> "⚡"
-            "SUBSTITUTION" -> "🔄"
-            "END_SET"      -> "🔔"
-            else           -> "📌"
+            "POINT"         -> "🏸"
+            "SMASH"         -> "💥"
+            "SERVICE_ACE"   -> "🎯"
+            "NET_FAULT"     -> "🔴"
+            "FOOT_FAULT"    -> "🟠"
+            "OUT"           -> "⚡"
+            "SUBSTITUTION"  -> "↔"
+            "END_GAME"      -> "🔔"
+            else            -> "📌"
         }
 
         holder.tvEventType.text  = "$icon ${event.eventType?.replace("_", " ") ?: ""}"
@@ -48,6 +51,14 @@ class BadmintionEventAdapter(
         val mins = (event.eventTimeSeconds ?: 0) / 60
         holder.tvTime.text      = "${mins}'"
         holder.tvSetNumber.text = if (event.gameNumber != null) "G${event.gameNumber}" else ""
+
+        // ← ADD: scoreSnapshot
+        if (!event.scoreSnapshot.isNullOrEmpty()) {
+            holder.tvScore.visibility = View.VISIBLE
+            holder.tvScore.text       = event.scoreSnapshot
+        } else {
+            holder.tvScore.visibility = View.GONE
+        }
 
         holder.itemView.setOnClickListener { onEventClick(event) }
     }

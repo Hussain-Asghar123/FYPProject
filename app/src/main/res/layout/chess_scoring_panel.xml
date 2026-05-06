@@ -12,113 +12,274 @@
         android:padding="20dp"
         android:background="#E31212">
 
-        <!-- Who to move hint -->
+        <!-- Turn hint -->
         <TextView
             android:id="@+id/tvTurnHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⬜ Team A to move"
-            android:textColor="#ffffff"
-            android:textSize="13sp"
+            android:text="Record Result"
+            android:textColor="#94A3B8"
+            android:textSize="11sp"
             android:gravity="center"
+            android:letterSpacing="0.15"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Record Move — 2 team buttons -->
+        <!-- ════════ MAIN PANEL — JS: !pendingWinner && !pendingDraw ════════ -->
         <LinearLayout
+            android:id="@+id/layoutMainButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:orientation="vertical"
+            android:visibility="visible">
 
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🏆 Record Result"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Team 1 Wins -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMoveTeam1"
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:id="@+id/btnTeam1Wins"
+                android:layout_width="match_parent"
                 android:layout_height="64dp"
-                android:text="⬜ Team A"
+                android:layout_marginBottom="12dp"
+                android:text="Team A Wins"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="#10B981"
+                app:cornerRadius="12dp"/>
+
+            <!-- Team 2 Wins -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTeam2Wins"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="12dp"
+                android:text="Team B Wins"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="#10B981"
+                app:cornerRadius="12dp"/>
+
+            <!-- Draw -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDraw"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:text="🤝 Draw"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:cornerRadius="10dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+                app:backgroundTint="#F59E0B"
+                app:cornerRadius="10dp"/>
 
-            <View android:layout_width="10dp" android:layout_height="match_parent"/>
 
+        </LinearLayout>
+
+        <!-- ════════ CONFIRM WIN PANEL — JS: pendingWinner ════════ -->
+        <LinearLayout
+            android:id="@+id/layoutConfirmWin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Close + Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvConfirmWinClose"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:text="✕"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/bg_close_circle"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✅ Confirm Result"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="12dp"/>
+            </LinearLayout>
+
+            <!-- Winner/Loser info card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#334155"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvWinnerLine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🏆 Team A wins"
+                    android:textColor="#4ADE80"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvLoserLine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="❌ Team B loses"
+                    android:textColor="#F87171"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="center"/>
+
+            </LinearLayout>
+
+            <!-- Confirm Win button -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMoveTeam2"
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:id="@+id/btnConfirmWin"
+                android:layout_width="match_parent"
                 android:layout_height="64dp"
-                android:text="⬛ Team B"
+                android:layout_marginBottom="10dp"
+                android:text="✅ Confirm Win"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
+                app:backgroundTint="#16A34A"
+                app:cornerRadius="12dp"/>
+
+            <!-- Cancel -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmWinCancel"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Cancel"
+                android:textColor="#94A3B8"
+                android:textSize="14sp"
                 app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
+                app:strokeColor="#475569"
                 app:strokeWidth="1.5dp"
                 app:cornerRadius="10dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         </LinearLayout>
 
-        <!-- Check + Terminal row -->
+        <!-- ════════ CONFIRM DRAW PANEL — JS: pendingDraw ════════ -->
         <LinearLayout
+            android:id="@+id/layoutConfirmDraw"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:orientation="vertical"
+            android:visibility="gone">
 
+            <!-- Close + Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvConfirmDrawClose"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:text="✕"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/bg_close_circle"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🤝 Confirm Draw"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="12dp"/>
+            </LinearLayout>
+
+            <!-- Draw info card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#334155"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvDrawTeams"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🤝 Team A vs Team B"
+                    android:textColor="#FCD34D"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Draw by Agreement"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:gravity="center"/>
+
+            </LinearLayout>
+
+            <!-- Confirm Draw button -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCheck"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="60dp"
-                android:text="⚔️ Check"
+                android:id="@+id/btnConfirmDraw"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="10dp"
+                android:text="✅ Confirm Draw"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:cornerRadius="10dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+                app:backgroundTint="#D97706"
+                app:cornerRadius="12dp"/>
 
-            <View android:layout_width="10dp" android:layout_height="match_parent"/>
-
+            <!-- Cancel -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEndGame"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="60dp"
-                android:text="🏆 End Game"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold"
+                android:id="@+id/btnConfirmDrawCancel"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Cancel"
+                android:textColor="#94A3B8"
+                android:textSize="14sp"
                 app:backgroundTint="@android:color/transparent"
-                app:strokeColor="#FFFFFF"
+                app:strokeColor="#475569"
                 app:strokeWidth="1.5dp"
                 app:cornerRadius="10dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         </LinearLayout>
-
-        <!-- Undo -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnUndo"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="↩ UNDO LAST EVENT"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:backgroundTint="@android:color/transparent"
-            app:strokeColor="#64748B"
-            app:strokeWidth="1.5dp"
-            app:cornerRadius="10dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     </LinearLayout>
 </ScrollView>

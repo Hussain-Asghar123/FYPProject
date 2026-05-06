@@ -27,32 +27,6 @@
             android:paddingBottom="16dp"
             android:paddingHorizontal="20dp">
 
-            <!-- Chess pattern bar -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
-
-                <!-- 8 alternating squares -->
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#475569"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#F1F5F9"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#475569"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#F1F5F9"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#475569"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#F1F5F9"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#475569"/>
-                <View android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:background="#F1F5F9"/>
-            </LinearLayout>
-
             <!-- Timer -->
             <TextView
                 android:id="@+id/tvTimer"
@@ -66,18 +40,6 @@
                 android:fontFamily="monospace"
                 android:layout_marginBottom="12dp"
                 android:visibility="gone"/>
-
-            <!-- Current Turn -->
-            <TextView
-                android:id="@+id/tvCurrentTurn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⬜ Team A's turn"
-                android:textSize="13sp"
-                android:textColor="#000000"
-                android:gravity="center"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="12dp"/>
 
             <!-- Score Row -->
             <LinearLayout
@@ -107,30 +69,6 @@
                         android:maxLines="1"
                         android:ellipsize="end"/>
 
-                    <TextView
-                        android:id="@+id/tvTeam1Moves"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:textColor="#3B82F6"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="moves"
-                        android:textSize="11sp"
-                        android:textColor="#94A3B8"/>
-
-                    <TextView
-                        android:id="@+id/tvTeam1Checks"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⚔️ 0 checks"
-                        android:textSize="11sp"
-                        android:textColor="#60A5FA"
-                        android:layout_marginTop="4dp"/>
                 </LinearLayout>
 
                 <!-- VS -->
@@ -163,44 +101,9 @@
                         android:textColor="#F43F5E"
                         android:maxLines="1"
                         android:ellipsize="end"/>
-
-                    <TextView
-                        android:id="@+id/tvTeam2Moves"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:textColor="#F43F5E"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="moves"
-                        android:textSize="11sp"
-                        android:textColor="#94A3B8"/>
-
-                    <TextView
-                        android:id="@+id/tvTeam2Checks"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⚔️ 0 checks"
-                        android:textSize="11sp"
-                        android:textColor="#FB7185"
-                        android:layout_marginTop="4dp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Total Moves -->
-            <TextView
-                android:id="@+id/tvTotalMoves"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Total moves: 0"
-                android:textSize="12sp"
-                android:textColor="#000000"
-                android:gravity="center"
-                android:layout_marginTop="8dp"/>
 
         </LinearLayout>
 
@@ -272,27 +175,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="visible"/>
-
-        <include
-            android:id="@+id/layoutMove"
-            layout="@layout/chess_move_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
-
-        <include
-            android:id="@+id/layoutCheck"
-            layout="@layout/chess_check_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
-
-        <include
-            android:id="@+id/layoutTerminal"
-            layout="@layout/chess_terminal_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
 
         <include
             android:id="@+id/layoutVoting"

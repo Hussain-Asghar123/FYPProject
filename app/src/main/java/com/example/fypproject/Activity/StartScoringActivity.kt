@@ -29,6 +29,7 @@ class StartScoringActivity : AppCompatActivity() {
     private var matchData: MatchResponse? = null
     private var matchId: Long = -1L
     private var sportId: Long = -1L
+    private var futsalHalfMins: Int = 20
 
     private var selectedTossWinnerId: Long? = null
     private var selectedDecision: String? = null
@@ -48,15 +49,14 @@ class StartScoringActivity : AppCompatActivity() {
 
     private var bdFormat: String = "singles"
     private var ttFormat: String = "singles"
+    private var ludoFormat: String = "1v1"
 
     private var squadTeam1 = listOf<TeamPlayerDto>()
     private var squadTeam2 = listOf<TeamPlayerDto>()
 
-    // Inline selection sets — live state for the two columns
     private val sel1 = mutableSetOf<Long>()
     private val sel2 = mutableSetOf<Long>()
 
-    // Exposed as lists for payload building
     private val team1PlayingIds get() = sel1.toMutableList()
     private val team2PlayingIds get() = sel2.toMutableList()
 
@@ -72,7 +72,7 @@ class StartScoringActivity : AppCompatActivity() {
     private val isTugOfWar    get() = sportId == 7L
     private val isChess       get() = sportId == 8L
 
-    private val needsLineup get() = isFutsal || isVolleyball || isBadminton || isTableTennis
+    private val needsLineup get() = isFutsal || isVolleyball || isBadminton || isTableTennis || isLudo ||isChess
 
     private val sportDecisions = mapOf(
         1L to Pair("Bat", "Bowl"),
@@ -83,6 +83,8 @@ class StartScoringActivity : AppCompatActivity() {
         get() = when {
             isBadminton   -> if (bdFormat == "singles") 1 else 2
             isTableTennis -> if (ttFormat == "singles") 1 else 2
+            isLudo -> if (ludoFormat == "1v1") 1 else 2
+            isChess->1
             else          -> Int.MAX_VALUE
         }
 
@@ -102,9 +104,6 @@ class StartScoringActivity : AppCompatActivity() {
         setupSportUI()
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Sport UI
-    // ─────────────────────────────────────────────────────────────
     private fun setupSportUI() {
         binding.oversRow.visibility                 = if (isCricket)     View.VISIBLE else View.GONE
         binding.volleyballConfigSection.visibility  = if (isVolleyball)  View.VISIBLE else View.GONE
@@ -112,8 +111,11 @@ class StartScoringActivity : AppCompatActivity() {
         binding.tugOfWarConfigSection.visibility    = if (isTugOfWar)    View.VISIBLE else View.GONE
         binding.badmintonConfigSection.visibility   = if (isBadminton)   View.VISIBLE else View.GONE
         binding.chessConfigSection.visibility       = if (isChess)       View.VISIBLE else View.GONE
+        binding.futsalConfigSection.visibility = if (isFutsal) View.VISIBLE else View.GONE
+        if (isFutsal) setupFutsalSteppers()
+        binding.ludoConfigSection.visibility = if (isLudo) View.VISIBLE else View.GONE
+        if (isLudo) setupLudoFormat()
 
-        // Format section is now INSIDE the squad card — show the card visibility based on sport
         binding.formatSection?.visibility = if (isBadminton || isTableTennis) View.VISIBLE else View.GONE
 
         if (isBadminton || isTableTennis) setupFormatToggle()
@@ -127,7 +129,6 @@ class StartScoringActivity : AppCompatActivity() {
             refreshBadmintonLabels(); setupBadmintonSteppers()
         }
 
-        // Show squad card shell if this sport needs lineup; players load after fetch
         if (needsLineup && matchData?.status?.uppercase() == "UPCOMING") {
             binding.squadCard.visibility = View.VISIBLE
             binding.tvSquadTeam1Label.text = matchData?.team1Name ?: "Team 1"
@@ -173,9 +174,49 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Format toggle (Singles / Doubles)
-    // ─────────────────────────────────────────────────────────────
+    private fun setupFutsalSteppers() {
+        binding.btnFutsalHalfDecrement.setOnClickListener {
+            if (futsalHalfMins > 5) { futsalHalfMins--; refreshFutsalLabels() }
+        }
+        binding.btnFutsalHalfIncrement.setOnClickListener {
+            futsalHalfMins++; refreshFutsalLabels()
+        }
+    }
+
+    private fun refreshFutsalLabels() {
+        binding.tvFutsalHalfValue.text = futsalHalfMins.toString()
+        binding.tvFutsalSummary.text = "$futsalHalfMins minutes per half"
+    }
+
+    private fun setupLudoFormat() {
+        fun highlight() {
+            binding.btnLudo1v1.setBackgroundColor(
+                if (ludoFormat == "1v1") Color.parseColor("#EA580C") else Color.parseColor("#E0E0E0")
+            )
+            binding.btnLudo2v2.setBackgroundColor(
+                if (ludoFormat == "2v2") Color.parseColor("#EA580C") else Color.parseColor("#E0E0E0")
+            )
+            binding.btnLudo1v1.setTextColor(if (ludoFormat == "1v1") Color.WHITE else Color.parseColor("#333333"))
+            binding.btnLudo2v2.setTextColor(if (ludoFormat == "2v2") Color.WHITE else Color.parseColor("#333333"))
+            binding.tvLudoFormatSummary.text = if (ludoFormat == "1v1")
+                "1 player per team — first to 4 home runs wins"
+            else
+                "2 players per team — first to 8 home runs wins"
+        }
+        highlight()
+
+        binding.btnLudo1v1.setOnClickListener {
+            ludoFormat = "1v1"; sel1.clear(); sel2.clear()
+            highlight()
+            if (squadTeam1.isNotEmpty()) refreshInlineSquadColumns()
+        }
+        binding.btnLudo2v2.setOnClickListener {
+            ludoFormat = "2v2"; sel1.clear(); sel2.clear()
+            highlight()
+            if (squadTeam1.isNotEmpty()) refreshInlineSquadColumns()
+        }
+    }
+
     private fun setupFormatToggle() {
         val btnSingles = binding.btnSingles ?: return
         val btnDoubles = binding.btnDoubles ?: return
@@ -203,9 +244,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Squad fetch
-    // ─────────────────────────────────────────────────────────────
     private fun fetchSquads() {
         val t1 = matchData?.team1Id ?: return
         val t2 = matchData?.team2Id ?: return
@@ -221,14 +259,10 @@ class StartScoringActivity : AppCompatActivity() {
             } finally {
                 showLoading(false)
             }
-            // Populate columns directly inside the card — no overlay
             refreshInlineSquadColumns()
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Inline squad columns — builds player buttons inside the card
-    // ─────────────────────────────────────────────────────────────
     private fun refreshInlineSquadColumns() {
         buildPlayerColumn(squadTeam1, sel1, binding.llTeam1Players)
         buildPlayerColumn(squadTeam2, sel2, binding.llTeam2Players)
@@ -287,7 +321,6 @@ class StartScoringActivity : AppCompatActivity() {
             if (!isCapped) {
                 btn.setOnClickListener {
                     if (id in sel) sel.remove(id) else sel.add(id)
-                    // Rebuild both columns so cap-state updates cross-column (futsal counts are independent)
                     buildPlayerColumn(squad, sel, col)
                     updateSquadHint()
                 }
@@ -305,9 +338,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Steppers
-    // ─────────────────────────────────────────────────────────────
     private fun setupVolleyballSteppers() {
         binding.btnSetsDecrement.setOnClickListener { if (vbSets > 1) { vbSets--; refreshVolleyballLabels() } }
         binding.btnSetsIncrement.setOnClickListener { vbSets++; refreshVolleyballLabels() }
@@ -363,9 +393,6 @@ class StartScoringActivity : AppCompatActivity() {
         binding.tvBdSummary.text       = "Best of ${bdSets * 2 - 1} games · $bdPointsPerSet pts each · $bdFinalSetPoints pts cap"
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  UI helpers
-    // ─────────────────────────────────────────────────────────────
     private fun updateDecisionLabel() {
         val name = when (selectedTossWinnerId) {
             matchData?.team1Id -> matchData?.team1Name ?: "Team"
@@ -386,7 +413,6 @@ class StartScoringActivity : AppCompatActivity() {
         if (isCricket) binding.oversText.text = if (match.overs != null) "${match.overs} Overs" else "-"
         binding.tossTeamABtn.text = match.team1Name ?: "Team A"
         binding.tossTeamBBtn.text = match.team2Name ?: "Team B"
-        // Also set squad card team labels
         binding.tvSquadTeam1Label.text = match.team1Name ?: "Team 1"
         binding.tvSquadTeam2Label.text = match.team2Name ?: "Team 2"
         when (match.status?.uppercase()) {
@@ -418,9 +444,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Buttons
-    // ─────────────────────────────────────────────────────────────
     private fun setupButtons() {
         binding.backButton.setOnClickListener { finish() }
         binding.tossTeamABtn.setOnClickListener {
@@ -444,12 +467,20 @@ class StartScoringActivity : AppCompatActivity() {
             val tossSelected     = selectedTossWinnerId != null
             val decisionSelected = selectedDecision != null || !decisionNeeded
 
-            // Validate squad selection if required
             if (needsLineup && squadTeam1.isNotEmpty()) {
                 val cap = maxPerTeam
                 if (cap != Int.MAX_VALUE && (sel1.size != cap || sel2.size != cap)) {
                     val label = if (cap == 1) "1 player" else "$cap players"
                     toastShort("Select exactly $label per team"); return@setOnClickListener
+                }
+            }
+            if (needsLineup && squadTeam1.isNotEmpty()) {
+                val cap = maxPerTeam
+                if ((isBadminton || isTableTennis || isLudo) && cap != Int.MAX_VALUE
+                    && (sel1.size != cap || sel2.size != cap)) {
+                    val label = if (cap == 1) "1 player" else "$cap players"
+                    toastShort("Select exactly $label per team")
+                    return@setOnClickListener
                 }
             }
 
@@ -463,9 +494,6 @@ class StartScoringActivity : AppCompatActivity() {
         binding.abandonNoBtn.setOnClickListener  { toastShort("Action cancelled") }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Start match
-    // ─────────────────────────────────────────────────────────────
     private fun startMatchCall() {
         showLoading(true)
         binding.startScoringBtn.isEnabled = false
@@ -484,14 +512,22 @@ class StartScoringActivity : AppCompatActivity() {
         }
 
         val payload = matchData?.copy(
-            tossWinnerId    = selectedTossWinnerId,
-            decision        = decisionToSend,
-            status          = "LIVE",
-            sets            = when { isVolleyball -> vbSets; isTableTennis -> ttGames; isBadminton -> bdSets; isTugOfWar -> towRounds; else -> matchData?.sets },
-            pointsPerSet    = when { isVolleyball -> vbPointsPerSet; isTableTennis -> ttPointsPerGame; isBadminton -> bdPointsPerSet; else -> matchData?.pointsPerSet },
-            finalSetPoints  = when { isVolleyball -> vbFinalSetPoints; isTableTennis -> 0; isBadminton -> bdFinalSetPoints; else -> matchData?.finalSetPoints },
-            team1PlayingIds = if (needsLineup) team1PlayingIds.ifEmpty { null } else null,
-            team2PlayingIds = if (needsLineup) team2PlayingIds.ifEmpty { null } else null,
+            tossWinnerId     = selectedTossWinnerId,
+            decision         = decisionToSend,
+            status           = "LIVE",
+            sets             = when { isVolleyball -> vbSets; isTableTennis -> ttGames; isBadminton -> bdSets; isTugOfWar -> towRounds; else -> matchData?.sets },
+            pointsPerSet     = when { isVolleyball -> vbPointsPerSet; isTableTennis -> ttPointsPerGame; isBadminton -> bdPointsPerSet; else -> matchData?.pointsPerSet },
+            finalSetPoints   = when { isVolleyball -> vbFinalSetPoints; isTableTennis -> 0; isBadminton -> bdFinalSetPoints; else -> matchData?.finalSetPoints },
+            team1PlayingIds  = if (needsLineup) team1PlayingIds.ifEmpty { null } else null,
+            team2PlayingIds  = if (needsLineup) team2PlayingIds.ifEmpty { null } else null,
+            halfDurationMins = if (isFutsal) futsalHalfMins else matchData?.halfDurationMins,
+            scorerId         = binding.etScorerUsername.text?.toString()?.trim()
+                ?.takeIf { it.isNotEmpty() } ?: matchData?.scorerId,
+            matchFormat      = when {
+                isLudo  -> ludoFormat
+                isChess -> "1v1"
+                else    -> matchData?.matchFormat
+            },
         ) ?: run {
             toastShort("Match data missing"); showLoading(false)
             binding.startScoringBtn.isEnabled = true; binding.startScoringBtn.alpha = 1f; return
@@ -513,9 +549,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Abandon
-    // ─────────────────────────────────────────────────────────────
     private fun showAbandonDialog() {
         AlertDialog.Builder(this)
             .setTitle("Are you sure?")
@@ -550,9 +583,6 @@ class StartScoringActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  Utils
-    // ─────────────────────────────────────────────────────────────
     private fun highlightBtn(selected: MaterialButton, unselected: MaterialButton) {
         selected.setBackgroundColor(colorGreen)
         unselected.setBackgroundColor(colorRed)
