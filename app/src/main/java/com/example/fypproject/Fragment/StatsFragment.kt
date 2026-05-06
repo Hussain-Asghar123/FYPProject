@@ -43,6 +43,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         prefs.getString("role", "").equals("ADMIN", ignoreCase = true)
     }
 
+    private var hasLoadedOnce = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStatsBinding.bind(view)
@@ -51,7 +53,9 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         sportId      = arguments?.getLong("sportId")      ?: -1L
         sportName    = arguments?.getString("sportName").orEmpty()
 
-        if (tournamentId != -1L) loadStats()
+        if (tournamentId != -1L)
+            loadStats()
+        hasLoadedOnce=true
     }
 
     override fun onDestroyView() {
@@ -65,17 +69,17 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val stats = api.getTournamentStats(tournamentId)
+                setLoading(false)
                 populateUI(stats)
             } catch (e: Exception) {
                 if (e is java.net.SocketTimeoutException && retryCount < 5) {
-                    delay(18000)
+                    delay(2000)
                     loadStats(retryCount + 1)
                 } else {
+                    setLoading(false)
                     Log.e("StatsFragment", "loadStats error: ${e.message}", e)
                     showError()
                 }
-            } finally {
-                setLoading(false)
             }
         }
     }
@@ -792,6 +796,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     override fun onResume() {
         super.onResume()
-        if (tournamentId != -1L) loadStats()
+        if (tournamentId != -1L && hasLoadedOnce) loadStats()
     }
 }

@@ -930,21 +930,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- ── START SCORING BUTTON ── -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/startScoringBtn"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Start Scoring"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                app:backgroundTint="#E31212"
-                app:cornerRadius="12dp"
-                app:elevation="6dp"
-                android:layout_marginBottom="12dp"/>
-
             <!-- SCORER INPUT -->
             <TextView
                 android:layout_width="wrap_content"
@@ -969,6 +954,21 @@
                     android:hint="Enter scorer username"
                     android:inputType="text"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ── START SCORING BUTTON ── -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/startScoringBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Start Scoring"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                app:backgroundTint="#E31212"
+                app:cornerRadius="12dp"
+                app:elevation="6dp"
+                android:layout_marginBottom="12dp"/>
 
             <!-- ── ABANDON SECTION ── -->
             <TextView
