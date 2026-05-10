@@ -74,7 +74,7 @@
             android:layout_marginHorizontal="6dp"
             android:backgroundTint="#EEEEEE"
             android:text="Highlights"
-            android:textColor="#333333"
+            android:textColor="#ffffff"
             android:textSize="13sp"
             android:textStyle="bold"
             app:cornerRadius="21dp" />
@@ -87,7 +87,7 @@
             android:layout_marginStart="6dp"
             android:backgroundTint="#EEEEEE"
             android:text="Info"
-            android:textColor="#333333"
+            android:textColor="#ffffff"
             android:textSize="13sp"
             android:textStyle="bold"
             app:cornerRadius="21dp" />

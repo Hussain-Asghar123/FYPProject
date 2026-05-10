@@ -2,7 +2,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
@@ -29,8 +28,8 @@
             android:layout_height="wrap_content"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="16dp"
             android:background="@color/white">
 
             <!-- Team A Name -->
@@ -51,7 +50,7 @@
                 app:layout_constraintBottom_toBottomOf="@id/score"
                 app:layout_constraintWidth_percent="0.3"/>
 
-            <!-- Score -->
+            <!-- Score  ← centered, pinned to top -->
             <TextView
                 android:id="@+id/score"
                 android:layout_width="wrap_content"
@@ -65,21 +64,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
-
-            <TextView
-                android:id="@+id/tvDeuce"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="⚔️ DEUCE — Lead by 2 to win"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#7C3AED"
-                android:gravity="center"
-                android:padding="10dp"
-                android:visibility="gone"
-                android:background="#EDE9FE"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="4dp"/>
 
             <!-- Team B Name -->
             <TextView
@@ -99,42 +83,12 @@
                 app:layout_constraintBottom_toBottomOf="@id/score"
                 app:layout_constraintWidth_percent="0.3"/>
 
-
-            <TextView
-                android:id="@+id/tvSetValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:includeFontPadding="false"
-                android:text="Set1"
-                android:textColor="#111111"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@id/score"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
-
-            <TextView
-                android:id="@+id/tvSetTimer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="00:00"
-                android:textColor="#E31212"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp"
-                android:letterSpacing="0.05"
-                app:layout_constraintTop_toBottomOf="@id/tvSetValue"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:visibility="gone"/>
-
+            <!-- Set Indicators Team A — below Team A name -->
             <LinearLayout
                 android:id="@+id/layoutTeamASetIndicators"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/teamA"
@@ -148,11 +102,12 @@
                     android:background="@drawable/bg_set_indicator_empty"/>
             </LinearLayout>
 
+            <!-- Set Indicators Team B — below Team B name -->
             <LinearLayout
                 android:id="@+id/layoutTeamBSetIndicators"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/teamB"
@@ -167,6 +122,56 @@
             </LinearLayout>
 
 
+            <!-- Game label — 12dp below score, NOT bottom-anchored -->
+            <TextView
+                android:id="@+id/tvSetValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:includeFontPadding="false"
+                android:text="Set 1"
+                android:textColor="#111111"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toBottomOf="@id/score"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <!-- Timer — 10dp below game label -->
+            <TextView
+                android:id="@+id/tvSetTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="00:00"
+                android:textColor="#E31212"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:includeFontPadding="false"
+                app:layout_constraintTop_toBottomOf="@id/tvSetValue"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:visibility="gone"/>
+
+            <!-- Deuce Banner — below timer (or tvSetValue when timer gone) -->
+            <TextView
+                android:id="@+id/tvDeuce"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚔️ DEUCE — Lead by 2 to win"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#7C3AED"
+                android:gravity="center"
+                android:padding="10dp"
+                android:visibility="gone"
+                android:background="#EDE9FE"
+                android:layout_marginTop="6dp"
+                app:layout_constraintTop_toBottomOf="@id/tvSetTimer"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -262,7 +267,6 @@
             android:layout_height="match_parent"
             android:visibility="gone"/>
 
-        <!-- Substitution panel -->
         <include
             android:id="@+id/subsitute"
             layout="@layout/layout_subsitute"
@@ -270,7 +274,6 @@
             android:layout_height="match_parent"
             android:visibility="gone"/>
 
-        <!-- Summary panel -->
         <include
             android:id="@+id/summary"
             layout="@layout/layout_badmintion_summary"
@@ -278,14 +281,12 @@
             android:layout_height="match_parent"
             android:visibility="gone"/>
 
-        <!-- Voting panel -->
         <include
             android:id="@+id/layoutVoting"
             layout="@layout/layout_voting"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>
-
 
         <LinearLayout
             android:id="@+id/layoutProgressBar"

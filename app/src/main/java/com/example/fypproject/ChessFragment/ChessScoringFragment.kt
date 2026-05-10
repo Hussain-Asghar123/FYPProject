@@ -76,6 +76,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     private var pendingComment: String? = null
     private var cameraImageUri: Uri? = null
     private var isUploading = false
+    private var canAddMedia = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -106,8 +107,12 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
-                showTab("moves")
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
+                showTab("events")
             }
         }
     }
@@ -124,14 +129,15 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     }
 
     private fun computeCanEdit() {
-        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role     = prefs.getString("role",     "")?.trim().orEmpty()
-        val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer   = matchResponse?.scorerId?.trim().orEmpty()
-        val media    = matchResponse?.mediaScorerId?.trim().orEmpty()
+        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role        = prefs.getString("role", "")?.trim().orEmpty()
+        val username    = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer      = matchResponse?.scorerId?.trim().orEmpty()
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || media.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
+
     }
 
     private fun setupBottomTabs() {
@@ -163,7 +169,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
 
     private fun setupEventsRecycler() {
         eventsAdapter = ChessEventAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter       = eventsAdapter

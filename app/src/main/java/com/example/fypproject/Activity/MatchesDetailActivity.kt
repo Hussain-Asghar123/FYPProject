@@ -36,8 +36,27 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
 
         adapter = MatchesDetailAdapter(mutableListOf()) { match ->
-            toastShort("${match.team1Name} vs ${match.team2Name}")
-            MatchNavigator.navigate(this@MatchesDetailActivity, match)
+            val prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val role = prefs.getString("role", "")
+            val username = prefs.getString("username", "")
+
+            val isAdmin = role == "ADMIN"
+            val isAssignedScorer = !match.scorerId.isNullOrBlank() &&
+                    match.scorerId == username
+
+            if (match.status == "UPCOMING") {
+                if (isAdmin || isAssignedScorer) {
+                    MatchNavigator.navigate(this@MatchesDetailActivity, match)
+                } else {
+                    androidx.appcompat.app.AlertDialog.Builder(this@MatchesDetailActivity)
+                        .setTitle("Access Restricted")
+                        .setMessage("Only Admin or Assigned Scorer can start a match.")
+                        .setPositiveButton("OK") { d, _ -> d.dismiss() }
+                        .show()
+                }
+            } else {
+                MatchNavigator.navigate(this@MatchesDetailActivity, match)
+            }
         }
 
         binding.rvMatches.layoutManager = LinearLayoutManager(this)

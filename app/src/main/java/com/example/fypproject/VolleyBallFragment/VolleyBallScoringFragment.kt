@@ -101,6 +101,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     private var selectedPointType: String? = null
     private var selectedPointTeamId: Long? = null
     private var subTeamId: Long? = null
+    private var canAddMedia = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -125,7 +126,11 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
                 showTab("events")
             }
         }
@@ -172,11 +177,11 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         val role        = prefs.getString("role", "")?.trim().orEmpty()
         val username    = prefs.getString("username", "")?.trim().orEmpty()
         val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
-
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
+
     }
 
     private fun setupBottomTabs() {
@@ -207,7 +212,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
     private fun setupEventsRecycler() {
         eventsAdapter = VolleyBallEventsAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter

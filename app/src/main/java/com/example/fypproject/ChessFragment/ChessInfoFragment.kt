@@ -77,6 +77,7 @@ class ChessInfoFragment : Fragment(R.layout.info_fragment) {
                 tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
                 tvTournament.text = match.tournamentName
                 tvMatchScorer.text = match.scorerId
+                tvMediaScorer.text=match.mediaScorerUsername
                 tvStatus.text = match.status
                 tvVenue.text = match.venue
                 tvDate.text = formatDateTime(match.date)

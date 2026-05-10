@@ -83,6 +83,7 @@ class InfoFragment: Fragment(R.layout.info_fragment) {
                 tvMatchTitle.text = "${match.team1Name} vs ${match.team2Name}"
                 tvTournament.text = match.tournamentName
                 tvMatchScorer.text = match.scorerId
+                tvMediaScorer.text=match.mediaScorerUsername
                 tvOvers.text = match.overs.toString()
                 tvStatus.text = match.status
                 tvVenue.text = match.venue

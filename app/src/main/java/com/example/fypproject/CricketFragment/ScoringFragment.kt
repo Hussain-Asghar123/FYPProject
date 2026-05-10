@@ -4,10 +4,8 @@ import android.content.Context.MODE_PRIVATE
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -97,6 +95,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var cameraImageUri: Uri? = null
     private var isUploading = false
 
+    private var canAddMedia: Boolean = false
+
     private var isVotingActive: Boolean = false
     private var summaryPollingJob: kotlinx.coroutines.Job? = null
     private val cameraLauncher =
@@ -174,14 +174,20 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun computeCanEdit(match: MatchResponse?): Boolean {
-        val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val role = prefs.getString("role", "")?.trim().orEmpty()
-        val username = prefs.getString("username", "")?.trim().orEmpty()
-        val scorer = match?.scorerId?.trim().orEmpty()
-        val mediaScorer = match?.mediaScorerId?.trim().orEmpty()
-        return role.equals("ADMIN", true)
+        val prefs       = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val role        = prefs.getString("role", "")?.trim().orEmpty()
+        val username    = prefs.getString("username", "")?.trim().orEmpty()
+        val scorer      = match?.scorerId?.trim().orEmpty()
+        val mediaScorer = match?.mediaScorerUsername?.trim().orEmpty()
+
+        // canAddMedia alag compute karo — original logic mat badlo
+        canAddMedia = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
                 || mediaScorer.equals(username, true)
+
+        // canEdit mein sirf mediaScorer wali line hatao
+        return role.equals("ADMIN", true)
+                || scorer.equals(username, true)
     }
 
     private fun saveMediaBallId(ballId: Long) {
@@ -655,7 +661,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         for (ball in displayedBalls) {
             val ballView = BallViewHelper.createBallView(requireContext(), ball)
             ballView.setOnClickListener {
-                ball.id?.let { ballId -> showMediaDialog(ballId) }
+                if (canAddMedia) {
+                    ball.id?.let { ballId -> showMediaDialog(ballId) }
+                }
             }
             container.addView(ballView)
         }

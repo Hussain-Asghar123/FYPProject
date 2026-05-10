@@ -60,13 +60,19 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         binding.btnTeamA.setOnClickListener {
             showingTeamA = true
             highlightTab(true)
-            ScoreCardTeamA?.let { updateUI(it) } ?: fetchScoreCard(true)
+            ScoreCardTeamA?.let { updateUI(it) } ?: run {
+                showLoadingState() // ✅ loading tab bhi dikhao
+                fetchScoreCard(true)
+            }
         }
 
         binding.btnTeamB.setOnClickListener {
             showingTeamA = false
             highlightTab(false)
-            ScoreCardTeamB?.let { updateUI(it) } ?: fetchScoreCard(false)
+            ScoreCardTeamB?.let { updateUI(it) } ?: run {
+                showLoadingState() // ✅ loading tab bhi dikhao
+                fetchScoreCard(false)
+            }
         }
 
         fetchScoreCard(true)
@@ -153,8 +159,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         binding.btnTeamA.setTextColor(if (isTeamA) activeText else inactiveText)
         binding.btnTeamB.setBackgroundColor(if (isTeamA) inactiveColor else activeColor)
         binding.btnTeamB.setTextColor(if (isTeamA) inactiveText else activeText)
-        
-        showContentView()
+
     }
 
     private fun registerSocketListeners() {

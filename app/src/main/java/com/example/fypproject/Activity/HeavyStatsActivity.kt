@@ -54,6 +54,16 @@ class HeavyStatsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityHeavyStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val role = getSharedPreferences("MyPrefs", MODE_PRIVATE).getString("role", "")
+        if (role == "ADMIN") {
+            binding.statsContainer.visibility = View.GONE
+            binding.sportSelectorContainer.visibility = View.GONE
+            binding.tvTournamentEmptyState.visibility = View.GONE
+            binding.tvTournamentEmptyState.text = "Stats are not available for Admin account."
+            binding.tvTournamentEmptyState.visibility = View.VISIBLE
+            binding.btnBack.setOnClickListener { finish() }
+            return
+        }
 
         playerId = getSharedPreferences("MyPrefs", MODE_PRIVATE).getLong("playerId", -1L)
         if (playerId == -1L) {

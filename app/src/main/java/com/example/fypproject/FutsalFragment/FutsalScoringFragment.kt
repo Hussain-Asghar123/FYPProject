@@ -43,6 +43,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var currentStatus  = "LIVE"
     private var currentHalf    = 1
     private var elapsedMinutes = 0
+    private var canAddMedia = false
     private val SOCKET_KEY = "FutsalScoringFragment"
     private val handler        = Handler(Looper.getMainLooper())
     private var timerRunnable: Runnable? = null
@@ -97,7 +98,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
                 showTab("events")
             }
         }
@@ -127,10 +132,11 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
         val role        = prefs.getString("role", "")?.trim().orEmpty()
         val username    = prefs.getString("username", "")?.trim().orEmpty()
         val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
+
     }
 
     private fun getBundleData() {
@@ -172,7 +178,7 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
     private fun setupEventsRecycler() {
         eventsAdapter = FutsalEventsAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter

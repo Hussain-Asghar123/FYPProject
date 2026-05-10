@@ -91,6 +91,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     private var selectedPointTeamId: Long?  = null
     private var selectedFoulType: String?   = null
     private var selectedFoulTeamId: Long?   = null
+    private var canAddMedia = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -122,7 +123,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
                 showTab("events")
             }
         }
@@ -167,11 +172,11 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
         val role        = prefs.getString("role", "")?.trim().orEmpty()
         val username    = prefs.getString("username", "")?.trim().orEmpty()
         val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
-
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
+
     }
 
     private fun setupBottomTabs() {
@@ -203,7 +208,7 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
 
     private fun setupEventsRecycler() {
         eventsAdapter = TableTennisEventAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter

@@ -73,6 +73,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private var pendingEventId: Long? = null
     private var cameraImageUri: Uri? = null
     private var isUploading = false
+    private var canAddMedia = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -104,7 +105,11 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
                 showTab("events")
             }
         }
@@ -188,11 +193,11 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
         val role        = prefs.getString("role", "")?.trim().orEmpty()
         val username    = prefs.getString("username", "")?.trim().orEmpty()
         val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
-
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
+
     }
 
     private fun setupBottomTabs() {
@@ -262,7 +267,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private fun setupEventsRecycler() {
         eventsAdapter = TugOfWarEventAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter

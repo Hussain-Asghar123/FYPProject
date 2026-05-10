@@ -94,6 +94,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private var selectedFoulType: String?   = null
     private var selectedFoulTeamId: Long?   = null
     private var subTeamId: Long?            = null
+    private var canAddMedia = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -119,17 +120,22 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         if (isCompleted) {
             binding.scoringTabContent.visibility = View.VISIBLE
             binding.eventsTabContent.visibility  = View.GONE
-            votingAlreadyTriggered = true        // ← ADD
+            votingAlreadyTriggered = true
             showPanel("loading")
         } else {
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
-            } else {
+            }
+            else if (canAddMedia) {
+                showTab("events")
+            }
+            else {
                 showTab("events")
             }
         }
     }
+
     private fun getBundleData() {
         matchResponse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getSerializable("match_response", MatchResponse::class.java)
@@ -146,11 +152,10 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         val role        = prefs.getString("role", "")?.trim().orEmpty()
         val username    = prefs.getString("username", "")?.trim().orEmpty()
         val scorer      = matchResponse?.scorerId?.trim().orEmpty()
-        val mediaScorer = matchResponse?.mediaScorerId?.trim().orEmpty()
-
+        val mediaScorer = matchResponse?.mediaScorerUsername?.trim().orEmpty()
         canEdit = role.equals("ADMIN", true)
                 || scorer.equals(username, true)
-                || mediaScorer.equals(username, true)
+        canAddMedia= canEdit || mediaScorer.equals(username, true)
     }
 
     private fun setupBottomTabs() {
@@ -184,11 +189,12 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun setupEventsRecycler() {
         eventsAdapter = BadmintionEventAdapter(eventsList) { event ->
-            if (canEdit) showMediaDialog(event.id)
+            if (canAddMedia) showMediaDialog(event.id)
         }
         binding.rvEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvEvents.adapter = eventsAdapter
     }
+
     private fun fetchCompletedMatchDataThenVote() {
         if (_binding == null || !isAdded) return
         loadAndShowVotingThenSummary()
@@ -250,7 +256,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             setScoringButtonsEnabled(false)
             sendEvent(JSONObject().put("eventType", "END_GAME"))
         }
-
 
         binding.layoutScoring.btnUndo.setOnClickListener {
             if (isActionPending) return@setOnClickListener
@@ -318,7 +323,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             val playerId = p.spinnerPlayer.selectedId()
             if (playerId != null) json.put("playerId", playerId)
             sendEvent(json)
-            // Don't show scoring panel yet - wait for response
             showPanel("scoring")
         }
     }
@@ -359,7 +363,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             val playerId = f.spinnerPlayer.selectedId()
             if (playerId != null) json.put("playerId", playerId)
             sendEvent(json)
-            // Don't show scoring panel yet - wait for response
             showPanel("scoring")
         }
     }
@@ -368,6 +371,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private fun setupSubPanel() {
         val s = binding.subsitute
         subTeamId = null
+
         s.tvClose.setOnClickListener { showPanel("scoring") }
 
         val teamNames = listOf(
@@ -380,8 +384,19 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         s.spinnerTeam.setup(teamNames) { pos ->
             subTeamId = teamIds[pos]
             val players = if (subTeamId == matchResponse?.team1Id) team1Players else team2Players
+
             s.spinnerPlaying.setupWithPlayers("Select Player OUT", players)
-            s.spinnerBenched.setupWithPlayers("Select Player IN",  players)
+            s.spinnerBenched.setupEmpty("Select Player IN")
+
+            // OUT select → IN filter (bug fix: spinnerBenched fill karo, spinnerPlaying nahi)
+            s.spinnerPlaying.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+                override fun onItemSelected(p: AdapterView<*>?, v: View?, position: Int, id: Long) {
+                    val outId    = (s.spinnerPlaying.tag as? List<Int?>)?.getOrNull(position)
+                    val filtered = players.filter { it.id != outId }
+                    s.spinnerBenched.setupWithPlayers("Select Player IN", filtered)
+                }
+            }
         }
 
         s.spinnerPlaying.setupEmpty("Select Player OUT")
@@ -391,20 +406,20 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             val teamId = subTeamId
             val outId  = s.spinnerPlaying.selectedId()
             val inId   = s.spinnerBenched.selectedId()
-            if (teamId == null) { toast("Select Team");       return@setOnClickListener }
-            if (outId  == null) { toast("Select Out Player"); return@setOnClickListener }
-            if (inId   == null) { toast("Select In Player");  return@setOnClickListener }
+            if (teamId == null) { toast("Select Team");                   return@setOnClickListener }
+            if (outId  == null) { toast("Select Out Player");             return@setOnClickListener }
+            if (inId   == null) { toast("Select In Player");              return@setOnClickListener }
             if (outId  == inId) { toast("Different players select karo"); return@setOnClickListener }
             if (isActionPending) return@setOnClickListener
             isActionPending = true
             setScoringButtonsEnabled(false)
-
-            sendEvent(JSONObject()
-                .put("eventType",   "SUBSTITUTION")
-                .put("teamId",      teamId)
-                .put("outPlayerId", outId)
-                .put("inPlayerId",  inId))
-            // Don't show scoring panel yet - wait for response
+            sendEvent(
+                JSONObject()
+                    .put("eventType",   "SUBSTITUTION")
+                    .put("teamId",      teamId)
+                    .put("outPlayerId", outId)
+                    .put("inPlayerId",  inId)
+            )
             showPanel("scoring")
         }
     }
@@ -423,7 +438,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
                 team2Points >= pointsPerGame - 1
         binding.tvDeuce.visibility = if (isDeuce) View.VISIBLE else View.GONE
         binding.tvDeuce.text = "⚔️ DEUCE — Lead by 2 to win (max $maxPoints)"
-
     }
 
     // ── Set Circles ──────────────────────────────────────────────
@@ -524,7 +538,6 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
-    // 3. onHiddenChanged ADD karo:
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) setupSocketListeners()
@@ -603,30 +616,26 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             setScoringButtonsEnabled(true)
         }
 
-        val status = matchStatus.uppercase() // ya matchStatus
+        val status = matchStatus.uppercase()
 
-// REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
             votingAlreadyTriggered &&
             binding.layoutProgressBar.visibility == View.VISIBLE) {
-            loadAndShowVotingThenSummary()  // Ab data populated hai → safe hai
+            loadAndShowVotingThenSummary()
             return
         }
 
-// Guard: voting ya summary already dikh rahi hai to interrupt mat karo
         if (binding.layoutVoting.root.visibility == View.VISIBLE ||
             binding.summary.root.visibility == View.VISIBLE) {
             return
         }
 
-// Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
     }
-
 
     private fun parseBadmintonEvent(obj: JSONObject) {
         val eventType = obj.optString("eventType", "").ifEmpty { return }
@@ -660,7 +669,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
             gameNumber       = gameNum,
             playerName       = playerName,
             teamName         = teamName,
-            scoreSnapshot = scoreSnapshot
+            scoreSnapshot    = scoreSnapshot
         ))
     }
 
@@ -879,19 +888,15 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
                 val response    = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.createMedia(matchIdBody, eventIdBody, filePart, commentBody)
                 }
-                if (response.isSuccessful) {
-                    toast("✅ Upload Successful!")
-                }
-                else {
-                    toast("❌ Upload failed: ${response.code()}")
-                }
+                if (response.isSuccessful) toast("✅ Upload Successful!")
+                else toast("❌ Upload failed: ${response.code()}")
             } catch (e: Exception) {
                 toast("❌ Upload failed: ${e.message}")
             } finally {
                 binding.layoutProgressBar.visibility = View.GONE
                 isUploading    = false
                 pendingEventId = null
-                pendingComment=null
+                pendingComment = null
             }
         }
     }
@@ -908,6 +913,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         requireActivity().getSharedPreferences("VotePrefs", MODE_PRIVATE)
             .edit().putBoolean("voted_match_${matchId}_user_${accountId}", true).apply()
     }
+
     private fun getAccountId() =
         requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
             .getLong("id", -1L)
@@ -948,7 +954,7 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
     private fun List<TeamPlayerDto>.toScoringPlayers() = mapNotNull { dto ->
         val id   = dto.id?.toInt()
         val name = dto.name
-        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name,status="")
+        if (id == null || name.isNullOrBlank()) null else Player(id = id, name = name, status = "")
     }
 
     override fun onResume() {
@@ -974,4 +980,3 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
         }
     }
 }
-

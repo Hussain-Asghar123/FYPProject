@@ -4,6 +4,9 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +35,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var upcomingAdapter: MatchAdapter
     private lateinit var sportButtons: List<MaterialButton>
     private var currentSportFilter = "All Sports"
+    private var autoRefreshJob: Job? = null
     private var loadingCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -185,7 +189,23 @@ class HomeActivity : AppCompatActivity() {
             MatchNavigator.navigate(this@HomeActivity, match)
         }
         upcomingAdapter = MatchAdapter(mutableListOf(), false) { match ->
-            MatchNavigator.navigate(this@HomeActivity, match)
+            val prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val role = prefs.getString("role", "")
+            val username = prefs.getString("username", "")
+
+            val isAdmin = role == "ADMIN"
+            val isAssignedScorer = !match.scorerId.isNullOrBlank() &&
+                    match.scorerId == username|| match.mediaScorerUsername == username
+
+            if (isAdmin || isAssignedScorer) {
+                MatchNavigator.navigate(this@HomeActivity, match)
+            } else {
+                AlertDialog.Builder(this@HomeActivity)
+                    .setTitle("Access Restricted")
+                    .setMessage("Only Admin or Assigned Scorer can start a match.")
+                    .setPositiveButton("OK") { d, _ -> d.dismiss() }
+                    .show()
+            }
         }
 
         binding.recyclerLiveMatches.adapter = liveAdapter
@@ -193,6 +213,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupNavigationDrawer() {
+        val role = getSharedPreferences("MyPrefs", MODE_PRIVATE).getString("role", "")
+        binding.menuManageAccount.visibility = if (role == "ADMIN") View.VISIBLE else View.GONE
         binding.btnMenu.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.END)
         }
@@ -340,5 +362,16 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         fetchAllForCurrentSport()
+        autoRefreshJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(15_000)
+                fetchAllForCurrentSport()
+            }
+        }
+    }
+    override fun onPause() {
+        super.onPause()
+        autoRefreshJob?.cancel()
+        autoRefreshJob = null
     }
 }
