@@ -307,30 +307,30 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     }
 
     private fun startMatchTimer(startTime: Long) {
-        timerTask?.cancel()
-        matchStartTimeMs = startTime
-        timerEverStarted = true
-
-        activity?.runOnUiThread {
-            if (_binding != null) binding.tvTimer.visibility = View.VISIBLE
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || matchStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - matchStartTimeMs) / 1000
-                    val h = elapsed / 3600
-                    val m = (elapsed % 3600) / 60
-                    val s = elapsed % 60
-                    binding.tvTimer.text = if (h > 0)
-                        String.format("%02d:%02d:%02d", h, m, s)
-                    else
-                        String.format("%02d:%02d", m, s)
-                }
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+//        timerTask?.cancel()
+//        matchStartTimeMs = startTime
+//        timerEverStarted = true
+//
+////        activity?.runOnUiThread {
+////            if (_binding != null) binding.tvTimer.visibility = View.VISIBLE
+////        }
+//
+//        timerTask = object : TimerTask() {
+//            override fun run() {
+//                activity?.runOnUiThread {
+//                    if (_binding == null || matchStartTimeMs == 0L) return@runOnUiThread
+//                    val elapsed = (System.currentTimeMillis() - matchStartTimeMs) / 1000
+//                    val h = elapsed / 3600
+//                    val m = (elapsed % 3600) / 60
+//                    val s = elapsed % 60
+//                    binding.tvTimer.text = if (h > 0)
+//                        String.format("%02d:%02d:%02d", h, m, s)
+//                    else
+//                        String.format("%02d:%02d", m, s)
+//                }
+//            }
+//        }
+//        timer.scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
     private fun setupSocketListeners() {
