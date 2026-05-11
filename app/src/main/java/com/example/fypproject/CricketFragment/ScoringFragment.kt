@@ -289,7 +289,16 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
         autoRecoverSelectionState(normalizedScore)
 
+        // User side innings swap — canEdit se independent
+        if (!score.superOver && !score.firstInnings && isFirstInnings) {
+            switchInnings()
+        }
+        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE" || score.matchEnd) {
+            loadAndShowVotingThenSummary()
+            return
+        }
         handleModalLogic(normalizedScore)
+
 
         binding.tvTeamName.text = battingTeamName
         binding.tvMainScore.text = "${normalizedScore.runs}-${normalizedScore.wickets}"
@@ -397,7 +406,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             return
         }
 
-        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE") {
+        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE"||score.matchEnd) {
             loadAndShowVotingThenSummary(); return
         }
 

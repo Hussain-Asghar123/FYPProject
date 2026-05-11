@@ -441,25 +441,25 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     }
 
     private fun startRoundTimer(startTime: Long) {
-        timerTask?.cancel()
-        roundStartTimeMs = startTime
-        timerEverStarted = true
-
-        activity?.runOnUiThread {
-            if (_binding != null) binding.tvTimer.visibility = View.VISIBLE
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || roundStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - roundStartTimeMs) / 1000
-                    binding.tvTimer.text =
-                        String.format(Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60)
-                }
-            }
-        }
-        timer.schedule(timerTask, 0, 1000)
+//        timerTask?.cancel()
+//        roundStartTimeMs = startTime
+//        timerEverStarted = true
+//
+//        activity?.runOnUiThread {
+//            if (_binding != null) binding.tvTimer.visibility = View.VISIBLE
+//        }
+//
+//        timerTask = object : TimerTask() {
+//            override fun run() {
+//                activity?.runOnUiThread {
+//                    if (_binding == null || roundStartTimeMs == 0L) return@runOnUiThread
+//                    val elapsed = (System.currentTimeMillis() - roundStartTimeMs) / 1000
+//                    binding.tvTimer.text =
+//                        String.format(Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60)
+//                }
+//            }
+//        }
+//        timer.schedule(timerTask, 0, 1000)
     }
 
     private fun handleServerUpdate(obj: JSONObject) {

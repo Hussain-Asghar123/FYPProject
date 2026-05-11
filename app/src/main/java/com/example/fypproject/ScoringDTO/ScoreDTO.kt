@@ -50,5 +50,6 @@ data class ScoreDTO(
     @SerializedName("bowlerStats")   var bowlerStats: PlayerStatsDto? = null,
     @SerializedName("availableBatters") var availableBatters: List<com.example.fypproject.DTO.TeamPlayerDto>? = null,
     @SerializedName("availableBowlers") var availableBowlers: List<com.example.fypproject.DTO.TeamPlayerDto>? = null,
-    var cricketBalls: List<CricketBall>? = null
+    var cricketBalls: List<CricketBall>? = null,
+    var matchEnd : Boolean = false
 ) : Serializable

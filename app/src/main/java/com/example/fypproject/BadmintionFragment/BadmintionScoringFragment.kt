@@ -472,25 +472,25 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     // ── Timer ────────────────────────────────────────────────────
     private fun startGameTimer(startTime: Long) {
-        timerTask?.cancel()
-        gameStartTimeMs = startTime
-
-        activity?.runOnUiThread {
-            if (_binding != null) {
-                binding.tvSetTimer.visibility = View.VISIBLE
-            }
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || gameStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - gameStartTimeMs) / 1000
-                    binding.tvSetTimer.text = String.format("%02d:%02d", elapsed / 60, elapsed % 60)
-                }
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+//        timerTask?.cancel()
+//        gameStartTimeMs = startTime
+//
+//        activity?.runOnUiThread {
+//            if (_binding != null) {
+//                binding.tvSetTimer.visibility = View.VISIBLE
+//            }
+//        }
+//
+//        timerTask = object : TimerTask() {
+//            override fun run() {
+//                activity?.runOnUiThread {
+//                    if (_binding == null || gameStartTimeMs == 0L) return@runOnUiThread
+//                    val elapsed = (System.currentTimeMillis() - gameStartTimeMs) / 1000
+//                    binding.tvSetTimer.text = String.format("%02d:%02d", elapsed / 60, elapsed % 60)
+//                }
+//            }
+//        }
+//        timer.scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
     private fun setupSocketListeners() {

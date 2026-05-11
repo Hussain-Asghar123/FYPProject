@@ -416,24 +416,24 @@ class TableTennisScoringFragment : Fragment(R.layout.tabletennis_scoring_fragmen
     }
 
     private fun startGameTimer(startTime: Long) {
-        timerTask?.cancel()
-        gameStartTimeMs  = startTime
-        timerEverStarted = true
-
-        activity?.runOnUiThread {
-            if (_binding != null) binding.timer.visibility = View.VISIBLE
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || gameStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - gameStartTimeMs) / 1000
-                    binding.timer.text = String.format("%02d:%02d", elapsed / 60, elapsed % 60)
-                }
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+//        timerTask?.cancel()
+//        gameStartTimeMs  = startTime
+//        timerEverStarted = true
+//
+//        activity?.runOnUiThread {
+//            if (_binding != null) binding.timer.visibility = View.VISIBLE
+//        }
+//
+//        timerTask = object : TimerTask() {
+//            override fun run() {
+//                activity?.runOnUiThread {
+//                    if (_binding == null || gameStartTimeMs == 0L) return@runOnUiThread
+//                    val elapsed = (System.currentTimeMillis() - gameStartTimeMs) / 1000
+//                    binding.timer.text = String.format("%02d:%02d", elapsed / 60, elapsed % 60)
+//                }
+//            }
+//        }
+//        timer.scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
     private fun setupSocketListeners() {

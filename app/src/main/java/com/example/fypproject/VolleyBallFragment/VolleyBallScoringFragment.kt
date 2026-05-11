@@ -563,28 +563,28 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     }
 
     private fun startSetTimer(startTime: Long) {
-        timerTask?.cancel()
-        setStartTimeMs = startTime
-        timerEverStarted = true
-
-        activity?.runOnUiThread {
-            if (_binding != null) {
-                binding.tvSetTimer.visibility = View.VISIBLE
-            }
-        }
-
-        timerTask = object : TimerTask() {
-            override fun run() {
-                activity?.runOnUiThread {
-                    if (_binding == null || setStartTimeMs == 0L) return@runOnUiThread
-                    val elapsed = (System.currentTimeMillis() - setStartTimeMs) / 1000
-                    val mins = String.format("%02d", elapsed / 60)
-                    val secs = String.format("%02d", elapsed % 60)
-                    binding.tvSetTimer.text = "$mins:$secs"
-                }
-            }
-        }
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+//        timerTask?.cancel()
+//        setStartTimeMs = startTime
+//        timerEverStarted = true
+//
+//        activity?.runOnUiThread {
+//            if (_binding != null) {
+//                binding.tvSetTimer.visibility = View.VISIBLE
+//            }
+//        }
+//
+//        timerTask = object : TimerTask() {
+//            override fun run() {
+//                activity?.runOnUiThread {
+//                    if (_binding == null || setStartTimeMs == 0L) return@runOnUiThread
+//                    val elapsed = (System.currentTimeMillis() - setStartTimeMs) / 1000
+//                    val mins = String.format("%02d", elapsed / 60)
+//                    val secs = String.format("%02d", elapsed % 60)
+//                    binding.tvSetTimer.text = "$mins:$secs"
+//                }
+//            }
+//        }
+//        timer.scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
     private fun setupSocketListeners() {

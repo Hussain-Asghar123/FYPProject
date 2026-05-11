@@ -137,23 +137,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
-            <!-- Timer — 10dp below game label -->
-            <TextView
-                android:id="@+id/tvSetTimer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="00:00"
-                android:textColor="#E31212"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.05"
-                android:includeFontPadding="false"
-                app:layout_constraintTop_toBottomOf="@id/tvSetValue"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:visibility="gone"/>
 
             <!-- Deuce Banner — below timer (or tvSetValue when timer gone) -->
             <TextView
