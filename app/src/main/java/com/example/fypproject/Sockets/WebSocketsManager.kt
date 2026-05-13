@@ -7,6 +7,7 @@ object WebSocketManager {
     private val client = OkHttpClient()
     private var webSocket: WebSocket? = null
     private var currentMatchId: Long? = null
+    private var lastMessage: String? = null
     private val pendingMessages = mutableListOf<String>()
 
     private val stateListeners = mutableMapOf<String, (SocketState) -> Unit>()
@@ -36,6 +37,7 @@ object WebSocketManager {
 
     fun addMessageListener(key: String, listener: (String) -> Unit) {
         messageListeners[key] = listener
+        lastMessage?.let{ listener(it) }
     }
 
     fun removeMessageListener(key: String) {
@@ -52,7 +54,7 @@ object WebSocketManager {
 
           //  val url = "wss://mhaseeb-t-a.hf.space/ws?matchId=$matchId"
          // val url = "wss://mhaseeb-t-fyp.hf.space/ws?matchId=$matchId"
-        val url = "ws://192.168.1.103:7860/ws?matchId=$matchId"
+        val url = "ws://10.107.69.89:7860/ws?matchId=$matchId"
 
         val request = Request.Builder().url(url).build()
 
@@ -68,6 +70,7 @@ object WebSocketManager {
             }
 
             override fun onMessage(ws: WebSocket, text: String) {
+                lastMessage = text
                 messageListeners.values.forEach { it.invoke(text) }
             }
 
@@ -106,4 +109,5 @@ object WebSocketManager {
     }
 
     fun isConnected(): Boolean = webSocket != null
+
 }

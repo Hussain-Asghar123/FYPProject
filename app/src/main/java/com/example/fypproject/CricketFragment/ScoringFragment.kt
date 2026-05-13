@@ -124,18 +124,25 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         matchResponse?.let { match ->
             calculateTeams(match)
             updateHeaderUI(ScoreDTO())
-            match.id?.let { matchId ->
-                if (hasMatchEnded(matchId)) {
-                    canEdit = false
-                    loadAndShowVotingThenSummary()
-                    return
-                }
-            }
+//            match.id?.let { matchId ->
+//                if (hasMatchEnded(matchId)) {
+//                    canEdit = false
+//                    loadAndShowVotingThenSummary()
+//                    return
+//                }
+//            }
+            // ✅ YEH LAGAO
             if (match.status == "COMPLETED" || match.status == "MATCH_COMPLETE") {
                 canEdit = false
                 loadAndShowVotingThenSummary()
                 return
             }
+            match.id?.let { clearMatchEnded(it) } // stale SharedPrefs clean
+//            if (match.status == "COMPLETED" || match.status == "MATCH_COMPLETE") {
+//                canEdit = false
+//                loadAndShowVotingThenSummary()
+//                return
+//            }
             registerSocketListeners()
         }
 
@@ -152,7 +159,13 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             showOnly(binding.layoutUserHistory)
         }
     }
-
+    private fun clearMatchEnded(matchId: Long) {
+        requireActivity()
+            .getSharedPreferences("MatchPrefs", MODE_PRIVATE)
+            .edit()
+            .remove("match_ended_$matchId")
+            .apply()
+    }
     override fun onResume() {
         super.onResume()
         if (_binding != null && canEdit && b1Selected && b2Selected && bowlerSelected) {
@@ -263,8 +276,15 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
 
             if (isEndingMatch) {
-                isEndingMatch = false
-                loadAndShowVotingThenSummary()
+
+                if (score.status == "COMPLETED" ||
+                    score.status == "MATCH_COMPLETE" ||
+                    score.matchEnd) {
+                    isEndingMatch = false
+                    loadAndShowVotingThenSummary()
+                    return
+                }
+
                 return
             }
 
@@ -365,9 +385,9 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun handleModalLogic(score: ScoreDTO) {
         if (!canEdit) return
-        matchResponse?.id?.let {
-            if (hasMatchEnded(it)) { loadAndShowVotingThenSummary(); return }
-        }
+//        matchResponse?.id?.let {
+//            if (hasMatchEnded(it)) { loadAndShowVotingThenSummary(); return }
+//        }
         if (score.comment == "Super_Over") {
             showOnly(binding.layoutInningsUndo.root)
             binding.layoutInningsUndo.btnSuperOver.visibility = View.VISIBLE
@@ -424,8 +444,20 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 showOnly(binding.layoutMainScoring.root)
         }
 
+        // ✅ REPLACE KARO IS SE
         if (score.balls == 0 && score.overs > 0) {
             if (bowlerSelected) {
+
+                // ✅ Super Over hai to bowler modal mat dikhao
+                if (score.superOver) {
+                    showOnly(binding.layoutInningsUndo.root)
+                    binding.layoutInningsUndo.btnSuperOver.visibility = View.GONE
+                    binding.layoutInningsUndo.btnEndInnings.text =
+                        if (isSuperOverInnings == 1) "End Super Over Innings"
+                        else "End Match"
+                    return
+                }
+
                 bowlerSelected = false
                 currentBowlerId = null
                 binding.tvBowlerName.text = "Select Bowler"
@@ -997,7 +1029,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 !isFirstInnings -> {
                     // Normal match second innings end
                     isEndingMatch = true
-                    matchResponse?.id?.let { markMatchEnded(it) }
+//                    matchResponse?.id?.let { markMatchEnded(it) }
                     JsonConverter.sendScore(scoreToSend.copy(
                         eventType = "End_Innings", event = "0", comment = "", undo = false
                     ))

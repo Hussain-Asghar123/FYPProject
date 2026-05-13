@@ -152,7 +152,7 @@
                 android:visibility="gone"
                 android:background="#EDE9FE"
                 android:layout_marginTop="6dp"
-                app:layout_constraintTop_toBottomOf="@id/tvSetTimer"
+                app:layout_constraintTop_toBottomOf="@id/tvSetValue"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 

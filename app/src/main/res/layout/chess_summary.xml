@@ -35,7 +35,7 @@
             android:id="@+id/tvResultType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
+            android:text="Via"
             android:textSize="14sp"
             android:textColor="#64748B"
             android:gravity="center"

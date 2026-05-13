@@ -38,6 +38,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     private var _binding: VolleyballScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private var lastSocketJson: JSONObject? = null
     private var pendingComment: String? = null
 
     private var pendingEventId: Long? = null
@@ -120,9 +121,10 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
         if (isCompleted) {
             binding.scoringTabContent.visibility = View.VISIBLE
             binding.eventsTabContent.visibility  = View.GONE
-            votingAlreadyTriggered = true
-            showPanel("loading")
-        } else {
+
+            loadAndShowVotingThenSummary()
+        }
+         else {
             if (canEdit) {
                 showTab("scoring")
                 showPanel("scoring")
@@ -139,12 +141,17 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
     override fun onResume() {
         super.onResume()
         setupSocketListeners()
+        lastSocketJson?.let { handleServerUpdate(it) } // ← YEH MISSING THA
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) setupSocketListeners()
-        else unregisterSocketListeners()
+        if (!hidden) {
+            setupSocketListeners()
+            lastSocketJson?.let { handleServerUpdate(it) } // ← YEH BHI RAKHO
+        } else {
+            unregisterSocketListeners()
+        }
     }
 
 
@@ -627,6 +634,7 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        lastSocketJson = obj
 
         isActionPending = false
 
@@ -634,16 +642,16 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             isCompletedAndWaitingForData = false
         }
 
-        team1Points   = obj.optInt("team1Points",    team1Points)
-        team2Points   = obj.optInt("team2Points",    team2Points)
+        team1Points = obj.optInt("team1Points", team1Points)
+        team2Points = obj.optInt("team2Points", team2Points)
         if (team1Points > 0 || team2Points > 0) {
             lastTeam1Points = team1Points
             lastTeam2Points = team2Points
         }
-        team1Sets     = obj.optInt("team1Sets",     team1Sets)
-        team2Sets     = obj.optInt("team2Sets",     team2Sets)
-        currentSet    = obj.optInt("currentSet",    currentSet)
-        setsToWin     = obj.optInt("setsToWin",     setsToWin)
+        team1Sets = obj.optInt("team1Sets", team1Sets)
+        team2Sets = obj.optInt("team2Sets", team2Sets)
+        currentSet = obj.optInt("currentSet", currentSet)
+        setsToWin = obj.optInt("setsToWin", setsToWin)
         team1Timeouts = obj.optInt("team1Timeouts", team1Timeouts)
         team2Timeouts = obj.optInt("team2Timeouts", team2Timeouts)
         val onField1 = obj.optJSONArray("team1OnField")
@@ -694,29 +702,28 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
             setScoringButtonsEnabled(true)
         }
 
-        val status = matchStatus.uppercase() // ya matchStatus
+        val status = matchStatus.uppercase()
 
-// REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
-        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
-            votingAlreadyTriggered &&
-            binding.layoutProgressBar.visibility == View.VISIBLE) {
-            loadAndShowVotingThenSummary()  // Ab data populated hai → safe hai
+// CASE 1: Completed match khola, ab socket data aa gaya
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && isCompletedAndWaitingForData) {
+            isCompletedAndWaitingForData = false
+            loadAndShowVotingThenSummary()
             return
         }
 
-// Guard: voting ya summary already dikh rahi hai to interrupt mat karo
+// CASE 2: Voting/summary already show ho rahi hai — interrupt mat karo
         if (binding.layoutVoting.root.visibility == View.VISIBLE ||
-            binding.summary.root.visibility == View.VISIBLE) {
+            binding.summary.root.visibility == View.VISIBLE
+        ) {
             return
         }
 
-// Live match abhi complete hua
+// CASE 3: Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
             loadAndShowVotingThenSummary()
         }
-
     }
 
     private fun parseVolleyballEvent(obj: JSONObject) {
@@ -818,9 +825,17 @@ class VolleyBallScoringFragment : Fragment(R.layout.volleyball_scoring_fragment)
                 val t2 = matchResponse?.team2Id ?: return@launch
                 val resp1 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t1) }
                 val resp2 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t2) }
-                val players1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
-                val players2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
+                val allPlayers1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
+                val allPlayers2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
 
+                // ── SQUAD FILTER ──────────────────────────────────────────
+                val squadIds1 = matchResponse?.team1PlayingIds?.map { it }?.toSet() ?: emptySet()
+                val squadIds2 = matchResponse?.team2PlayingIds?.map { it }?.toSet() ?: emptySet()
+
+                val players1 = if (squadIds1.isNotEmpty())
+                    allPlayers1.filter { it.id in squadIds1 } else allPlayers1
+                val players2 = if (squadIds2.isNotEmpty())
+                    allPlayers2.filter { it.id in squadIds2 } else allPlayers2
                 val onPicked: (TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
                     else                              voteAdapter1?.clearSelection()

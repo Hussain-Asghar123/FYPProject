@@ -39,6 +39,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private var _binding: TugofwarScoringFragmentBinding? = null
     private val binding get() = _binding!!
+    private var lastSocketJson: JSONObject? = null
     private var matchResponse: MatchResponse? = null
 
     private val SOCKET_KEY = "TugOfWarScoringFragment"
@@ -74,6 +75,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
     private var cameraImageUri: Uri? = null
     private var isUploading = false
     private var canAddMedia = false
+    private var isCompletedAndWaitingForData = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -100,7 +102,17 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
             binding.scoringTabContent.visibility = View.VISIBLE
             binding.eventsTabContent.visibility  = View.GONE
             votingAlreadyTriggered = true
+            isCompletedAndWaitingForData = true
             showPanel("loading")
+
+
+            lifecycleScope.launch {
+                delay(10_000)
+                if (_binding != null && isAdded && isCompletedAndWaitingForData) {
+                    isCompletedAndWaitingForData = false
+                    loadAndShowVotingThenSummary()
+                }
+            }
         } else {
             if (canEdit) {
                 showTab("scoring")
@@ -117,13 +129,17 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) registerSocketListeners()
+        if (!hidden) {
+            registerSocketListeners()
+            lastSocketJson?.let { handleServerUpdate(it) }
+        }
         else unregisterSocketListeners()
     }
 
     override fun onResume() {
         super.onResume()
         registerSocketListeners()
+        lastSocketJson?.let { handleServerUpdate(it) }
     }
 
     override fun onPause() {
@@ -464,6 +480,7 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        lastSocketJson = obj
 
         isActionPending = false
 
@@ -519,21 +536,17 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
         val status = matchStatus.uppercase()
 
-        // REOPEN case: completed match khola, socket data aa gaya, loading dikh rahi hai
-        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") &&
-            votingAlreadyTriggered &&
-            binding.layoutProgressBar.visibility == View.VISIBLE) {
+        if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && isCompletedAndWaitingForData) {
+            isCompletedAndWaitingForData = false
             loadAndShowVotingThenSummary()
             return
         }
 
-        // Guard: voting ya summary already dikh rahi hai to interrupt mat karo
         if (binding.layoutVoting.root.visibility == View.VISIBLE ||
             binding.layoutSummary.root.visibility == View.VISIBLE) {
             return
         }
 
-        // Live match abhi complete hua
         if ((status == "COMPLETED" || status == "MATCH_COMPLETE") && !votingAlreadyTriggered) {
             votingAlreadyTriggered = true
             timerTask?.cancel()
@@ -586,8 +599,17 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
                 val t2 = matchResponse?.team2Id ?: return@launch
                 val resp1 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t1) }
                 val resp2 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t2) }
-                val players1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
-                val players2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
+                val allPlayers1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
+                val allPlayers2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
+
+                // ── SQUAD FILTER ──────────────────────────────────────────
+                val squadIds1 = matchResponse?.team1PlayingIds?.map { it }?.toSet() ?: emptySet()
+                val squadIds2 = matchResponse?.team2PlayingIds?.map { it }?.toSet() ?: emptySet()
+
+                val players1 = if (squadIds1.isNotEmpty())
+                    allPlayers1.filter { it.id in squadIds1 } else allPlayers1
+                val players2 = if (squadIds2.isNotEmpty())
+                    allPlayers2.filter { it.id in squadIds2 } else allPlayers2
 
                 val onPicked: (com.example.fypproject.DTO.TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()

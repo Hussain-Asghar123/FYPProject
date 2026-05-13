@@ -37,6 +37,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     private var _binding: ChessScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private var lastSocketJson: JSONObject? = null
 
     // ── State ──────────────────────────────────────────────
     private var matchStatus     = "LIVE"
@@ -77,6 +78,8 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
     private var cameraImageUri: Uri? = null
     private var isUploading = false
     private var canAddMedia = false
+
+    private var isCompletedAndWaitingForData = false
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -381,6 +384,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        lastSocketJson = obj
 
         isActionPending = false
         val rawStatus = obj.optString("status", "")
@@ -504,13 +508,19 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
             try {
                 val t1 = matchResponse?.team1Id ?: return@launch
                 val t2 = matchResponse?.team2Id ?: return@launch
-                val (r1, r2) = withContext(Dispatchers.IO) {
-                    val d1 = async { RetrofitInstance.api.getPlayersByTeam(t1) }
-                    val d2 = async { RetrofitInstance.api.getPlayersByTeam(t2) }
-                    d1.await() to d2.await()
-                }
-                val players1 = if (r1.isSuccessful) r1.body() ?: emptyList() else emptyList()
-                val players2 = if (r2.isSuccessful) r2.body() ?: emptyList() else emptyList()
+                val resp1 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t1) }
+                val resp2 = withContext(Dispatchers.IO) { RetrofitInstance.api.getPlayersByTeam(t2) }
+                val allPlayers1 = if (resp1.isSuccessful) resp1.body() ?: emptyList() else emptyList()
+                val allPlayers2 = if (resp2.isSuccessful) resp2.body() ?: emptyList() else emptyList()
+
+                // ── SQUAD FILTER ──────────────────────────────────────────
+                val squadIds1 = matchResponse?.team1PlayingIds?.map { it }?.toSet() ?: emptySet()
+                val squadIds2 = matchResponse?.team2PlayingIds?.map { it }?.toSet() ?: emptySet()
+
+                val players1 = if (squadIds1.isNotEmpty())
+                    allPlayers1.filter { it.id in squadIds1 } else allPlayers1
+                val players2 = if (squadIds2.isNotEmpty())
+                    allPlayers2.filter { it.id in squadIds2 } else allPlayers2
 
                 val onPicked: (TeamPlayerDto, VotePlayerAdapter) -> Unit = { player, fromAdapter ->
                     if (fromAdapter === voteAdapter1) voteAdapter2?.clearSelection()
@@ -696,6 +706,7 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
         super.onResume()
         setupSocketListeners()
         matchResponse?.id?.let { WebSocketManager.connect(it) }
+        lastSocketJson?.let { handleServerUpdate(it) }
     }
 
     override fun onPause() {
@@ -705,7 +716,10 @@ class ChessScoringFragment : Fragment(R.layout.chess_scoring_fragment) {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) setupSocketListeners() else unregisterSocketListeners()
+        if (!hidden) {
+            setupSocketListeners()
+            lastSocketJson?.let { handleServerUpdate(it) }
+        } else unregisterSocketListeners()
     }
 
     override fun onDestroyView() {
