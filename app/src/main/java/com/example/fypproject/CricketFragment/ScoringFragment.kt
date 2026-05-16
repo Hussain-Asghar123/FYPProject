@@ -712,38 +712,14 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun showMediaDialog(ballId: Long) {
-        pendingBallId = ballId
+        val matchId   = matchResponse?.id ?: return
+        val accountId = requireActivity()
+            .getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            .getLong("id", -1L)
 
-        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
-        val dialogView = layoutInflater.inflate(R.layout.dialog_media_source, null)
-
-        val etComment  = dialogView.findViewById<android.widget.EditText>(R.id.etMediaComment)
-        val btnCamera  = dialogView.findViewById<View>(R.id.btnOpenCamera)
-        val btnGallery = dialogView.findViewById<View>(R.id.btnOpenGallery)
-        val btnCancel  = dialogView.findViewById<android.widget.TextView>(R.id.btnCancelMedia)
-        val tvGallery  = dialogView.findViewById<android.widget.TextView>(R.id.tvGalleryLabel)
-
-        if (isUploading) tvGallery.text = "Uploading..."
-
-        btnCamera.setOnClickListener {
-            pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-            dialog.dismiss()
-            openCamera()
-        }
-
-        btnGallery.setOnClickListener {
-            if (!isUploading) {
-                pendingComment = etComment.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-                dialog.dismiss()
-                galleryLauncher.launch("image/*")
-            }
-        }
-
-        btnCancel.setOnClickListener { dialog.dismiss() }
-
-        dialog.setView(dialogView)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
+        BallMediaBottomSheet
+            .newInstance(ballId, matchId, accountId)
+            .show(childFragmentManager, BallMediaBottomSheet.TAG)
     }
 
     private fun openCamera() {

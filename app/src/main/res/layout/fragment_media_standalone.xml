@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#FFFFFF">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="12dp"
+        android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Match Media"
+            android:textSize="18sp" android:textStyle="bold" android:textColor="#111827"/>
+        <TextView android:id="@+id/tvMediaCount"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="0 items" android:textColor="#6B7280" android:textSize="13sp"/>
+    </LinearLayout>
+
+    <ProgressBar android:id="@+id/progressMedia"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:visibility="gone"
+        android:indeterminateTint="#E31212"/>
+
+    <LinearLayout android:id="@+id/layoutMediaEmpty"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center" android:visibility="gone">
+        <TextView android:text="📷" android:textSize="48sp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:text="No media uploaded yet"
+            android:textColor="#9CA3AF" android:textSize="14sp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMedia"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:padding="8dp" android:clipToPadding="false"/>
+</LinearLayout>

@@ -9,25 +9,27 @@ import com.example.fypproject.DTO.TeamDTO
 import com.example.fypproject.R
 
 class TeamAdapter(
-    private val teams: List<TeamDTO>
-) : RecyclerView.Adapter<TeamAdapter.TeamViewHolder>(){
+    private val teams: List<TeamDTO>,
+    private val onTeamClick: (TeamDTO) -> Unit
+) : RecyclerView.Adapter<TeamAdapter.TeamViewHolder>() {
+
     class TeamViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val teamName: TextView = itemView.findViewById(R.id.tvTeamName)
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TeamViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.item_teams, parent, false)
-        return TeamViewHolder(view)
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TeamViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_teams, parent, false)
+        return TeamViewHolder(view)
     }
+
     override fun onBindViewHolder(holder: TeamViewHolder, position: Int) {
-       holder.teamName.text = teams[position].name
+        val team = teams[position]
+        holder.teamName.text = team.name
+        holder.itemView.setOnClickListener { onTeamClick(team) }
     }
+
     override fun getItemCount(): Int {
         return teams.size
     }
-
-
-
-
 }

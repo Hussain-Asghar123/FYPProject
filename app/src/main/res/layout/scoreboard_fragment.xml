@@ -37,6 +37,18 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/btnExportPdf"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Export PDF"
+        android:textSize="12sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#E31212"
+        android:paddingHorizontal="12dp"
+        android:layout_gravity="end"
+        android:layout_margin="8dp" />
+
     <!-- Loading Progress Bar -->
     <ProgressBar
         android:id="@+id/progressLoading"

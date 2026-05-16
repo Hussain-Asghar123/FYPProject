@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:minHeight="48dp">
+
+    <!-- Stat Label -->
+    <TextView
+        android:id="@+id/tvStatLabel"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:textSize="13sp"
+        android:textColor="#374151"
+        android:textStyle="bold" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#F3F4F6" />
+
+    <!-- Player 1 Value -->
+    <TextView
+        android:id="@+id/tvVal1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.5"
+        android:gravity="center"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="12dp"
+        android:textSize="13sp"
+        android:textColor="#374151" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#F3F4F6" />
+
+    <!-- Player 2 Value -->
+    <TextView
+        android:id="@+id/tvVal2"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.5"
+        android:gravity="center"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="12dp"
+        android:textSize="13sp"
+        android:textColor="#374151" />
+
+</LinearLayout>

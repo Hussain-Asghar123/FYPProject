@@ -86,6 +86,26 @@
                 app:cornerRadius="21dp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMedia"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#EEEEEE"
+                android:text="Media"
+                android:textColor="#ffffff"
+                app:cornerRadius="21dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFavourite"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#EEEEEE"
+                android:text="Favourite"
+                android:textColor="#ffffff"
+                app:cornerRadius="21dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"

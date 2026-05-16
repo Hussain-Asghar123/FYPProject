@@ -7,15 +7,18 @@ import com.example.fypproject.DTO.CreateTeamRequestDto
 import com.example.fypproject.DTO.CreateTeamResponseDto
 import com.example.fypproject.DTO.FixturesRequest
 import com.example.fypproject.DTO.FixturesResponse
+import com.example.fypproject.DTO.GenerateFixturesRequest
 import com.example.fypproject.DTO.LoginRequest
 import com.example.fypproject.DTO.LoginResponse
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MediaDto
 import com.example.fypproject.DTO.PlayerDto
+import com.example.fypproject.DTO.PlayerDto1
 import com.example.fypproject.DTO.PlayerRequest
 import com.example.fypproject.DTO.PlayerRequestDto
 import com.example.fypproject.DTO.PlayerResponse
 import com.example.fypproject.DTO.PlayerStatsDto
+import com.example.fypproject.DTO.PlayeraStatsDTO1
 import com.example.fypproject.DTO.PtsTableDto
 import com.example.fypproject.DTO.Season
 import com.example.fypproject.DTO.SeasonResponse
@@ -26,6 +29,7 @@ import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.DTO.TeamRequest
 import com.example.fypproject.DTO.TeamRequestDto
 import com.example.fypproject.DTO.TeamResponse
+import com.example.fypproject.DTO.TeamStatsDto
 import com.example.fypproject.DTO.TopVotedPlayerDto
 import com.example.fypproject.DTO.TournamentOverviewResponse
 import com.example.fypproject.DTO.TournamentRequest
@@ -35,6 +39,7 @@ import com.example.fypproject.DTO.TournamentUpdateRequest
 import com.example.fypproject.DTO.UpdateAccountRequest
 import com.example.fypproject.ScoringDTO.Ball
 import com.example.fypproject.ScoringDTO.MatchSummaryDto
+import com.example.fypproject.ScoringDTO.MediaItem
 import com.example.fypproject.ScoringDTO.ScorecardResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -50,6 +55,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 interface ApiService {
     @POST("account/login")
@@ -246,6 +252,7 @@ interface ApiService {
         @Query("sport") sport: String? = null
     ): PlayerStatsDto
 
+    @Suppress("UNUSED")
     @GET("player/{playerId}/stats")
     suspend fun getPlayerTournamentStats(
         @Path("playerId") playerId: Long,
@@ -326,5 +333,73 @@ interface ApiService {
         @Query("playerId") playerId: Long,
         @Query("rank") rank: Int
     ): ResponseBody
+
+
+    // ── Ball media (for BallMediaBottomSheet) ────────────────────────────────────
+    @GET("media/ball/{ballId}")
+    suspend fun getMediaByBallId(
+        @Path("ballId") ballId: Long
+    ): Response<List<MediaItem>>
+
+    // ── Match media ───────────────────────────────────────────────────────────────
+    @GET("media/match/{matchId}")
+    suspend fun getMediaByMatchId(
+        @Path("matchId") matchId: Long
+    ): Response<List<MediaItem>>
+
+    // ── Favourite IDs for a match (for Media tab optimistic toggle) ───────────────
+    @GET("media/favourite/match/{matchId}/account/{accountId}")
+    suspend fun getMatchFavouriteMediaIds(
+        @Path("matchId")   matchId:   Long,
+        @Path("accountId") accountId: Long
+    ): Response<List<Long>>
+
+    // ── All account favourites (for Favourites tab) ───────────────────────────────
+    @GET("media/favourite/account/{accountId}")
+    suspend fun getAccountFavouriteMedia(
+        @Path("accountId") accountId: Long
+    ): Response<List<MediaItem>>
+
+    // ── Toggle favourite ──────────────────────────────────────────────────────────
+    @POST("media/favourite/toggle")
+    suspend fun toggleFavouriteMedia(
+        @Body body: Map<String, Long>
+    ): Response<Unit>
+
+    // ── Scorecard PDF (already in ScoreCardFragment doc) ─────────────────────────
+    @Streaming
+    @GET("match/{matchId}/scorecard/pdf")
+    suspend fun downloadScorecardPdf(
+        @Path("matchId") matchId: Long
+    ): Response<ResponseBody>
+
+    @POST("tournament/{id}/generate-fixtures")
+    suspend fun generateFixtures(
+        @Path("id") tournamentId: Long,
+        @Body request: GenerateFixturesRequest
+    ): Response<Void>
+
+    @GET("player")
+    suspend fun getPlayers(): Response<List<PlayerDto1>>
+
+    @GET("player/{playerId}/stats")
+    suspend fun getPlayerStatsByIdAndSport(
+        @Path("playerId") id: Long,
+        @Query("sport") sport: String
+    ): Response<PlayeraStatsDTO1>
+
+    @GET("player")
+    suspend fun getAllPlayers(): Response<List<PlayerDto>>
+
+    @GET("team/{teamId}/players")
+    suspend fun getTeamPlayers(
+        @Path("teamId") teamId: Long
+    ): List<TeamPlayerDto>
+
+    @GET("team/{teamId}/stats")
+    suspend fun getTeamStats(
+        @Path("teamId") teamId: Long
+    ): TeamStatsDto
+
 
 }

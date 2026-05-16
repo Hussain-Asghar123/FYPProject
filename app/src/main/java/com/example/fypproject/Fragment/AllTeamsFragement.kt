@@ -23,11 +23,8 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentsAllTeamsBinding.bind(view)
-
         tournamentId = arguments?.getLong("tournamentId") ?: -1L
-
         binding.rvAllTeams.layoutManager = LinearLayoutManager(requireContext())
-
         fetchTeams()
     }
 
@@ -38,7 +35,10 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
                 val response = api.getTeamsByTournament(tournamentId)
                 if (response.isSuccessful && response.body() != null) {
                     val teams = response.body()!!
-                    val adapter = TeamAdapter(teams)
+                    // ── pass onTeamClick lambda ───────────────────────────
+                    val adapter = TeamAdapter(teams) { team ->
+                        openTeamDetail(team.id, team.name)   // adjust field names to your TeamDto
+                    }
                     binding.rvAllTeams.adapter = adapter
                     checkEmptyState(teams.isEmpty())
                 } else {
@@ -46,6 +46,7 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
                     checkEmptyState(true)
                 }
             } catch (e: Exception) {
+                Log.e("AllTeams", "fetchTeams: ${e.message}", e)
                 toastLong(NetworkUi.userMessage(e))
                 checkEmptyState(true)
             } finally {
@@ -54,9 +55,18 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
         }
     }
 
+    // ── opens TeamDetailFragment via back-stack ───────────────────────────────
+    private fun openTeamDetail(teamId: Long, teamName: String) {
+        val fragment = TeamDetailFragment.newInstance(teamId, teamName)
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)  // camelCase
+            .addToBackStack("team_detail")
+            .commit()
+    }
+
     private fun checkEmptyState(isEmpty: Boolean) {
         if (_binding == null) return
-        binding.rvAllTeams.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.rvAllTeams.visibility  = if (isEmpty) View.GONE else View.VISIBLE
         binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
@@ -71,12 +81,9 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
     }
 
     companion object {
-        fun newInstance(tournamentId: Long): AllTeamsFragement {
-            val fragment = AllTeamsFragement()
-            val args = Bundle()
-            args.putLong("tournamentId", tournamentId)
-            fragment.arguments = args
-            return fragment
-        }
+        fun newInstance(tournamentId: Long): AllTeamsFragement =
+            AllTeamsFragement().apply {
+                arguments = Bundle().apply { putLong("tournamentId", tournamentId) }
+            }
     }
 }

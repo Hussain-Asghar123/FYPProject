@@ -45,6 +45,7 @@ android {
 
 
 dependencies {
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -83,6 +84,18 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.9")
 
     implementation("com.google.android.material:material:1.13.0")
+
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+
+    implementation("com.google.android.material:material:1.11.0")
+
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+
 
 
 }

@@ -209,6 +209,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+
             <!-- Top bowlers / assisters table -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -240,6 +241,111 @@
                         tools:listitem="@layout/row_bowlers_stats" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCricketCharts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#E31212"
+                        android:padding="10dp"
+                        android:text="📊  Top Batsmen — Runs"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/barChartBatsmen"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#1A1A2E"
+                        android:padding="10dp"
+                        android:text="🎯  Top Bowlers — Wickets"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <com.github.mikephil.charting.charts.HorizontalBarChart
+                        android:id="@+id/barChartBowlers"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFutsalCharts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#16A34A"
+                        android:padding="10dp"
+                        android:text="⚽  Goals vs Assists (Top 5)"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <!-- Grouped: Goals (red bar) + Assists (green bar) per player -->
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/barChartFutsalGoals"
+                        android:layout_width="match_parent"
+                        android:layout_height="230dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#065F46"
+                        android:padding="10dp"
+                        android:text="🥧  Goals Share Among Top Scorers"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <com.github.mikephil.charting.charts.PieChart
+                        android:id="@+id/pieChartFutsalShare"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
 
             <!-- ── ADDED: Player of the Match Awards section ── -->
             <com.google.android.material.card.MaterialCardView

@@ -43,6 +43,29 @@
         android:visibility="gone"
         android:indeterminateTint="#E31212" />
 
+    <LinearLayout
+        android:id="@+id/playerSelectorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:padding="12dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Select Player">
+
+            <AutoCompleteTextView
+                android:id="@+id/spinnerPlayers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -138,12 +161,12 @@
                         android:layout_height="wrap_content"
                         android:text="TABLE TENNIS" />
 
-<!--                    <com.google.android.material.chip.Chip-->
-<!--                        android:id="@+id/chipTugofwar"-->
-<!--                        style="@style/Widget.MaterialComponents.Chip.Choice"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:text="TUG OF WAR" />-->
+                    <!--                    <com.google.android.material.chip.Chip-->
+                    <!--                        android:id="@+id/chipTugofwar"-->
+                    <!--                        style="@style/Widget.MaterialComponents.Chip.Choice"-->
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:text="TUG OF WAR" />-->
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipLudo"
@@ -221,6 +244,62 @@
                 </LinearLayout>
                 <include android:id="@+id/layoutBattingStats" layout="@layout/card_stats_table" />
                 <include android:id="@+id/layoutBowlingStats" layout="@layout/card_stats_table" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCricketPlayerCharts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Radar: 5 skills — Runs / Strike Rate / Average / Fours / Sixes -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="#E31212"
+                            android:padding="10dp"
+                            android:text="🕸️  Batting Skills Radar"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <com.github.mikephil.charting.charts.RadarChart
+                            android:id="@+id/radarChartCricket"
+                            android:layout_width="match_parent"
+                            android:layout_height="280dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp" />
+
+                        <!-- Bar: Runs vs Balls Faced (bat/bowl split) -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="#1A1A2E"
+                            android:padding="10dp"
+                            android:text="📊  Batting vs Bowling Contribution"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <com.github.mikephil.charting.charts.BarChart
+                            android:id="@+id/barChartCricketContrib"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+
+
 
                 <TextView
                     android:id="@+id/tvCrossSportNote"

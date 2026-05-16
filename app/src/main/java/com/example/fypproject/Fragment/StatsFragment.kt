@@ -25,6 +25,14 @@ import com.example.fypproject.databinding.FragmentStatsBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
+import android.graphics.Color
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.HorizontalBarChart
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 
 
 class StatsFragment : Fragment(R.layout.fragment_stats) {
@@ -96,6 +104,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     }
 
     private fun populateUI(stats: TournamentStatsDto) {
+        hideAllChartCards()
         setupManOfTournament(stats)
         setupFavouritePlayer(stats)
 
@@ -111,6 +120,10 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
 
         populatePomAwards(stats)
+    }
+    private fun hideAllChartCards() {
+        binding.cardCricketCharts.visibility    = View.GONE
+        binding.cardFutsalCharts.visibility=    View.GONE
     }
 
     private fun detectSport(stats: TournamentStatsDto): String {
@@ -443,6 +456,84 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         } else {
             hideBowlersSection()
         }
+        setupCricketCharts(stats)
+    }
+
+    private fun setupCricketCharts(stats: TournamentStatsDto) {
+        binding.cardCricketCharts.visibility = android.view.View.VISIBLE
+
+        // ── Bar Chart — Top 5 batsmen runs ──────────────────────────
+        val batsmen = stats.topRunScorers.orEmpty().take(5)
+        if (batsmen.isNotEmpty()) {
+            val entries = batsmen.mapIndexed { i, p -> BarEntry(i.toFloat(), p.runs.toFloat()) }
+            val dataSet = BarDataSet(entries, "Runs").apply {
+                colors = listOf(
+                    Color.parseColor("#E31212"), Color.parseColor("#FF4444"),
+                    Color.parseColor("#FF6B6B"), Color.parseColor("#FF9999"),
+                    Color.parseColor("#FFBBBB")
+                )
+                valueTextSize = 10f
+                valueTextColor = Color.BLACK
+            }
+            binding.barChartBatsmen.applyCommonBar(BarData(dataSet), batsmen.map { it.playerName.take(9) })
+        } else {
+            binding.barChartBatsmen.clear()
+            binding.barChartBatsmen.invalidate()
+        }
+
+        // ── Horizontal Bar Chart — Top 5 bowlers wickets ────────────
+        val bowlers = stats.topBowlers.orEmpty().take(5)
+        if (bowlers.isNotEmpty()) {
+            val entries = bowlers.mapIndexed { i, p -> BarEntry(i.toFloat(), p.wickets.toFloat()) }
+            val dataSet = BarDataSet(entries, "Wickets").apply {
+                colors = listOf(
+                    Color.parseColor("#1A1A2E"), Color.parseColor("#2D2D5E"),
+                    Color.parseColor("#3F3F8F"), Color.parseColor("#5252B0"),
+                    Color.parseColor("#6565D0")
+                )
+                valueTextSize = 10f
+                valueTextColor = Color.BLACK
+            }
+            binding.barChartBowlers.applyCommonHorizontalBar(BarData(dataSet), bowlers.map { it.playerName.take(9) })
+        } else {
+            binding.barChartBowlers.clear()
+            binding.barChartBowlers.invalidate()
+        }
+    }
+
+    private fun BarChart.applyCommonBar(data: BarData, labels: List<String>) {
+        data.barWidth = 0.6f
+        description.isEnabled = false
+        legend.isEnabled = false
+        setDrawGridBackground(false)
+        setFitBars(true)
+        axisRight.isEnabled = false
+        axisLeft.axisMinimum = 0f
+        axisLeft.setDrawGridLines(false)
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.granularity = 1f
+        xAxis.setDrawGridLines(false)
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        this.data = data
+        animateY(600)
+        invalidate()
+    }
+
+    private fun HorizontalBarChart.applyCommonHorizontalBar(data: BarData, labels: List<String>) {
+        data.barWidth = 0.6f
+        description.isEnabled = false
+        legend.isEnabled = false
+        setDrawGridBackground(false)
+        axisRight.isEnabled = false
+        axisLeft.axisMinimum = 0f
+        axisLeft.setDrawGridLines(false)
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.granularity = 1f
+        xAxis.setDrawGridLines(false)
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        this.data = data
+        animateY(600)
+        invalidate()
     }
 
     private fun populateFutsalUI(stats: TournamentStatsDto) {
@@ -505,7 +596,67 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         } else {
             hideBowlersSection()
         }
+        setupFutsalCharts(stats)
     }
+
+    private fun setupFutsalCharts(stats:TournamentStatsDto) {
+        binding.cardFutsalCharts.visibility = android.view.View.VISIBLE
+
+        val scorers = stats.topGoalScorers.orEmpty().take(5)
+
+        // ── Grouped Bar Chart — Goals (red) + Assists (green) ───────
+        if (scorers.isNotEmpty()) {
+            val goalEntries   = scorers.mapIndexed { i, p -> BarEntry(i.toFloat(), p.goals.toFloat()) }
+            val assistEntries = scorers.mapIndexed { i, p -> BarEntry(i.toFloat(), p.assists.toFloat()) }
+
+            val dsGoals   = BarDataSet(goalEntries, "Goals").apply { color = Color.parseColor("#E31212"); valueTextSize = 9f }
+            val dsAssists = BarDataSet(assistEntries, "Assists").apply { color = Color.parseColor("#16A34A"); valueTextSize = 9f }
+
+            val barData = BarData(dsGoals, dsAssists).apply {
+                barWidth = 0.35f
+                groupBars(-0.5f, 0.1f, 0.05f)
+            }
+            binding.barChartFutsalGoals.apply {
+                data = barData
+                xAxis.apply {
+                    position         = XAxis.XAxisPosition.BOTTOM
+                    valueFormatter   = IndexAxisValueFormatter(scorers.map { it.playerName.take(9) })
+                    granularity      = 1f
+                    setCenterAxisLabels(true)
+                    setDrawGridLines(false)
+                }
+                axisRight.isEnabled = false
+                axisLeft.axisMinimum = 0f
+                description.isEnabled = false
+                setFitBars(true)
+                animateY(800)
+                invalidate()
+            }
+        }
+
+        // ── Pie Chart — Goals share ──────────────────────────────────
+        if (scorers.isNotEmpty()) {
+            val pieEntries = scorers.map { PieEntry(it.goals.toFloat(), it.playerName.take(9)) }
+            val pieDataSet = PieDataSet(pieEntries, "").apply {
+                colors = ColorTemplate.MATERIAL_COLORS.toList()
+                valueTextSize   = 11f
+                valueTextColor  = Color.WHITE
+            }
+            binding.pieChartFutsalShare.apply {
+                data            = PieData(pieDataSet)
+                isDrawHoleEnabled = true
+                holeRadius      = 38f
+                transparentCircleRadius = 43f
+                description.isEnabled = false
+                legend.isEnabled = true
+                setEntryLabelColor(Color.WHITE)
+                animateY(900)
+                invalidate()
+            }
+        }
+    }
+
+
 
     private fun populateVolleyballUI(stats: TournamentStatsDto) {
         hideCardHighestScore()

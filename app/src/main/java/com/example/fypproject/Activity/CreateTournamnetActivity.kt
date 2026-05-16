@@ -165,13 +165,12 @@ class CreateTournamnetActivity : AppCompatActivity() {
         if (sportId != 1L) ""
         else if (binding.rbTypeHard.isChecked) "hard" else "tennis"
 
-    private fun getTournamentStage(): String =
-        when {
-            binding.rbRoundRobin.isChecked -> "round_robin"
-            binding.rbRoundRobinKnock.isChecked -> "round_robin_knock"
-            binding.rbKnockOut.isChecked -> "knock_out"
-            else -> "league"
-        }
+    private fun getTournamentStage(): String = when {
+        binding.rbRoundRobin.isChecked     -> "roundRobin"
+        binding.rbRoundRobinKnock.isChecked -> "roundRobinKnockout"
+        binding.rbKnockOut.isChecked        -> "knockOut"
+        else                                -> "league"
+    }
 
     private fun disableUi() {
         showLoading(true)

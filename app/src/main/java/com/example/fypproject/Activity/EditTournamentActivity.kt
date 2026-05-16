@@ -112,10 +112,10 @@ class EditTournamentActivity : AppCompatActivity() {
                 }
 
                 when (t.tournamentStage) {
-                    "Round Robin" -> binding.rbRoundRobin.isChecked = true
-                    "Round Robin + Knock Out" -> binding.rbRoundRobinKnock.isChecked = true
-                    "Knock Out" -> binding.rbKnockOut.isChecked = true
-                    "League" -> binding.rbLeague.isChecked = true
+                    "roundRobin" -> binding.rbRoundRobin.isChecked = true
+                    "roundRobinKnockout" -> binding.rbRoundRobinKnock.isChecked = true
+                    "knockOut" -> binding.rbKnockOut.isChecked = true
+                    "league" -> binding.rbLeague.isChecked = true
                 }
                 checkEmptyState()
             }

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE">
+
+    <!-- ================= HEADER ================= -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:background="#E31212"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="16dp"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto Generate Fixtures"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnBack"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="12dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ================= FORM ================= -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Teams Count Info Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFF5F5">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚡"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvTeamCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 teams registered"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#E31212"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Tournament Type -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOURNAMENT TYPE"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#6B7280"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp" />
+
+            <Spinner
+                android:id="@+id/spinnerTournamentType"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_edittext" />
+
+            <!-- Start Date & Time -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="START DATE"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#6B7280"
+                        android:letterSpacing="0.08"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etStartDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="YYYY-MM-DD"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:background="@drawable/rounded_edittext"
+                        android:paddingStart="12dp"
+                        android:textColor="#212121"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="START TIME"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#6B7280"
+                        android:letterSpacing="0.08"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etStartTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="HH:MM"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:background="@drawable/rounded_edittext"
+                        android:paddingStart="12dp"
+                        android:textColor="#212121"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Gap Between Matches -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GAP BETWEEN MATCHES (MINUTES)"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#6B7280"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etGapMinutes"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:hint="e.g. 120"
+                android:inputType="number"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121"
+                android:textSize="14sp" />
+
+            <!-- Venue -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VENUE (ALL MATCHES)"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#6B7280"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp" />
+
+            <Spinner
+                android:id="@+id/spinnerVenue"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_edittext" />
+
+            <!-- Overs (Cricket only) -->
+            <EditText
+                android:id="@+id/etOvers"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:hint="Overs per Match"
+                android:inputType="number"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121"
+                android:visibility="gone" />
+
+            <!-- Optional Divider -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OPTIONAL DETAILS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#6B7280"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp"
+                android:layout_marginTop="4dp" />
+
+            <EditText
+                android:id="@+id/etScorerId"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:hint="Scorer ID (Optional)"
+                android:inputType="textVisiblePassword"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121" />
+
+            <EditText
+                android:id="@+id/etMediaScorerId"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:hint="Media Scorer Username (Optional)"
+                android:inputType="textVisiblePassword"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121" />
+
+            <!-- Generate Button -->
+            <Button
+                android:id="@+id/btnGenerate"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:backgroundTint="#E31212"
+                android:text="⚡  GENERATE FIXTURES"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ================= FOOTER ================= -->
+    <TextView
+        android:id="@+id/footer"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="#E31212"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Progress Overlay -->
+    <FrameLayout
+        android:id="@+id/progressOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ProgressBar
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:indeterminateTint="#E31212" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Generating..."
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

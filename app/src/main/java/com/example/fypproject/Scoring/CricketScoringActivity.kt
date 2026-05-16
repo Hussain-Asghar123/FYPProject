@@ -7,7 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.fypproject.CricketFragment.BallsFragment
+import com.example.fypproject.CricketFragment.FavouriteFragment
 import com.example.fypproject.CricketFragment.InfoFragment
+import com.example.fypproject.CricketFragment.MediaFragment
 import com.example.fypproject.CricketFragment.ScoreCardFragment
 import com.example.fypproject.CricketFragment.ScoringFragment
 import com.example.fypproject.DTO.MatchResponse
@@ -24,6 +26,8 @@ class CricketScoringActivity : AppCompatActivity() {
     private var scoringFragment: ScoringFragment? = null
     private var scoreCardFragment: ScoreCardFragment? = null
     private var ballsFragment: BallsFragment? = null
+    private var mediaFragment: MediaFragment? = null
+    private var favouriteFragment: FavouriteFragment?= null
     private var infoFragment: InfoFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +46,7 @@ class CricketScoringActivity : AppCompatActivity() {
             intent.getSerializableExtra("match") as? MatchResponse
         }
 
-        buttons = listOf(binding.btnScoring, binding.btnScoreCard, binding.btnBalls, binding.btnInfo)
+        buttons = listOf(binding.btnScoring, binding.btnScoreCard, binding.btnBalls, binding.btnInfo,binding.btnMedia,binding.btnFavourite)
 
 
         matchResponse?.let { match ->
@@ -50,6 +54,8 @@ class CricketScoringActivity : AppCompatActivity() {
             scoreCardFragment = ScoreCardFragment.newInstance(match)
             ballsFragment     = BallsFragment.newInstance(match)
             infoFragment      = InfoFragment.newInstance(match)
+            mediaFragment      = MediaFragment.newInstance(match)
+            favouriteFragment  = FavouriteFragment.newInstance(match)
         }
 
 
@@ -66,6 +72,8 @@ class CricketScoringActivity : AppCompatActivity() {
             scoreCardFragment = fm.findFragmentByTag("ScoreCardFragment") as? ScoreCardFragment ?: scoreCardFragment
             ballsFragment     = fm.findFragmentByTag("BallsFragment")     as? BallsFragment     ?: ballsFragment
             infoFragment      = fm.findFragmentByTag("InfoFragment")      as? InfoFragment      ?: infoFragment
+            mediaFragment     = fm.findFragmentByTag("MediaFragment") as? MediaFragment ?: mediaFragment
+            favouriteFragment = fm.findFragmentByTag("FavouriteFragment") as? FavouriteFragment ?: favouriteFragment
             selectButton(binding.btnScoring)
         }
         matchResponse?.id?.let { WebSocketManager.connect(it) }
@@ -91,6 +99,14 @@ class CricketScoringActivity : AppCompatActivity() {
         binding.btnInfo.setOnClickListener {
             selectButton(binding.btnInfo)
             showFragment(infoFragment ?: return@setOnClickListener)
+        }
+        binding.btnMedia.setOnClickListener {
+            selectButton(binding.btnMedia)
+            showFragment(mediaFragment ?: return@setOnClickListener)
+        }
+        binding.btnFavourite.setOnClickListener {
+            selectButton(binding.btnFavourite)
+            showFragment(favouriteFragment ?: return@setOnClickListener)
         }
     }
 
