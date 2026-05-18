@@ -28,12 +28,14 @@
         android:columnCount="2">
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnDLS" style="@style/SubControlBtn" android:text="DLS" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnAbandon" style="@style/SubControlBtn" android:text="Abandon" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPenalty"
+            style="@style/SubControlBtn"
+            android:text="Penalty" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSubstitute"
+            style="@style/SubControlBtn"
+            android:text="Substitute" />
     </GridLayout>
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnPenalty"
-        style="@style/SubControlBtn"
-        android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
-        android:text="Penalty" />
 </LinearLayout>

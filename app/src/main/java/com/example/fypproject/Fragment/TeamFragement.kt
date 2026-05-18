@@ -3,6 +3,7 @@ package com.example.fypproject.Fragment
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.fypproject.R
 import com.example.fypproject.databinding.FragmentTeamBinding
@@ -20,28 +21,50 @@ class TeamFragement: Fragment(R.layout.fragment_team) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentTeamBinding.bind(view)
         tournamentId = arguments?.getLong("tournamentId") ?: -1L
-        sportId=arguments?.getLong("sportId")?: -1L
+        sportId = arguments?.getLong("sportId") ?: -1L
 
         buttons = listOf(
             binding.btnTeams,
             binding.btnMyTeam
         )
 
-        selectButton(binding.btnMyTeam)
-        loadFragment(MyTeamFragment.newInstance(tournamentId,sportId))
+        val isGuest = requireContext()
+            .getSharedPreferences("MyPrefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("isGuest", false)
 
-        binding.btnMyTeam.setOnClickListener {
-            selectButton(binding.btnMyTeam)
-            loadFragment(MyTeamFragment.newInstance(tournamentId,sportId))
-        }
+        if (isGuest) {
+            binding.btnMyTeam.visibility = View.GONE
 
-        binding.btnTeams.setOnClickListener {
+            val screenWidth = resources.displayMetrics.widthPixels
+            val paddingPx = (24 * resources.displayMetrics.density).toInt() // 12dp start + 12dp end
+            val params = binding.btnTeams.layoutParams
+            params.width = screenWidth - paddingPx
+            binding.btnTeams.layoutParams = params
+
             selectButton(binding.btnTeams)
             loadFragment(AllTeamsFragement.newInstance(tournamentId))
+
+            binding.btnTeams.setOnClickListener {
+                selectButton(binding.btnTeams)
+                loadFragment(AllTeamsFragement.newInstance(tournamentId))
+            }
+        } else {
+            selectButton(binding.btnMyTeam)
+            loadFragment(MyTeamFragment.newInstance(tournamentId, sportId))
+
+            binding.btnMyTeam.setOnClickListener {
+                selectButton(binding.btnMyTeam)
+                loadFragment(MyTeamFragment.newInstance(tournamentId, sportId))
+            }
+            binding.btnTeams.setOnClickListener {
+                selectButton(binding.btnTeams)
+                loadFragment(AllTeamsFragement.newInstance(tournamentId))
+            }
         }
     }
 
-    private fun loadFragment(fragment: Fragment) {
+
+        private fun loadFragment(fragment: Fragment) {
         childFragmentManager.beginTransaction()
             .replace(binding.fragmentContainer.id, fragment)
             .commit()

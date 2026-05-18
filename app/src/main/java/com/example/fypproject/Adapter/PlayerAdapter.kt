@@ -1,44 +1,74 @@
 package com.example.fypproject.Adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fypproject.DTO.Player
-import com.example.fypproject.databinding.ItemPlayerBinding
+import com.example.fypproject.R
 
-class PlayerAdapter : ListAdapter<Player, PlayerAdapter.PlayerViewHolder>(PlayerDiffCallback()) {
+class PlayerAdapter(
+    private var creatorPlayerId: Long = -1L,   // ← NEW: captain detection
+    private var canRemove: Boolean = false,
+    private val onRemove: ((Long) -> Unit)? = null
+) : ListAdapter<Player, PlayerAdapter.PlayerVH>(DIFF) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlayerViewHolder {
-        val binding = ItemPlayerBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return PlayerViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: PlayerViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    inner class PlayerViewHolder(private val binding: ItemPlayerBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class PlayerVH(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvAvatar: TextView   = itemView.findViewById(R.id.tvPlayerAvatar)
+        val tvName: TextView     = itemView.findViewById(R.id.tvPlayerName)
+        val tvRole: TextView     = itemView.findViewById(R.id.tvPlayerRole)
+        val btnRemove: ImageButton = itemView.findViewById(R.id.btnRemovePlayer)
 
         fun bind(player: Player) {
-            binding.tvPlayerName.text = player.name
-            binding.tvPlayerStatus.text = player.status
+            // First letter as avatar
+            tvAvatar.text = player.name.firstOrNull()?.uppercase() ?: "?"
+
+            tvName.text = player.name
+
+            // Captain check
+            val isCaptain = player.id.toLong() == creatorPlayerId
+            tvRole.text = if (isCaptain) "⭐ Captain" else "Player"
+
+            // Remove button
+            if (canRemove) {
+                btnRemove.visibility = View.VISIBLE
+                btnRemove.setOnClickListener {
+                    onRemove?.invoke(player.id.toLong())
+                }
+            } else {
+                btnRemove.visibility = View.GONE
+            }
         }
     }
 
-    private class PlayerDiffCallback : DiffUtil.ItemCallback<Player>() {
-        override fun areItemsTheSame(oldItem: Player, newItem: Player): Boolean {
-            return oldItem.id == newItem.id
-        }
+    /** Call this after TeamResponse arrives so captain badge updates */
+    fun setCreatorPlayerId(id: Long) {
+        creatorPlayerId = id
+        notifyDataSetChanged()
+    }
 
-        override fun areContentsTheSame(oldItem: Player, newItem: Player): Boolean {
-            return oldItem == newItem
+    fun setCanRemove(value: Boolean) {
+        canRemove = value
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        PlayerVH(
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_player, parent, false)
+        )
+
+    override fun onBindViewHolder(holder: PlayerVH, position: Int) =
+        holder.bind(getItem(position))
+
+    companion object {
+        val DIFF = object : DiffUtil.ItemCallback<Player>() {
+            override fun areItemsTheSame(a: Player, b: Player) = a.id == b.id
+            override fun areContentsTheSame(a: Player, b: Player) = a == b
         }
     }
 }

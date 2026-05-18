@@ -51,4 +51,5 @@
     <string name="round_label">Round %1$d of %2$d</string>
     <string name="submitting">Submitting…</string>
     <string name="submit_vote">Submit &amp; View Summary</string>
+    <string name="remove_player">Remove Player</string>
 </resources>

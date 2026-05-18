@@ -10,7 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.fypproject.Adapter.PlayerAdapter
 import com.example.fypproject.Adapter.TeamPlayerAdapter
+import com.example.fypproject.DTO.Player
 import com.example.fypproject.DTO.TeamStatsDto
 import com.example.fypproject.Network.ApiClient.api
 import com.example.fypproject.R
@@ -29,26 +31,22 @@ class TeamDetailFragment : Fragment(R.layout.fragment_team_detail) {
     // ── which view is active ──────────────────────────────────────────────────
     private var showingPlayers = true
 
+    // ── onViewCreated mein retrieve karo ────────────────────────────────────────
+    private var creatorPlayerId: Long = -1L
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentTeamDetailBinding.bind(view)
 
-        teamId   = arguments?.getLong(ARG_TEAM_ID)   ?: -1L
+        teamId   = arguments?.getLong(ARG_TEAM_ID)    ?: -1L
         teamName = arguments?.getString(ARG_TEAM_NAME).orEmpty()
 
         binding.tvTeamDetailName.text = teamName
-
-        binding.btnBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
-
+        binding.btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
         binding.btnShowPlayers.setOnClickListener { switchToPlayers() }
         binding.btnShowStats.setOnClickListener   { switchToStats()   }
-
-        // default view
         switchToPlayers()
     }
-
     // ─────────────────────────────────────────────────────────────────────────
     // Toggle helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -92,20 +90,24 @@ class TeamDetailFragment : Fragment(R.layout.fragment_team_detail) {
     // Players
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── loadPlayers — PlayerAdapter use karo ─────────────────────────────────────
     private fun loadPlayers() {
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val players = api.getTeamPlayers(teamId)
+                val players = api.getTeamPlayers(teamId)   // returns List<TeamPlayerDto>
                 setLoading(false)
                 if (players.isEmpty()) {
-                    binding.tvPlayersEmpty.visibility  = View.VISIBLE
-                    binding.rvTeamPlayers.visibility   = View.GONE
+                    binding.tvPlayersEmpty.visibility = View.VISIBLE
+                    binding.rvTeamPlayers.visibility  = View.GONE
                 } else {
-                    binding.tvPlayersEmpty.visibility  = View.GONE
-                    binding.rvTeamPlayers.visibility   = View.VISIBLE
+                    binding.tvPlayersEmpty.visibility = View.GONE
+                    binding.rvTeamPlayers.visibility  = View.VISIBLE
+
+                    // ✅ TeamPlayerAdapter use karo — PlayerAdapter NAHI
                     binding.rvTeamPlayers.layoutManager = LinearLayoutManager(requireContext())
                     binding.rvTeamPlayers.adapter = TeamPlayerAdapter(players)
+
                     if (binding.rvTeamPlayers.itemDecorationCount == 0)
                         binding.rvTeamPlayers.addItemDecoration(
                             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
@@ -120,7 +122,6 @@ class TeamDetailFragment : Fragment(R.layout.fragment_team_detail) {
             }
         }
     }
-
     // ─────────────────────────────────────────────────────────────────────────
     // Team Stats
     // ─────────────────────────────────────────────────────────────────────────

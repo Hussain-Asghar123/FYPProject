@@ -4,6 +4,8 @@ import android.content.Context.MODE_PRIVATE
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import com.example.fypproject.Dialog.MilestoneDialog
+import com.example.fypproject.Utils.MilestoneDetector
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +40,7 @@ import java.util.TimerTask
 class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment) {
 
     private var _binding: BadmintionScoringFragmentBinding? = null
+    private var prevDataSnapshot: Map<String, Any?>? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
     private var lastSocketJson: JSONObject? = null
@@ -553,6 +556,19 @@ class BadmintionScoringFragment : Fragment(R.layout.badmintion_scoring_fragment)
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        val jsonMap = try {
+            obj.keys().asSequence().associateWith { key -> obj.opt(key) }
+        } catch (e: Exception) { null }
+
+        if (jsonMap != null) {
+            val milestone = MilestoneDetector.detectBadmintonMilestone(jsonMap, prevDataSnapshot)
+            prevDataSnapshot = jsonMap
+            milestone?.let {
+                activity?.runOnUiThread {
+                    MilestoneDialog.show(childFragmentManager, it)
+                }
+            }
+        }
         lastSocketJson = obj
 
         team1Points = obj.optInt("team1Points",

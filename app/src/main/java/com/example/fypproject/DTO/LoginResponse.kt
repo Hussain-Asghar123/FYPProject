@@ -9,6 +9,7 @@ data class LoginResponse(
     val playerId: Long,
     val seasonsCreated: List<Any>?,
     val tournamentsCreated: List<Any>?,
-    val scoredMatches: List<Any>?
+    val scoredMatches: List<Any>?,
+    val profilePhotoUrl: String?
 )
 

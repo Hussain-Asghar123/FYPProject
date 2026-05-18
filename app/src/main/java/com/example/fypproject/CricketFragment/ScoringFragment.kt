@@ -36,12 +36,16 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import com.example.fypproject.Dialog.MilestoneDialog
+import com.example.fypproject.Utils.MilestoneDetector
+import com.example.fypproject.Dialog.SubstitutePlayerDialog
 
 class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private var _binding: ScoringFragmentBinding? = null
     private val binding get() = _binding!!
     private var matchResponse: MatchResponse? = null
+    private var prevDataSnapshot: Map<String, Any?>? = null
     private var innings: Int = 1
     private var inningsId: Long? = null
     private var pendingComment: String? = null
@@ -53,8 +57,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var selectedVotePlayerName: String = ""
     private var voteAdapter1: VotePlayerAdapter? = null
     private var voteAdapter2: VotePlayerAdapter? = null
-    private var availableBatters: List<com.example.fypproject.DTO.TeamPlayerDto> = emptyList()
-    private var availableBowlers: List<com.example.fypproject.DTO.TeamPlayerDto> = emptyList()
+    private var availableBatters: List<TeamPlayerDto> = emptyList()
+    private var availableBowlers: List<TeamPlayerDto> = emptyList()
 
     private var lastReceivedScore: ScoreDTO? = null
 
@@ -124,32 +128,29 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         matchResponse?.let { match ->
             calculateTeams(match)
             updateHeaderUI(ScoreDTO())
-//            match.id?.let { matchId ->
-//                if (hasMatchEnded(matchId)) {
-//                    canEdit = false
-//                    loadAndShowVotingThenSummary()
-//                    return
-//                }
-//            }
-            // ✅ YEH LAGAO
             if (match.status == "COMPLETED" || match.status == "MATCH_COMPLETE") {
                 canEdit = false
                 loadAndShowVotingThenSummary()
                 return
             }
-            match.id?.let { clearMatchEnded(it) } // stale SharedPrefs clean
-//            if (match.status == "COMPLETED" || match.status == "MATCH_COMPLETE") {
-//                canEdit = false
-//                loadAndShowVotingThenSummary()
-//                return
-//            }
+            match.id?.let { clearMatchEnded(it) }
             registerSocketListeners()
         }
 
         canEdit = computeCanEdit(matchResponse)
 
         if (canEdit) {
-            showOnly(binding.layoutSelectPlayer.root)
+            val restored = restoreSelectionState()
+            when {
+                !restored -> showOnly(binding.layoutSelectPlayer.root)
+                b1Selected && b2Selected && bowlerSelected ->
+                    showOnly(binding.layoutMainScoring.root)
+                b1Selected && b2Selected && !bowlerSelected -> {
+                    showOnly(binding.layoutSelectBowler.root)
+                    binding.layoutSelectBowler.btnSelectBowler.text = "Select Next Bowler"
+                }
+                else -> showOnly(binding.layoutSelectPlayer.root)
+            }
             setupAdminSelectionFlow()
             setupScoringPanel()
             setupExtrasPanels()
@@ -157,6 +158,93 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             setupMorePanel()
         } else {
             showOnly(binding.layoutUserHistory)
+        }
+
+        matchResponse?.let {
+            registerSocketListeners()
+        }
+
+        attachLiveChat()
+    }
+
+    // ─── State Persistence ────────────────────────────────────────
+
+    private fun saveSelectionState() {
+        val matchId = matchResponse?.id ?: return
+        requireActivity().getSharedPreferences("ScoringPrefs", MODE_PRIVATE).edit().apply {
+            putBoolean("b1_$matchId",          b1Selected)
+            putBoolean("b2_$matchId",          b2Selected)
+            putBoolean("bowler_$matchId",      bowlerSelected)
+            putBoolean("firstInnings_$matchId", isFirstInnings)
+            putLong("striker_$matchId",        currentStrikerId    ?: -1L)
+            putLong("nonStriker_$matchId",     currentNonStrikerId ?: -1L)
+            putLong("bowlerId_$matchId",       currentBowlerId     ?: -1L)
+            putLong("inningsId_$matchId",       inningsId           ?: -1L)
+            putString("strikerName_$matchId",    binding.tvBatsman1Name.text.toString())
+            putString("nonStrikerName_$matchId", binding.tvBatsman2Name.text.toString())
+            putString("bowlerName_$matchId",     binding.tvBowlerName.text.toString())
+            apply()
+        }
+    }
+
+    private fun restoreSelectionState(): Boolean {
+        val matchId = matchResponse?.id ?: return false
+        val prefs = requireActivity().getSharedPreferences("ScoringPrefs", MODE_PRIVATE)
+
+        // Pehli baar join — kuch save nahi hua
+        if (!prefs.contains("b1_$matchId")) return false
+
+        b1Selected     = prefs.getBoolean("b1_$matchId",     false)
+        b2Selected     = prefs.getBoolean("b2_$matchId",     false)
+        bowlerSelected = prefs.getBoolean("bowler_$matchId", false)
+
+        currentStrikerId    = prefs.getLong("striker_$matchId",    -1L).takeIf { it > 0 }
+        currentNonStrikerId = prefs.getLong("nonStriker_$matchId", -1L).takeIf { it > 0 }
+        currentBowlerId     = prefs.getLong("bowlerId_$matchId",   -1L).takeIf { it > 0 }
+        inningsId           = prefs.getLong("inningsId_$matchId",  -1L).takeIf { it > 0 }
+
+        // Innings 2 tha to teams swap karo
+        val savedFirstInnings = prefs.getBoolean("firstInnings_$matchId", true)
+        if (!savedFirstInnings && isFirstInnings) {
+            val tempId      = battingTeamId
+            battingTeamId   = bowlingTeamId
+            bowlingTeamId   = tempId
+            battingTeamName = if (battingTeamId == team1Id) team1Name else team2Name
+            bowlingTeamName = if (bowlingTeamId == team1Id) team1Name else team2Name
+            isFirstInnings  = false
+        }
+
+        // UI names restore karo
+        if (b1Selected) {
+            val name = prefs.getString("strikerName_$matchId", "Batsman 1") ?: "Batsman 1"
+            binding.tvBatsman1Name.text = name
+            binding.layoutSelectPlayer.btnSelectBatsman.text = "Batsmen: Selected"
+        }
+        if (b2Selected) {
+            val name = prefs.getString("nonStrikerName_$matchId", "Batsman 2") ?: "Batsman 2"
+            binding.tvBatsman2Name.text = name
+        }
+        if (bowlerSelected) {
+            val name = prefs.getString("bowlerName_$matchId", "Bowler") ?: "Bowler"
+            binding.tvBowlerName.text = name
+            binding.layoutSelectPlayer.btnSelectBowler.text  = "Bowler: $name"
+            binding.layoutSelectBowler.btnSelectBowler.text  = "Bowler: $name"
+        }
+
+        binding.tvTeamName.text = battingTeamName
+        return b1Selected // striker selected = match shuru ho chuka tha
+    }
+
+    private fun clearSelectionState() {
+        val matchId = matchResponse?.id ?: return
+        requireActivity().getSharedPreferences("ScoringPrefs", MODE_PRIVATE).edit().apply {
+            remove("b1_$matchId");          remove("b2_$matchId")
+            remove("bowler_$matchId");      remove("firstInnings_$matchId")
+            remove("striker_$matchId");     remove("nonStriker_$matchId")
+            remove("bowlerId_$matchId")
+            remove("strikerName_$matchId"); remove("nonStrikerName_$matchId")
+            remove("bowlerName_$matchId")
+            apply()
         }
     }
     private fun clearMatchEnded(matchId: Long) {
@@ -252,6 +340,19 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             }
         }
         WebSocketManager.addMessageListener(SOCKET_KEY) { jsonString ->
+            try {
+                val jo = org.json.JSONObject(jsonString)
+                val jsonMap = jo.keys().asSequence().associateWith { key -> jo.opt(key) }
+                val milestone = MilestoneDetector.detectCricketMilestone(
+                    displayedBalls, jsonMap, prevDataSnapshot
+                )
+                prevDataSnapshot = jsonMap
+                milestone?.let {
+                    activity?.runOnUiThread {
+                        MilestoneDialog.show(childFragmentManager, it)
+                    }
+                }
+            } catch (_: Exception) {}
             val updatedScore = JsonConverter.fromJson(jsonString)
             println("📥 Received JSON: $jsonString")
             updatedScore?.let {
@@ -265,32 +366,56 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         WebSocketManager.removeMessageListener(SOCKET_KEY)
     }
 
+    private fun attachLiveChat() {
+        if (childFragmentManager.findFragmentById(R.id.liveChatContainer) != null) return
+
+        val matchId  = matchResponse?.id ?: return
+//        val username = requireActivity()
+//            .getSharedPreferences("MyPrefs", MODE_PRIVATE)
+//            .getString("username", "Guest") ?: "Guest"
+
+        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val username = prefs.getString("username", null)
+
+        // Guest hai (username null ya blank) — chat mat dikhao
+        if (username.isNullOrBlank()) return
+
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.liveChatContainer, LiveChatFragment.newInstance(matchId, username))
+            .commit()
+    }
+
     private fun updateScoreboardUI(score: ScoreDTO) {
 
-            if (_binding == null || !isAdded) return
-            isBallPending = false
-            setScoringPanelEnabled(true)
-            lastReceivedScore = score
-            score.availableBatters?.let { availableBatters = it }
-            score.availableBowlers?.let { availableBowlers = it }
+        if (_binding == null || !isAdded) return
+        isBallPending = false
+        setScoringPanelEnabled(true)
+        lastReceivedScore = score
+        score.availableBatters?.let { availableBatters = it }
+        score.availableBowlers?.let { availableBowlers = it }
 
 
-            if (isEndingMatch) {
+        if (isEndingMatch) {
 
-                if (score.status == "COMPLETED" ||
-                    score.status == "MATCH_COMPLETE" ||
-                    score.matchEnd) {
-                    isEndingMatch = false
-                    loadAndShowVotingThenSummary()
-                    return
-                }
-
+            if (score.status == "COMPLETED" ||
+                score.status == "MATCH_COMPLETE" ||
+                score.matchEnd) {
+                isEndingMatch = false
+                loadAndShowVotingThenSummary()
                 return
             }
 
-            if (binding.layoutMatchSummary.root.visibility == View.VISIBLE) {
-                return
-            }
+            return
+        }
+        if (binding.layoutMatchSummary.root.visibility == View.VISIBLE ||
+            binding.layoutVoting.root.visibility == View.VISIBLE) {
+            return
+        }
+
+        if (binding.layoutMatchSummary.root.visibility == View.VISIBLE) {
+            return
+        }
         if (score.inningsId != null && score.inningsId != -1L) {
             this.inningsId = score.inningsId
         }
@@ -381,6 +506,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         updateBallContainer(normalizedScore)
 
         if (canEdit) checkInningsComplete(normalizedScore)
+        if (canEdit) saveSelectionState()
     }
 
     private fun handleModalLogic(score: ScoreDTO) {
@@ -426,8 +552,14 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             return
         }
 
-        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE"||score.matchEnd) {
-            loadAndShowVotingThenSummary(); return
+        if (score.status == "COMPLETED" || score.status == "MATCH_COMPLETE" || score.matchEnd) {
+            // ✅ FIX 3: only call if not already in voting/summary
+            if (!isVotingActive &&
+                binding.layoutMatchSummary.root.visibility != View.VISIBLE &&
+                binding.layoutVoting.root.visibility != View.VISIBLE) {
+                loadAndShowVotingThenSummary()
+            }
+            return
         }
 
         if (!score.firstInnings && isFirstInnings && !isSuperOver) { switchInnings(); return }
@@ -606,6 +738,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun resetForNewInnings() {
+        clearSelectionState()
         currentStrikerId    = null
         currentNonStrikerId = null
         currentBowlerId     = null
@@ -948,6 +1081,29 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnDLS.setOnClickListener        { showOnly(binding.layoutDLS.root)        }
             btnAbandon.setOnClickListener    { showAbandonConfirmationDialog()         }
             btnPenalty.setOnClickListener    { resetPenaltyPanel(); showOnly(binding.layoutPenalty.root) }
+            btnSubstitute.setOnClickListener {
+                showOnly(binding.layoutMainScoring.root)
+                val dialog = SubstitutePlayerDialog.newInstance(
+                    matchResponse?.id ?: return@setOnClickListener,
+                    inningsId,
+                    team1Id, team2Id, team1Name, team2Name,
+                    battingTeamId,
+                    availableBatters, availableBowlers,
+                    listOfNotNull(currentStrikerId, currentNonStrikerId),
+                    listOfNotNull(currentBowlerId)
+                )
+                dialog.onSuccess = object : SubstitutePlayerDialog.OnSubstituteSuccess {
+                    override fun onSuccess(updatedScore: com.example.fypproject.ScoringDTO.ScoreDTO?) {
+                        showOnly(binding.layoutMainScoring.root)
+                        if (updatedScore != null) {
+                            applySubstituteResult(updatedScore)
+                        } else {
+                            requireContext().toastShort("Squad updated!")
+                        }
+                    }
+                }
+                dialog.show(childFragmentManager, "Substitute")
+            }
         }
         binding.layoutDLS.btnCloseDLS.setOnClickListener               { showOnly(binding.layoutMainScoring.root) }
         binding.layoutAbandon.btnCloseAbandon.setOnClickListener       { showOnly(binding.layoutMainScoring.root) }
@@ -956,6 +1112,75 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         setupEndInningsAction()
         setupDLSAction()
         setupPenaltyAction()
+    }
+
+    private fun applySubstituteResult(score: ScoreDTO) {
+        if (_binding == null || !isAdded) return
+
+        // ── IDs update karo (React: setStrikerId, setNonStrikerId, setBowlerId) ──
+        score.batsmanId?.takeIf    { it > 0 }?.let {
+            currentStrikerId = it
+            row1PlayerId     = it
+        }
+        score.nonStrikerId?.takeIf { it > 0 }?.let {
+            currentNonStrikerId = it
+            row2PlayerId        = it
+        }
+        score.bowlerId?.takeIf     { it > 0 }?.let {
+            currentBowlerId = it
+        }
+
+        // ── Available lists update karo ──
+        score.availableBatters?.let { availableBatters = it }
+        score.availableBowlers?.let { availableBowlers = it }
+
+        // ── Batsman 1 stats force-update (naam + 0 se reset) ──
+        score.batsman1Stats?.let { stats ->
+            if (stats.playerId != null && stats.playerId > 0) {
+                val isStriker = stats.playerId == score.batsmanId
+                binding.tvBatsman1Name.text = "${if (isStriker) "🏏 " else ""}${stats.playerName}"
+                binding.tvBatsman1R.text    = stats.runs.toString()
+                binding.tvBatsman1B.text    = stats.ballsFaced.toString()
+                binding.tvBatsman14s.text   = stats.fours.toString()
+                binding.tvBatsman16s.text   = stats.sixes.toString()
+                val sr = if (stats.ballsFaced > 0)
+                    stats.runs.toDouble() / stats.ballsFaced * 100 else 0.0
+                binding.tvBatsman1SR.text   = String.format("%.1f", sr)
+            }
+        }
+
+        // ── Batsman 2 stats force-update ──
+        score.batsman2Stats?.let { stats ->
+            if (stats.playerId != null && stats.playerId > 0) {
+                val isStriker = stats.playerId == score.batsmanId
+                binding.tvBatsman2Name.text = "${if (isStriker) "🏏 " else ""}${stats.playerName}"
+                binding.tvBatsman2R.text    = stats.runs.toString()
+                binding.tvBatsman2B.text    = stats.ballsFaced.toString()
+                binding.tvBatsman24s.text   = stats.fours.toString()
+                binding.tvBatsman26s.text   = stats.sixes.toString()
+                val sr = if (stats.ballsFaced > 0)
+                    stats.runs.toDouble() / stats.ballsFaced * 100 else 0.0
+                binding.tvBatsman2SR.text   = String.format("%.1f", sr)
+            }
+        }
+
+        // ── Bowler stats force-update ──
+        score.bowlerStats?.let { stats ->
+            if (stats.playerId != null && stats.playerId > 0) {
+                binding.tvBowlerName.text = stats.playerName ?: "Bowler"
+                binding.tvBowlerO.text    = "${stats.ballsBowled / 6}.${stats.ballsBowled % 6}"
+                binding.tvBowlerR.text    = stats.runsConceded.toString()
+                binding.tvBowlerW.text    = stats.wickets.toString()
+                val eco = if (stats.ballsBowled > 0)
+                    stats.runsConceded / (stats.ballsBowled / 6.0) else 0.0
+                binding.tvBowlerEco.text  = String.format("%.1f", eco)
+            }
+        }
+
+        // ── lastReceivedScore update karo taake agle ball mein sahi data jaye ──
+        lastReceivedScore = score
+
+        requireContext().toastShort("Substitution applied!")
     }
 
 
@@ -974,9 +1199,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
             when {
                 isSuperOver && isSuperOverInnings == 1 -> {
-                    // SO pehli innings end → teams switch, doosri SO innings shuru
                     isSuperOverInnings = 2
-                    isFirstInnings=false
+                    isFirstInnings = false
                     val tempId = battingTeamId
                     battingTeamId   = bowlingTeamId
                     bowlingTeamId   = tempId
@@ -988,7 +1212,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                     binding.ballContainer.removeAllViews()
                     binding.tvTeamName.text = battingTeamName
 
-                    JsonConverter.sendScore(scoreToSend.copy(
+                    JsonConverter.sendScore(scoreToSend.cleanForSend().copy(  // ✅
                         eventType = "End_Innings", event = "0", comment = "", undo = false, superOver = true, firstInnings = true
                     ))
                     showOnly(binding.layoutSelectPlayer.root)
@@ -997,41 +1221,35 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 isSuperOver && isSuperOverInnings == 2 -> {
                     isEndingMatch = true
                     matchResponse?.id?.let { markMatchEnded(it) }
-                    JsonConverter.sendScore(scoreToSend.copy(
+                    JsonConverter.sendScore(scoreToSend.cleanForSend().copy(  // ✅
                         eventType = "End_Innings", event = "0", comment = "", undo = false, superOver = true, firstInnings = false
                     ))
                     showOnly(binding.layoutMainScoring.root)
                 }
                 !isFirstInnings -> {
-                    // Normal match second innings end
                     isEndingMatch = true
-//                    matchResponse?.id?.let { markMatchEnded(it) }
-                    JsonConverter.sendScore(scoreToSend.copy(
+                    JsonConverter.sendScore(scoreToSend.cleanForSend().copy(  // ✅
                         eventType = "End_Innings", event = "0", comment = "", undo = false
                     ))
                     showOnly(binding.layoutMainScoring.root)
                 }
                 else -> {
-                    // Normal match first innings end
-                    JsonConverter.sendScore(scoreToSend.copy(
+                    JsonConverter.sendScore(scoreToSend.cleanForSend().copy(  // ✅
                         eventType = "End_Innings", event = "0", comment = "", undo = false
                     ))
                     showOnly(binding.layoutMainScoring.root)
                 }
             }
         }
+
         binding.layoutInningsUndo.btnSuperOver.setOnClickListener {
+            clearSelectionState()
             val base = lastReceivedScore ?: run {
                 requireContext().toastShort("Score data missing, retry karo")
                 return@setOnClickListener
             }
-
-            // ✅ React: handleSuperOver(data) → {..data, eventType:"Super_Over", event:"0"}
-            JsonConverter.sendScore(base.copy(
-                eventType = "Super_Over",
-                event     = "0",
-                comment   = "",
-                undo      = false
+            JsonConverter.sendScore(base.cleanForSend().copy(  // ✅
+                eventType = "Super_Over", event = "0", comment = "", undo = false
             ))
             isSuperOverPending = false
             isSuperOver = true
@@ -1126,6 +1344,8 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     }
 
     private fun loadAndShowVotingThenSummary() {
+        if(isVotingActive)return
+        clearSelectionState()
         if (_binding == null || !isAdded) return
 
         val matchId   = matchResponse?.id ?: run { loadAndShowSummary(); return }
@@ -1462,6 +1682,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             try {
                 val response = withContext(Dispatchers.IO) { RetrofitInstance.api.abandonMatch(matchId) }
                 if (response.isSuccessful) {
+                    clearSelectionState()
                     activity?.runOnUiThread {
                         showOnly(binding.layoutMatchSummary.root)
 
@@ -1663,28 +1884,44 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         rvPlayers.layoutManager = LinearLayoutManager(context)
         btnClose.setOnClickListener { dialog.dismiss() }
 
-        lifecycleScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitInstance.api.getPlayersByTeam(bowlingTeamId)
-                }
-                if (response.isSuccessful) {
-                    val players = response.body() ?: emptyList()
-                    val adapter = PlayerSelectionAdapter(players) { }
-                    rvPlayers.adapter = adapter
-                    btnConfirm.setOnClickListener {
-                        val selected = adapter.getSelectedPlayer()
-                        if (selected != null) { onFielderSelected(selected); dialog.dismiss() }
-                        else requireContext().toastShort("Please select a player")
-                    }
-                }
-            } catch (e: Exception) {
-                requireContext().toastLong("Error loading players")
-                dialog.dismiss()
+        // ✅ FIX: pehle availableBowlers use karo (same as openPlayerSelectionDialog)
+        val preloadedFielders = availableBowlers.ifEmpty { null }
+
+        if (preloadedFielders != null) {
+            val adapter = PlayerSelectionAdapter(preloadedFielders) { }
+            rvPlayers.adapter = adapter
+            btnConfirm.setOnClickListener {
+                val selected = adapter.getSelectedPlayer()
+                if (selected != null) { onFielderSelected(selected); dialog.dismiss() }
+                else requireContext().toastShort("Please select a player")
             }
+            dialog.setView(dialogView)
+            dialog.show()
+        } else {
+            // Fallback: API se lo
+            lifecycleScope.launch {
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        RetrofitInstance.api.getPlayersByTeam(bowlingTeamId)
+                    }
+                    if (response.isSuccessful) {
+                        val players = response.body() ?: emptyList()
+                        val adapter = PlayerSelectionAdapter(players) { }
+                        rvPlayers.adapter = adapter
+                        btnConfirm.setOnClickListener {
+                            val selected = adapter.getSelectedPlayer()
+                            if (selected != null) { onFielderSelected(selected); dialog.dismiss() }
+                            else requireContext().toastShort("Please select a player")
+                        }
+                    }
+                } catch (e: Exception) {
+                    requireContext().toastLong("Error loading players")
+                    dialog.dismiss()
+                }
+            }
+            dialog.setView(dialogView)
+            dialog.show()
         }
-        dialog.setView(dialogView)
-        dialog.show()
     }
 
     private fun openNewBatsmanDialog(
@@ -1868,8 +2105,12 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
         // ✅ Bowler: use availableBowlers from WS (same as JS)
         val preloadedList = when (selectionType) {
-            "bowler" -> availableBowlers.ifEmpty { null }
-            else     -> null
+            "bowler"   -> availableBowlers.ifEmpty { null }
+            "batsman1" -> availableBatters.ifEmpty { null }
+            "batsman2" -> availableBatters
+                .filter { it.id != currentStrikerId }
+                .ifEmpty { null }
+            else       -> null
         }
 
         if (preloadedList != null) {
@@ -1950,6 +2191,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private fun checkAutoStart() {
         if (b1Selected && b2Selected && bowlerSelected) {
             showOnly(binding.layoutMainScoring.root)
+            saveSelectionState()
         }
     }
 
@@ -2013,6 +2255,15 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
         activePanel.visibility = View.VISIBLE
     }
+
+    private fun ScoreDTO.cleanForSend(): ScoreDTO = this.copy(
+        availableBatters = null,
+        availableBowlers = null,
+        cricketBalls     = null,
+        batsman1Stats    = null,
+        batsman2Stats    = null,
+        bowlerStats      = null
+    )
 
     companion object {
         fun newInstance(match: MatchResponse): ScoringFragment {

@@ -3,6 +3,8 @@ package com.example.fypproject.TugOfWarFragment
 import android.content.Context.MODE_PRIVATE
 import android.net.Uri
 import android.os.Build
+import com.example.fypproject.Dialog.MilestoneDialog
+import com.example.fypproject.Utils.MilestoneDetector
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -38,6 +40,7 @@ import java.util.TimerTask
 class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private var _binding: TugofwarScoringFragmentBinding? = null
+    private var prevDataSnapshot: Map<String, Any?>? = null
     private val binding get() = _binding!!
     private var lastSocketJson: JSONObject? = null
     private var matchResponse: MatchResponse? = null
@@ -480,6 +483,19 @@ class TugOfWarScoringFragment : Fragment(R.layout.tugofwar_scoring_fragment) {
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        val jsonMap = try {
+            obj.keys().asSequence().associateWith { key -> obj.opt(key) }
+        } catch (e: Exception) { null }
+
+        if (jsonMap != null) {
+            val milestone = MilestoneDetector.detectTugOfWarMilestone(jsonMap, prevDataSnapshot)
+            prevDataSnapshot = jsonMap
+            milestone?.let {
+                activity?.runOnUiThread {
+                    MilestoneDialog.show(childFragmentManager, it)
+                }
+            }
+        }
         lastSocketJson = obj
 
         isActionPending = false

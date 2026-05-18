@@ -7,5 +7,23 @@
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
+
+
+    </style>
+
+
+    <style name="MilestoneDialogTheme" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@style/MilestoneAnimation</item>
+    </style>
+
+    <style name="MilestoneAnimation">
+        <item name="android:windowEnterAnimation">@anim/milestone_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/milestone_fade_out</item>
     </style>
 </resources>
+
+

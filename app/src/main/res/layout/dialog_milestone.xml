@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- dialog_milestone.xml  — auto-dismiss milestone popup -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_rounded_dialog"
+    android:elevation="12dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Colored left stripe (set dynamically by MilestoneDialog) -->
+    <View
+        android:id="@+id/viewMilestoneStripe"
+        android:layout_width="6dp"
+        android:layout_height="match_parent"
+        android:background="#F59E0B" />
+
+    <!-- Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="16dp">
+
+        <TextView
+            android:id="@+id/tvMilestoneEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="40sp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:text="🏆" />
+
+        <TextView
+            android:id="@+id/tvMilestoneTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:text="MILESTONE" />
+
+        <TextView
+            android:id="@+id/tvMilestoneSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#9CA3AF"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:text="" />
+    </LinearLayout>
+</LinearLayout>

@@ -5,27 +5,54 @@
     android:orientation="horizontal"
     android:paddingVertical="5dp">
 
-    <TextView android:id="@+id/tvBowlerName"
-        android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="2" android:textSize="11sp" android:textColor="#000000"/>
+    <!-- Name — weight 2, same as header -->
+    <TextView
+        android:id="@+id/tvBowlerName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:textSize="11sp"
+        android:textColor="#000000" />
 
-    <TextView android:id="@+id/tvBowlerOvers"
-        android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="0.7" android:gravity="center"
-        android:textSize="11sp" android:textColor="#666666"/>
+    <!-- O — Overs -->
+    <TextView
+        android:id="@+id/tvBowlerOvers"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.7"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:textColor="#666666" />
 
-    <TextView android:id="@+id/tvBowlerRuns"
-        android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="0.7" android:gravity="center"
-        android:textSize="11sp" android:textColor="#666666"/>
+    <!-- W — Wickets -->
+    <TextView
+        android:id="@+id/tvBowlerWickets"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.7"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:textColor="#E31212"
+        android:textStyle="bold" />
 
-    <TextView android:id="@+id/tvBowlerWickets"
-        android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="0.7" android:gravity="center"
-        android:textSize="11sp" android:textColor="#000000" android:textStyle="bold"/>
+    <!-- EC — Economy -->
+    <TextView
+        android:id="@+id/tvBowlerEco"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.7"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:textColor="#666666" />
 
-    <TextView android:id="@+id/tvBowlerEco"
-        android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="0.9" android:gravity="center"
-        android:textSize="11sp" android:textColor="#666666"/>
+    <!-- RC — Runs Conceded -->
+    <TextView
+        android:id="@+id/tvBowlerRC"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.9"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:textColor="#666666" />
+
 </LinearLayout>

@@ -15,5 +15,10 @@ class MainActivity : AppCompatActivity() {
             val intent= Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
+        binding.btnGuest.setOnClickListener {
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.putExtra("isGuest", true)
+            startActivity(intent)
+        }
     }
 }

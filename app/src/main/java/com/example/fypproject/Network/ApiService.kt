@@ -12,19 +12,26 @@ import com.example.fypproject.DTO.LoginRequest
 import com.example.fypproject.DTO.LoginResponse
 import com.example.fypproject.DTO.MatchResponse
 import com.example.fypproject.DTO.MediaDto
+import com.example.fypproject.DTO.NotificationDto
 import com.example.fypproject.DTO.PlayerDto
 import com.example.fypproject.DTO.PlayerDto1
+import com.example.fypproject.DTO.PlayerInfoDto
 import com.example.fypproject.DTO.PlayerRequest
 import com.example.fypproject.DTO.PlayerRequestDto
 import com.example.fypproject.DTO.PlayerResponse
 import com.example.fypproject.DTO.PlayerStatsDto
 import com.example.fypproject.DTO.PlayeraStatsDTO1
+import com.example.fypproject.DTO.ProfilePhotoResponse
 import com.example.fypproject.DTO.PtsTableDto
+import com.example.fypproject.DTO.ReuseTeamRequest
+import com.example.fypproject.DTO.ReuseTeamResponse
 import com.example.fypproject.DTO.Season
 import com.example.fypproject.DTO.SeasonResponse
 import com.example.fypproject.DTO.SeasonSportsRequest
 import com.example.fypproject.DTO.SportTournamentCount
+import com.example.fypproject.DTO.SubstituteRequest
 import com.example.fypproject.DTO.TeamDTO
+import com.example.fypproject.DTO.TeamHistoryDto
 import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.DTO.TeamRequest
 import com.example.fypproject.DTO.TeamRequestDto
@@ -50,6 +57,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
@@ -401,5 +409,45 @@ interface ApiService {
         @Path("teamId") teamId: Long
     ): TeamStatsDto
 
+    @GET("notification/account/{accountId}")
+    suspend fun getAccountNotifications(
+        @Path("accountId") accountId: Long
+    ): Response<List<NotificationDto>>
 
+    @PATCH("notification/{id}/read")
+    suspend fun markNotificationAsRead(@Path("id") id: Long): Response<String>
+
+    @Multipart
+    @POST("account/{accountId}/profile-photo")
+    suspend fun uploadProfilePhoto(
+        @Path("accountId") accountId: Long,
+        @Part file: MultipartBody.Part
+    ): Response<ProfilePhotoResponse>
+
+    @GET("player/{playerId}/info")
+    suspend fun getPlayerInfo(
+        @Path("playerId") playerId: Long
+    ): Response<PlayerInfoDto>
+
+    @POST("match/{matchId}/substitute")
+    suspend fun substitutePlayer(
+        @Path("matchId") matchId: Long,
+        @Body request: SubstituteRequest
+    ): Response<com.example.fypproject.ScoringDTO.ScoreDTO>
+
+    @DELETE("playerRequest/team/{teamId}/player/{playerId}")
+    suspend fun removePlayerFromTeam(
+        @Path("teamId") teamId: Long,
+        @Path("playerId") playerId: Long
+    ): Response<Unit>
+
+    @POST("team/reuse")
+    suspend fun reuseTeam(
+        @Body data: ReuseTeamRequest
+    ): Response<ReuseTeamResponse>
+
+    @GET("team/player/{playerId}/history")
+    suspend fun getPlayerTeamHistory(
+        @Path("playerId") playerId: Long
+    ): Response<List<TeamHistoryDto>>
 }

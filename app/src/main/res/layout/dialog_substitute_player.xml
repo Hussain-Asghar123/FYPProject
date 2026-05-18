@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_rounded_dialog"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔄 Player Substitution"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ── Team toggle ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <!--
+            Both buttons start with solid backgrounds set programmatically.
+            Batting = #E31212 (active by default), Bowling = #6B7280 (inactive).
+            Kotlin sets colours on every tab switch so no selector drawable needed.
+        -->
+        <Button
+            android:id="@+id/btnSubBatting"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="Batting Team"
+            android:textSize="13sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#E31212" />
+
+        <Button
+            android:id="@+id/btnSubBowling"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Bowling Team"
+            android:textSize="13sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#6B7280" />
+    </LinearLayout>
+
+    <!-- ── Player Out label ── -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PLAYER OUT (INJURED / REPLACED)"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#E31212"
+        android:layout_marginBottom="4dp" />
+
+    <Spinner
+        android:id="@+id/spinnerPlayerOut"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/rounded_edittext"
+        android:padding="8dp" />
+
+    <!-- ── Player In label ── -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SUBSTITUTE IN"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#E31212"
+        android:layout_marginBottom="4dp" />
+
+    <Spinner
+        android:id="@+id/spinnerPlayerIn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/rounded_edittext"
+        android:padding="8dp" />
+
+    <!-- ── Action buttons ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancelSub"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Cancel"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#6B7280" />
+
+        <Button
+            android:id="@+id/btnConfirmSub"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Confirm Sub"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#E31212" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressSubstitute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+</LinearLayout>

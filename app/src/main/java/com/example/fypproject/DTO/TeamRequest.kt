@@ -4,7 +4,8 @@ data class TeamResponse(
     val teamId: Long,
     val teamStatus: String,
     val teamName: String,
-    val players: List<Player>
+    val players: List<Player>,
+    val creatorPlayerId: Long
 )
 data class Player(
     val name: String,

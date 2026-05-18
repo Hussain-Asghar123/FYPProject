@@ -35,9 +35,8 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
                 val response = api.getTeamsByTournament(tournamentId)
                 if (response.isSuccessful && response.body() != null) {
                     val teams = response.body()!!
-                    // ── pass onTeamClick lambda ───────────────────────────
                     val adapter = TeamAdapter(teams) { team ->
-                        openTeamDetail(team.id, team.name)   // adjust field names to your TeamDto
+                        openTeamDetail(team.id, team.name)
                     }
                     binding.rvAllTeams.adapter = adapter
                     checkEmptyState(teams.isEmpty())
@@ -55,18 +54,18 @@ class AllTeamsFragement : Fragment(R.layout.fragments_all_teams) {
         }
     }
 
-    // ── opens TeamDetailFragment via back-stack ───────────────────────────────
+    // ── Extra API call ki zaroorat NAHI — isCreator players API se aata hai ──
     private fun openTeamDetail(teamId: Long, teamName: String) {
         val fragment = TeamDetailFragment.newInstance(teamId, teamName)
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)  // camelCase
+            .replace(R.id.fragmentContainer, fragment)
             .addToBackStack("team_detail")
             .commit()
     }
 
     private fun checkEmptyState(isEmpty: Boolean) {
         if (_binding == null) return
-        binding.rvAllTeams.visibility  = if (isEmpty) View.GONE else View.VISIBLE
+        binding.rvAllTeams.visibility   = if (isEmpty) View.GONE    else View.VISIBLE
         binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 

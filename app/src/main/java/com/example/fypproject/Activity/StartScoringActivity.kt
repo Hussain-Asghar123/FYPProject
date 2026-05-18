@@ -72,7 +72,7 @@ class StartScoringActivity : AppCompatActivity() {
     private val isTugOfWar    get() = sportId == 7L
     private val isChess       get() = sportId == 8L
 
-    private val needsLineup get() = isFutsal || isVolleyball || isBadminton || isTableTennis || isLudo ||isChess
+    private val needsLineup get() = isCricket ||isFutsal || isVolleyball || isBadminton || isTableTennis || isLudo ||isChess
 
     private val sportDecisions = mapOf(
         1L to Pair("Bat", "Bowl"),
@@ -81,6 +81,7 @@ class StartScoringActivity : AppCompatActivity() {
 
     private val maxPerTeam: Int
         get() = when {
+            isCricket->11
             isBadminton   -> if (bdFormat == "singles") 1 else 2
             isTableTennis -> if (ttFormat == "singles") 1 else 2
             isLudo -> if (ludoFormat == "1v1") 1 else 2
@@ -469,14 +470,14 @@ class StartScoringActivity : AppCompatActivity() {
 
             if (needsLineup && squadTeam1.isNotEmpty()) {
                 val cap = maxPerTeam
-                if (cap != Int.MAX_VALUE && (sel1.size != cap || sel2.size != cap)) {
+                if (!isCricket && cap != Int.MAX_VALUE && (sel1.size != cap || sel2.size != cap)) {
                     val label = if (cap == 1) "1 player" else "$cap players"
                     toastShort("Select exactly $label per team"); return@setOnClickListener
                 }
             }
             if (needsLineup && squadTeam1.isNotEmpty()) {
                 val cap = maxPerTeam
-                if ((isBadminton || isTableTennis || isLudo) && cap != Int.MAX_VALUE
+                if (!isCricket && (isBadminton || isTableTennis || isLudo) && cap != Int.MAX_VALUE
                     && (sel1.size != cap || sel2.size != cap)) {
                     val label = if (cap == 1) "1 player" else "$cap players"
                     toastShort("Select exactly $label per team")

@@ -14,12 +14,14 @@ import com.example.fypproject.Adapter.FutsalEventsAdapter
 import com.example.fypproject.Adapter.VotePlayerAdapter
 import com.example.fypproject.DTO.TeamPlayerDto
 import com.example.fypproject.DTO.MatchResponse
+import com.example.fypproject.Dialog.MilestoneDialog
 import com.example.fypproject.Network.RetrofitInstance
 import com.example.fypproject.R
 import com.example.fypproject.ScoringDTO.FutsalEventDTO
 import com.example.fypproject.ScoringDTO.Player
 import com.example.fypproject.Sockets.SocketState
 import com.example.fypproject.Sockets.WebSocketManager
+import com.example.fypproject.Utils.MilestoneDetector
 import com.example.fypproject.Utils.toastShort
 import com.example.fypproject.databinding.FutsalScoringFragmentBinding
 import kotlinx.coroutines.*
@@ -34,6 +36,8 @@ import kotlin.concurrent.timerTask
 class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
     private var _binding: FutsalScoringFragmentBinding? = null
     private val binding get() = _binding!!
+
+    private var prevDataSnapshot: Map<String, Any?>? = null
     private var lastSocketJson: JSONObject? = null
     private var matchResponse: MatchResponse? = null
     private var team1Players = listOf<Player>()
@@ -588,6 +592,19 @@ class FutsalScoringFragment : Fragment(R.layout.futsal_scoring_fragment) {
 
     private fun handleServerUpdate(obj: JSONObject) {
         if (_binding == null) return
+        val jsonMap = try {
+            obj.keys().asSequence().associateWith { key -> obj.opt(key) }
+        } catch (e: Exception) { null }
+
+        if (jsonMap != null) {
+            val milestone = MilestoneDetector.detectFutsalMilestone(jsonMap, prevDataSnapshot)
+            prevDataSnapshot = jsonMap
+            milestone?.let {
+                activity?.runOnUiThread {
+                    MilestoneDialog.show(childFragmentManager, it)
+                }
+            }
+        }
         lastSocketJson = obj
 
         isActionPending = false

@@ -2,14 +2,19 @@ package com.example.fypproject.CricketFragment
 
 import android.content.ContentValues
 import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.Gravity
 import android.view.View
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.FileProvider
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -95,8 +100,6 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
             }
         }
 
-        // ── PDF Export button ─────────────────────────────────────────────────
-        // btnExportPdf is added to scoreboard_fragment.xml (see layout note below)
         binding.btnExportPdf.setOnClickListener {
             if (!isExportingPdf) exportScoreCardPdf()
         }
@@ -159,7 +162,6 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
                     if (body != null) {
                         val savedUri = savePdfToDownloads(body, "scorecard-$matchId.pdf")
                         requireContext().toastShort("PDF saved to Downloads!")
-                        // ✅ Share dialog show karo
                         savedUri?.let { showShareDialog(it) }
                     } else {
                         requireContext().toastShort("Empty PDF response")
@@ -177,9 +179,6 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         }
     }
 
-    /**
-     * PDF save karo aur Uri return karo taake share ho sake
-     */
     private suspend fun savePdfToDownloads(body: ResponseBody, fileName: String): Uri? =
         withContext(Dispatchers.IO) {
             try {
@@ -200,8 +199,7 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
                     values.clear()
                     values.put(MediaStore.Downloads.IS_PENDING, 0)
                     resolver.update(uri, values, null, null)
-
-                    uri  // ✅ Uri return karo
+                    uri
                 } else {
                     @Suppress("DEPRECATION")
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(
@@ -211,7 +209,6 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
                     FileOutputStream(file).use { out ->
                         body.byteStream().copyTo(out)
                     }
-                    // Legacy ke liye FileProvider Uri
                     FileProvider.getUriForFile(
                         requireContext(),
                         "${requireContext().packageName}.provider",
@@ -223,13 +220,9 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
             }
         }
 
-    /**
-     * WhatsApp direct + general share dono options show karo
-     */
     private fun showShareDialog(pdfUri: Uri) {
         val ctx = requireContext()
 
-        // WhatsApp installed hai?
         val whatsappInstalled = try {
             ctx.packageManager.getPackageInfo("com.whatsapp", 0)
             true
@@ -253,14 +246,11 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
             .show()
     }
 
-    /**
-     * Directly WhatsApp pe share karo
-     */
     private fun shareToWhatsApp(pdfUri: Uri) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "application/pdf"
             putExtra(Intent.EXTRA_STREAM, pdfUri)
-            setPackage("com.whatsapp")           // sirf WhatsApp
+            setPackage("com.whatsapp")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
@@ -270,9 +260,6 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         }
     }
 
-    /**
-     * General share sheet (Gmail, Drive, Telegram, etc.)
-     */
     private fun shareGeneral(pdfUri: Uri) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "application/pdf"
@@ -283,18 +270,209 @@ class ScoreCardFragment : Fragment(R.layout.scoreboard_fragment) {
         startActivity(Intent.createChooser(intent, "Share Scorecard PDF"))
     }
 
-    // ── UI helpers ────────────────────────────────────────────────────────────
+    // ── UI update ─────────────────────────────────────────────────────────────
 
     private fun updateUI(scorecard: ScorecardResponse) {
         hideLoadingState()
         hideEmptyState()
         showContentView()
+
         batsmanAdapter.updateData(scorecard.batsmanScores)
         bowlerAdapter.updateData(scorecard.bowlerScores)
-        binding.tvExtras.text   = "Extras   ${scorecard.extras}"
-        binding.tvTotal.text    = " Total    ${scorecard.totalRuns}"
+
+        binding.tvExtras.text    = "Extras   ${scorecard.extras}"
+        binding.tvTotal.text     = " Total    ${scorecard.totalRuns}"
         binding.tvOversInfo.text = "Overs    ${scorecard.overs}.${scorecard.balls}"
+
+        // ── NEW: Fall of Wickets ──────────────────────────────────────────────
+        populateFallOfWickets(scorecard)
+
+        // ── NEW: Partnerships ─────────────────────────────────────────────────
+        populatePartnerships(scorecard)
     }
+
+    // ── Fall of Wickets ───────────────────────────────────────────────────────
+    //
+    // Mirrors JS:
+    //   <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs">
+    //     <span className="font-bold text-red-600">{fow.score}-{fow.wicketNumber}</span>
+    //     <span className="text-gray-500 ml-1">({fow.playerName}, {fow.over} ov)</span>
+    //   </div>
+
+    private fun populateFallOfWickets(scorecard: ScorecardResponse) {
+        val container = binding.llFowContainer
+        container.removeAllViews()
+
+        val fows = scorecard.fallOfWickets
+
+        if (fows.isNullOrEmpty()) {
+            binding.tvFowEmpty.visibility = View.VISIBLE
+            return
+        }
+
+        binding.tvFowEmpty.visibility = View.GONE
+
+        val dp = resources.displayMetrics.density
+
+        fows.forEach { fow ->
+            // Outer badge card
+            val card = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(
+                    (10 * dp).toInt(),  // left
+                    (6 * dp).toInt(),   // top
+                    (10 * dp).toInt(),  // right
+                    (6 * dp).toInt()    // bottom
+                )
+                // bg-red-50 border border-red-200 rounded-lg
+                setBackgroundResource(R.drawable.bg_fow_badge)  // see note below
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginEnd = (8 * dp).toInt()
+                }
+            }
+
+            // Bold red score text: "score-wicketNumber"
+            val tvScore = TextView(requireContext()).apply {
+                text = "${fow.score}-${fow.wicketNumber}"
+                setTextColor(Color.parseColor("#E31212"))
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+            }
+
+            // Gray detail text: "(playerName, over ov)"
+            val tvDetail = TextView(requireContext()).apply {
+                text = " (${fow.playerName}, ${fow.over} ov)"
+                setTextColor(Color.parseColor("#6B7280"))
+                textSize = 11f
+            }
+
+            card.addView(tvScore)
+            card.addView(tvDetail)
+            container.addView(card)
+        }
+    }
+
+    // ── Partnerships ──────────────────────────────────────────────────────────
+    //
+    // Mirrors JS:
+    //   <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+    //     <span>{index+1}</span>
+    //     <span>{p.batter1} & {p.batter2}</span>   (flex-1)
+    //     <span>{p.runs} runs</span>
+    //     <span>({p.balls} balls)</span>
+    //     {p.isNotOut && <span>*</span>}
+    //   </div>
+
+    private fun populatePartnerships(scorecard: ScorecardResponse) {
+        val container = binding.llPartnershipsContainer
+        container.removeAllViews()
+
+        val partnerships = scorecard.partnerships
+
+        if (partnerships.isNullOrEmpty()) {
+            binding.tvPartnershipsEmpty.visibility = View.VISIBLE
+            return
+        }
+
+        binding.tvPartnershipsEmpty.visibility = View.GONE
+
+        val dp = resources.displayMetrics.density
+
+        partnerships.forEachIndexed { index, p ->
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(
+                    (10 * dp).toInt(),
+                    (8 * dp).toInt(),
+                    (10 * dp).toInt(),
+                    (8 * dp).toInt()
+                )
+                // bg-gray-50 rounded-lg
+                setBackgroundResource(R.drawable.bg_partnership_row)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = (6 * dp).toInt()
+                }
+            }
+
+            // Index number
+            val tvIndex = TextView(requireContext()).apply {
+                text = "${index + 1}"
+                setTextColor(Color.parseColor("#6B7280"))
+                textSize = 11f
+                layoutParams = LinearLayout.LayoutParams(
+                    (20 * dp).toInt(),
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            // Batters — takes remaining space (weight=1)
+            val tvBatters = TextView(requireContext()).apply {
+                text = "${p.batter1} & ${p.batter2}"
+                setTextColor(Color.parseColor("#374151"))
+                textSize = 11f
+                setTypeface(typeface, Typeface.NORMAL)
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            }
+
+            // Runs
+            val tvRuns = TextView(requireContext()).apply {
+                text = "${p.runs} runs"
+                setTextColor(Color.parseColor("#111827"))
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginStart = (8 * dp).toInt()
+                }
+            }
+
+            // Balls
+            val tvBalls = TextView(requireContext()).apply {
+                text = "(${p.balls} balls)"
+                setTextColor(Color.parseColor("#9CA3AF"))
+                textSize = 11f
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginStart = (6 * dp).toInt()
+                }
+            }
+
+            row.addView(tvIndex)
+            row.addView(tvBatters)
+            row.addView(tvRuns)
+            row.addView(tvBalls)
+
+            // Not-out asterisk (green *)
+            if (p.isNotOut) {
+                val tvNotOut = TextView(requireContext()).apply {
+                    text = " *"
+                    setTextColor(Color.parseColor("#16A34A"))
+                    textSize = 11f
+                    setTypeface(typeface, Typeface.BOLD)
+                }
+                row.addView(tvNotOut)
+            }
+
+            container.addView(row)
+        }
+    }
+
+    // ── UI state helpers ──────────────────────────────────────────────────────
 
     private fun showLoadingState() {
         binding.progressLoading.visibility = View.VISIBLE
