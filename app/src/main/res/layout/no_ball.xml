@@ -30,5 +30,15 @@
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnNb5" style="@style/SubControlBtn" android:text="4 + NB" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnNb6" style="@style/SubControlBtn" android:text="5 + NB" />
         <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnNb7" style="@style/SubControlBtn" android:text="6 + NB" android:layout_columnSpan="3" />
+
+        <!--  NEW: NB + Run Out button  -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnNbRunOut"
+            style="@style/SubControlBtn"
+            android:text="NB + RO"
+            android:layout_columnSpan="3"
+            android:backgroundTint="#E31212"
+            android:textStyle="bold" />
     </GridLayout>
+
 </LinearLayout>

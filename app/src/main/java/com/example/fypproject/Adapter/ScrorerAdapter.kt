@@ -35,6 +35,7 @@ class ScrorerAdapter(
             6L -> "Ludo"
             7L -> "Tug of War"
             8L -> "Chess"
+            9L -> "Hockey"
             else -> "Unknown"
         }
     }

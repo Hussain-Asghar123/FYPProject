@@ -20,31 +20,32 @@
             android:id="@+id/btnBack"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="16dp"
-            android:contentDescription="Back"
             android:src="@drawable/ic_back"
+            android:contentDescription="Back"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            android:layout_marginStart="16dp"/>
 
         <TextView
             android:id="@+id/tvHeaderTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create Fixture"
-            android:textAlignment="center"
+            android:text="Register"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
+            android:textAlignment="center"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.422"
             app:layout_constraintStart_toEndOf="@id/btnBack"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ================= FORM ================= -->
+    <!-- Form Scrollable -->
     <ScrollView
+        android:id="@+id/formScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="24dp"
@@ -58,119 +59,66 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- TeamFragement 1 -->
-            <Spinner
-                android:id="@+id/spinnerTeam1"
+            <EditText
+                android:id="@+id/editTextName"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/rounded_edittext"/>
-
-            <!-- TeamFragement 2 -->
-            <Spinner
-                android:id="@+id/spinnerTeam2"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/rounded_edittext"/>
+                android:hint="Name"
+                android:textColor="#212121"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"/>
 
             <EditText
-                android:id="@+id/etScorerId"
+                android:id="@+id/editTextAridNo"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp"
-                android:hint="Scorer"
-                android:inputType="textVisiblePassword"
+                android:hint="Arid No"
+                android:textColor="#212121"
                 android:background="@drawable/rounded_edittext"
-                android:paddingStart="12dp"
-                android:textColor="#212121"/>
+                android:paddingStart="12dp"/>
 
             <EditText
-                android:id="@+id/etMediaScorerId"
+                android:id="@+id/editTextPassword"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp"
-                android:hint="Media Scorer"
-                android:inputType="textVisiblePassword"
                 android:background="@drawable/rounded_edittext"
-                android:paddingStart="12dp"
-                android:textColor="#212121"/>
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColor="#212121"
+                android:paddingStart="12dp" />
 
             <EditText
-                android:id="@+id/etCommentatorUsername"
+                android:id="@+id/editTextConfirmPassword"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:hint="Commentator Username (optional)"
-                android:inputType="textVisiblePassword"
+                android:layout_marginBottom="24dp"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
                 android:background="@drawable/rounded_edittext"
                 android:paddingStart="12dp"
-                android:textColor="#212121"/>
-
-
-            <!-- Venue -->
-            <Spinner
-                android:id="@+id/spinnerVenue"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/rounded_edittext"/>
-
-            <!-- Date -->
-            <EditText
-                android:id="@+id/etDate"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:hint="Select Date"
-                android:focusable="false"
-                android:clickable="true"
-                android:background="@drawable/rounded_edittext"
-                android:paddingStart="12dp"
-                android:textColor="#212121"/>
-
-            <!-- Time -->
-            <EditText
-                android:id="@+id/etTime"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:hint="Select Time"
-                android:focusable="false"
-                android:clickable="true"
-                android:background="@drawable/rounded_edittext"
-                android:paddingStart="12dp"
-                android:textColor="#212121"/>
-
-            <!-- Overs -->
-            <EditText
-                android:id="@+id/etOvers"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp"
-                android:hint="Overs"
-                android:inputType="numberDecimal"
-                android:background="@drawable/rounded_edittext"
-                android:paddingStart="12dp"
-                android:textColor="#212121"/>
-
+                android:textColor="#212121" />
 
             <Button
-                android:id="@+id/btnSave"
+                android:id="@+id/btn_Add"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:backgroundTint="#E31212"
-                android:text="SAVE"
+                android:text="REGISTER"
                 android:textColor="#FFFFFF"/>
         </LinearLayout>
     </ScrollView>
 
-    <!-- ================= FOOTER ================= -->
+    <!-- Footer -->
     <TextView
         android:id="@+id/footer"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:background="#E31212"
+        android:gravity="center"
+        android:textColor="#333333"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -194,4 +142,5 @@
             android:layout_gravity="center"
             android:indeterminateTint="#E31212" />
     </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

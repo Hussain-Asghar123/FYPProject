@@ -80,6 +80,17 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
     private var currentBowlerId: Long? = null
     private var selectedPenaltyRuns = 5
 
+    // ── Feature: Double Wicket ─────────────────────────────────
+    private var isDoubleWicket: Boolean = false
+
+    // ── Feature: Commentator Mode ──────────────────────────────
+    private var isCommentator: Boolean = false
+    private var commentatorUsername: String = ""
+
+    // ── Feature: NoBall + RunOut ───────────────────────────────
+    private var isNoBallRunOut: Boolean = false
+    private var noBallRunOutRuns: Int = 0
+
     private var isEndingMatch: Boolean = false
     private var b1Selected = false
     private var b2Selected = false
@@ -138,6 +149,17 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
 
         canEdit = computeCanEdit(matchResponse)
+        isDoubleWicket = matchResponse?.doubleWicket ?: false
+
+        commentatorUsername = matchResponse?.commentatorUsername?.trim().orEmpty()
+        val myUsername = requireActivity()
+            .getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            .getString("username", "")?.trim().orEmpty()
+
+        isCommentator = commentatorUsername.isNotBlank()
+                && myUsername.equals(commentatorUsername, ignoreCase = true)
+                && !canEdit
+
 
         if (canEdit) {
             val restored = restoreSelectionState()
@@ -344,7 +366,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
                 val jo = org.json.JSONObject(jsonString)
                 val jsonMap = jo.keys().asSequence().associateWith { key -> jo.opt(key) }
                 val milestone = MilestoneDetector.detectCricketMilestone(
-                    displayedBalls, jsonMap, prevDataSnapshot
+                    displayedBalls, jsonMap, prevDataSnapshot, isDoubleWicket
                 )
                 prevDataSnapshot = jsonMap
                 milestone?.let {
@@ -368,21 +390,22 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
 
     private fun attachLiveChat() {
         if (childFragmentManager.findFragmentById(R.id.liveChatContainer) != null) return
+        val matchId = matchResponse?.id ?: return
 
-        val matchId  = matchResponse?.id ?: return
-//        val username = requireActivity()
-//            .getSharedPreferences("MyPrefs", MODE_PRIVATE)
-//            .getString("username", "Guest") ?: "Guest"
-
-        val prefs    = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val prefs = requireActivity().getSharedPreferences("MyPrefs", MODE_PRIVATE)
         val username = prefs.getString("username", null)
+        val role = prefs.getString("role", "")?.trim().orEmpty()
+        val isAdmin = role.equals("ADMIN", ignoreCase = true)
 
-        // Guest hai (username null ya blank) — chat mat dikhao
-        if (username.isNullOrBlank()) return
-
+        val displayUsername = username ?: "Guest"
+        val isGuest = username.isNullOrBlank()
 
         childFragmentManager.beginTransaction()
-            .replace(R.id.liveChatContainer, LiveChatFragment.newInstance(matchId, username))
+            .replace(R.id.liveChatContainer, LiveChatFragment.newInstance(
+                matchId = matchId,
+                username = displayUsername,
+                isCommentator = isCommentator
+            ))
             .commit()
     }
 
@@ -636,7 +659,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         val stats1 = score.batsman1Stats
         val stats2 = score.batsman2Stats
 
-        if (score.eventType == "wicket" ||
+        if (score.eventType == "wicket" || score.eventType == "noball_runout"||
             stats1?.playerId == null || stats1.playerId <= 0 ||
             stats2?.playerId == null || stats2.playerId <= 0
         ) {
@@ -1019,6 +1042,19 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnNb5.setOnClickListener { sendExtraEvent(4, "noball", false) }
             btnNb6.setOnClickListener { sendExtraEvent(5, "noball", false) }
             btnNb7.setOnClickListener { sendExtraEvent(6, "noball", false) }
+            btnNbRunOut.setOnClickListener {
+                showNoBallRunOutRunsDialog()
+            }
+//            btnSendCustomNb.setOnClickListener {
+//                val customRuns = etCustomNbRuns.text.toString().toIntOrNull()
+//                if (customRuns == null) {
+//                    requireContext().toastShort("Pehle runs enter karo")
+//                    return@setOnClickListener
+//                }
+//                sendCustomNoBallEvent(customRuns)
+//                etCustomNbRuns.setText("")
+//                showOnly(binding.layoutMainScoring.root)
+//            }
         }
         binding.layoutByePanel.apply {
             btnBye1.setOnClickListener { sendExtraEvent(1, "bye", true) }
@@ -1038,6 +1074,31 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnLb6.setOnClickListener { sendExtraEvent(6, "legbye", true) }
             btnLb7.setOnClickListener { sendExtraEvent(7, "legbye", true) }
         }
+    }
+    private fun sendCustomNoBallEvent(customRuns: Int) {
+        if (isBallPending) return
+        isBallPending = true
+        setScoringPanelEnabled(false)
+
+        val base = lastReceivedScore ?: ScoreDTO()
+        JsonConverter.sendScore(base.cleanForSend().copy(
+            matchId        = matchResponse?.id,
+            teamId         = battingTeamId,
+            inningsId      = currentInningsId(),
+            batsmanId      = currentStrikerId,
+            nonStrikerId   = currentNonStrikerId,
+            bowlerId       = currentBowlerId,
+            overs          = currentOvers,
+            balls          = currentBalls,
+            runsOnThisBall = customRuns,
+            event          = customRuns.toString(),
+            eventType      = "noball",
+            status         = "LIVE",
+            isLegal        = false,
+            firstInnings   = isFirstInnings,
+            undo           = false,
+            comment        = ""
+        ))
     }
 
     private fun currentInningsId(): Long? {
@@ -1744,33 +1805,84 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnConfirmOneHand.setOnClickListener { openNewBatsmanDialog("onehandonebounce", currentStrikerId!!, null, 0) }
             btnCloseOneHand.setOnClickListener   { showOnly(binding.layoutMainScoring.root) }
         }
+//        binding.layoutCaught.apply {
+//            btnSelectFielderCaught.setOnClickListener {
+//                openFielderSelectionDialog { selectedFielder ->
+//                    wicketFielderId = selectedFielder.id
+//                    tvSelectedFielderCaught.text = "Fielder: ${selectedFielder.name}"
+//                    tvSelectedFielderCaught.setTextColor(0xFF4CAF50.toInt())
+//                    btnConfirmCaught.isEnabled = true
+//                }
+//            }
+//            btnConfirmCaught.setOnClickListener {
+//                openNewBatsmanDialog("caught", currentStrikerId!!, wicketFielderId, 0)
+//            }
+//            btnCloseCaught.setOnClickListener { resetCaughtPanel(); showOnly(binding.layoutMainScoring.root) }
+//        }
         binding.layoutCaught.apply {
             btnSelectFielderCaught.setOnClickListener {
                 openFielderSelectionDialog { selectedFielder ->
                     wicketFielderId = selectedFielder.id
                     tvSelectedFielderCaught.text = "Fielder: ${selectedFielder.name}"
                     tvSelectedFielderCaught.setTextColor(0xFF4CAF50.toInt())
-                    btnConfirmCaught.isEnabled = true
+
+                    if (isDoubleWicket) {
+                        // ← Fielder select hote hi seedha out — confirm button skip
+                        sendWicketEvent("caught", currentStrikerId!!, null, selectedFielder.id, 0)
+                        resetCaughtPanel()
+                        showOnly(binding.layoutMainScoring.root)
+                    } else {
+                        btnConfirmCaught.isEnabled = true
+                    }
                 }
             }
             btnConfirmCaught.setOnClickListener {
                 openNewBatsmanDialog("caught", currentStrikerId!!, wicketFielderId, 0)
             }
-            btnCloseCaught.setOnClickListener { resetCaughtPanel(); showOnly(binding.layoutMainScoring.root) }
+            btnCloseCaught.setOnClickListener {
+                resetCaughtPanel()
+                showOnly(binding.layoutMainScoring.root)
+            }
         }
+//        binding.layoutStumped.apply {
+//            btnSelectFielderStumped.setOnClickListener {
+//                openFielderSelectionDialog { selectedFielder ->
+//                    wicketFielderId = selectedFielder.id
+//                    tvSelectedFielderStumped.text = "Keeper: ${selectedFielder.name}"
+//                    tvSelectedFielderStumped.setTextColor(0xFF4CAF50.toInt())
+//                    btnConfirmStumped.isEnabled = true
+//                }
+//            }
+//            btnConfirmStumped.setOnClickListener {
+//                openNewBatsmanDialog("stumped", currentStrikerId!!, wicketFielderId, 0)
+//            }
+//            btnCloseStumped.setOnClickListener { resetStumpedPanel(); showOnly(binding.layoutMainScoring.root) }
+//        }
+
         binding.layoutStumped.apply {
             btnSelectFielderStumped.setOnClickListener {
                 openFielderSelectionDialog { selectedFielder ->
                     wicketFielderId = selectedFielder.id
                     tvSelectedFielderStumped.text = "Keeper: ${selectedFielder.name}"
                     tvSelectedFielderStumped.setTextColor(0xFF4CAF50.toInt())
-                    btnConfirmStumped.isEnabled = true
+
+                    if (isDoubleWicket) {
+                        // ← Fielder select hote hi seedha out
+                        sendWicketEvent("stumped", currentStrikerId!!, null, selectedFielder.id, 0)
+                        resetStumpedPanel()
+                        showOnly(binding.layoutMainScoring.root)
+                    } else {
+                        btnConfirmStumped.isEnabled = true
+                    }
                 }
             }
             btnConfirmStumped.setOnClickListener {
                 openNewBatsmanDialog("stumped", currentStrikerId!!, wicketFielderId, 0)
             }
-            btnCloseStumped.setOnClickListener { resetStumpedPanel(); showOnly(binding.layoutMainScoring.root) }
+            btnCloseStumped.setOnClickListener {
+                resetStumpedPanel()
+                showOnly(binding.layoutMainScoring.root)
+            }
         }
 
         setupRunOutPanel()
@@ -1810,9 +1922,24 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnRunOut3.setOnClickListener { selectRunOutRuns(3) }
             btnConfirmRunOut.setOnClickListener {
                 val outId = wicketOutPlayerId ?: return@setOnClickListener
-                openNewBatsmanDialog("runout", outId, wicketFielderId, wicketRunOutRuns)
+                if (isNoBallRunOut) {
+                    openNewBatsmanDialogForNoBallRunOut(outId, wicketFielderId)
+                } else {
+                    openNewBatsmanDialog("runout", outId, wicketFielderId, wicketRunOutRuns)
+                }
             }
-            btnCloseRunOut.setOnClickListener { resetRunOutPanel(); showOnly(binding.layoutMainScoring.root) }
+
+            btnCloseRunOut.setOnClickListener {
+                if (isNoBallRunOut) {
+                    isNoBallRunOut = false
+                    noBallRunOutRuns = 0
+                    resetRunOutPanel()
+                    showOnly(binding.layoutNoBallPanel.root)
+                } else {
+                    resetRunOutPanel()
+                    showOnly(binding.layoutMainScoring.root)
+                }
+            }
         }
     }
 
@@ -1837,9 +1964,23 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
     }
 
+//    private fun updateRunOutDoneButton() {
+//        binding.layoutRunOut.btnConfirmRunOut.isEnabled =
+//            wicketOutPlayerId != null && wicketFielderId != null
+//    }
+
     private fun updateRunOutDoneButton() {
-        binding.layoutRunOut.btnConfirmRunOut.isEnabled =
-            wicketOutPlayerId != null && wicketFielderId != null
+        val bothSelected = wicketOutPlayerId != null && wicketFielderId != null
+
+        if (bothSelected && isDoubleWicket) {
+            // ← Dono select hote hi seedha out — confirm button ki zaroorat nahi
+            val outId = wicketOutPlayerId ?: return
+            sendWicketEvent("runout", outId, null, wicketFielderId, wicketRunOutRuns)
+            resetRunOutPanel()
+            showOnly(binding.layoutMainScoring.root)
+        } else {
+            binding.layoutRunOut.btnConfirmRunOut.isEnabled = bothSelected
+        }
     }
 
     private fun setupRetiredPanel() {
@@ -1930,15 +2071,24 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         fielderId: Long?,
         runsOnBall: Int
     ) {
+        if (isDoubleWicket) {
+            sendWicketEvent(dismissalType, outPlayerId, null, fielderId, runsOnBall)
+            showOnly(binding.layoutMainScoring.root)
+            return
+        }
+
+
         val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.dialog_player_selection, null)
         val rvPlayers  = dialogView.findViewById<RecyclerView>(R.id.rvPlayersList)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirmSelection)
         val btnClose   = dialogView.findViewById<Button>(R.id.btnClosePlayer)
         rvPlayers.layoutManager = LinearLayoutManager(context)
-        btnClose.setOnClickListener { dialog.dismiss() }
+        btnClose.setOnClickListener {
+            dialog.dismiss()
+            showOnly(binding.layoutMainScoring.root)
+        }
 
-        // ✅ Use availableBatters from WS (same as JS), fallback to API
         val battersToShow = availableBatters.ifEmpty { null }
 
         if (battersToShow != null) {
@@ -1947,7 +2097,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             btnConfirm.setOnClickListener {
                 val selected = adapter.getSelectedPlayer()
                 if (selected != null) {
-                    sendWicketEvent(dismissalType, outPlayerId, selected.id!!, fielderId, runsOnBall)
+                    sendWicketEvent(dismissalType, outPlayerId, selected.id, fielderId, runsOnBall)
                     dialog.dismiss()
                     showOnly(binding.layoutMainScoring.root)
                 } else requireContext().toastShort("Please select new batsman")
@@ -1955,7 +2105,6 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             dialog.setView(dialogView)
             dialog.show()
         } else {
-            // fallback: fetch from API
             lifecycleScope.launch {
                 try {
                     val response = withContext(Dispatchers.IO) {
@@ -1984,10 +2133,142 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
         }
     }
 
+    private fun showNoBallRunOutRunsDialog() {
+        val editText = android.widget.EditText(requireContext()).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            hint = "Runs scored off No Ball"
+            setText("0")
+            setPadding(32, 16, 32, 16)
+        }
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("NB + Run Out")
+            .setMessage("Is no ball par kitne runs bane? (fielder ka run out alag se select hoga)")
+            .setView(editText)
+            .setPositiveButton("Proceed to Run Out") { _, _ ->
+                noBallRunOutRuns = editText.text.toString().toIntOrNull() ?: 0
+                isNoBallRunOut   = true
+                resetRunOutPanel()
+                refreshRunOutNames()
+                showOnly(binding.layoutRunOut.root)
+            }
+            .setNegativeButton("Cancel") { d, _ ->
+                d.dismiss()
+                showOnly(binding.layoutMainScoring.root)
+            }
+            .show()
+    }
+
+    private fun openNewBatsmanDialogForNoBallRunOut(outPlayerId: Long, fielderId: Long?) {
+        val dialog     = android.app.AlertDialog.Builder(requireContext()).create()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_player_selection, null)
+        val rvPlayers  = dialogView.findViewById<RecyclerView>(R.id.rvPlayersList)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirmSelection)
+        val btnClose   = dialogView.findViewById<Button>(R.id.btnClosePlayer)
+        rvPlayers.layoutManager = LinearLayoutManager(context)
+
+        btnClose.setOnClickListener {
+            dialog.dismiss()
+            isNoBallRunOut   = false
+            noBallRunOutRuns = 0
+        }
+
+        val confirmAction = fun(_: android.view.View, adapter: com.example.fypproject.Adapter.PlayerSelectionAdapter) {
+            val selected = adapter.getSelectedPlayer()
+            if (!isDoubleWicket && selected == null) {
+                requireContext().toastShort("Please select new batsman")
+                return
+            }
+            sendNoBallRunOutEvent(outPlayerId, selected?.id, fielderId, noBallRunOutRuns)
+            isNoBallRunOut   = false
+            noBallRunOutRuns = 0
+            dialog.dismiss()
+            showOnly(binding.layoutMainScoring.root)
+        }
+
+        val battersToShow = availableBatters.ifEmpty { null }
+
+        if (battersToShow != null) {
+            val adapter = com.example.fypproject.Adapter.PlayerSelectionAdapter(battersToShow) { }
+            rvPlayers.adapter = adapter
+            btnConfirm.setOnClickListener { confirmAction(it, adapter) }
+            dialog.setView(dialogView)
+            dialog.show()
+        } else {
+            lifecycleScope.launch {
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        RetrofitInstance.api.getPlayersByTeam(battingTeamId)
+                    }
+                    if (response.isSuccessful) {
+                        val players = response.body() ?: emptyList()
+                        val adapter = com.example.fypproject.Adapter.PlayerSelectionAdapter(players) { }
+                        rvPlayers.adapter = adapter
+                        btnConfirm.setOnClickListener { confirmAction(it, adapter) }
+                    }
+                } catch (e: Exception) {
+                    requireContext().toastLong("Error loading players")
+                    dialog.dismiss()
+                }
+            }
+            dialog.setView(dialogView)
+            dialog.show()
+        }
+    }
+
+    private fun sendNoBallRunOutEvent(
+        outPlayerId: Long,
+        newBatsmanId: Long?,
+        fielderId: Long?,
+        extraRuns: Int
+    ) {
+        if (isBallPending) return
+        isBallPending = true
+        setScoringPanelEnabled(false)
+
+        val base = lastReceivedScore ?: ScoreDTO()
+        JsonConverter.sendScore(base.cleanForSend().copy(
+            matchId        = matchResponse?.id,
+            teamId         = battingTeamId,
+            inningsId      = currentInningsId(),
+            batsmanId      = currentStrikerId,
+            nonStrikerId   = currentNonStrikerId,
+            bowlerId       = currentBowlerId,
+            outPlayerId    = outPlayerId,
+            newPlayerId    = newBatsmanId,
+            fielderId      = fielderId,
+            overs          = currentOvers,
+            balls          = currentBalls,
+            runsOnThisBall = 0,                  // always 0 for NB run out
+            event          = extraRuns.toString(), // NB runs (e.g. "2")
+            eventType      = "noball_runout",
+            dismissalType  = "runout",
+            status         = "LIVE",
+            isLegal        = false,               // no ball is illegal delivery
+            firstInnings   = isFirstInnings,
+            undo           = false,
+            comment        = ""
+        ))
+
+        // Local ID update — only if new batsman selected
+        if (newBatsmanId != null) {
+            if (outPlayerId == currentStrikerId) {
+                currentStrikerId = newBatsmanId
+                row1PlayerId     = newBatsmanId
+            } else if (outPlayerId == currentNonStrikerId) {
+                currentNonStrikerId = newBatsmanId
+                row2PlayerId        = newBatsmanId
+            }
+        }
+
+        wicketFielderId   = null
+        wicketOutPlayerId = null
+        wicketRunOutRuns  = 0
+    }
+
     private fun sendWicketEvent(
         dismissalType: String,
         outPlayerId: Long,
-        newBatsmanId: Long,
+        newBatsmanId: Long?,   // ← Long? (nullable) — double wicket ke liye
         fielderId: Long?,
         runsOnBall: Int
     ) {
@@ -2006,7 +2287,7 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             this.nonStrikerId   = currentNonStrikerId
             this.bowlerId       = currentBowlerId
             this.outPlayerId    = outPlayerId
-            this.newPlayerId    = newBatsmanId
+            this.newPlayerId    = newBatsmanId   // null allowed in double wicket
             this.fielderId      = fielderId
             this.overs          = currentOvers
             this.balls          = currentBalls
@@ -2019,12 +2300,15 @@ class ScoringFragment : Fragment(R.layout.scoring_fragment) {
             this.firstInnings   = isFirstInnings
         })
 
-        if (outPlayerId == currentStrikerId) {
-            currentStrikerId = newBatsmanId
-            row1PlayerId     = newBatsmanId
-        } else if (outPlayerId == currentNonStrikerId) {
-            currentNonStrikerId = newBatsmanId
-            row2PlayerId        = newBatsmanId
+        // Update local striker/non-striker only if new batsman selected
+        if (newBatsmanId != null) {
+            if (outPlayerId == currentStrikerId) {
+                currentStrikerId = newBatsmanId
+                row1PlayerId     = newBatsmanId
+            } else if (outPlayerId == currentNonStrikerId) {
+                currentNonStrikerId = newBatsmanId
+                row2PlayerId        = newBatsmanId
+            }
         }
 
         wicketFielderId   = null

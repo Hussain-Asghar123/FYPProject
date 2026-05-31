@@ -10,5 +10,6 @@ data class TournamentResponse(
     val tournamentStage: String?,
     val username: String?,
     val sportsId: Long? = null,
-    val seasonId: Long? = null
+    val seasonId: Long? = null,
+    val doubleWicket: Boolean? = null
 )

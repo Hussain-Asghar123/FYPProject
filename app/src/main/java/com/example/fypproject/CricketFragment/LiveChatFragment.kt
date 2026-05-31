@@ -3,10 +3,13 @@ package com.example.fypproject.CricketFragment
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fypproject.Adapter.ChatMessageAdapter
@@ -26,6 +29,9 @@ class LiveChatFragment : Fragment() {
 
     private var matchId: Long = -1L
     private var username: String = "Guest"
+    private var isCommentator: Boolean = false   // ← NEW
+    private var isAdmin: Boolean = false        // ADD THIS
+    private var isGuest: Boolean = false
 
     private val messages = mutableListOf<ChatMessage>()
     private lateinit var chatAdapter: ChatMessageAdapter
@@ -38,7 +44,7 @@ class LiveChatFragment : Fragment() {
 
     // ─── Data class ──────────────────────────────────────────────────────────
     data class ChatMessage(
-        val type: String = "chat",   // "chat" or "system"
+        val type: String = "chat",
         val username: String = "",
         val message: String = ""
     )
@@ -53,13 +59,22 @@ class LiveChatFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        matchId  = arguments?.getLong("matchId", -1L) ?: -1L
-        username = arguments?.getString("username", "Guest") ?: "Guest"
+        matchId      = arguments?.getLong("matchId", -1L) ?: -1L
+        username     = arguments?.getString("username", "Guest") ?: "Guest"
+        isCommentator = arguments?.getBoolean("isCommentator", false) ?: false
+        isAdmin      = arguments?.getBoolean("isAdmin", false) ?: false          // ADD THIS
+        isGuest      = arguments?.getBoolean("isGuest", false) ?: false          // ADD THIS// ← NEW
 
         setupRecyclerView()
         setupToggleHeader()
-        setupInput()
+        setupInput()            // commentator ya user — alag alag UI
         connectWebSocket()
+
+        // Commentator ke liye auto-expand karo
+        if (isCommentator) {
+            isOpen = true
+            updateChatVisibility()
+        }
     }
 
     // ── RecyclerView setup ───────────────────────────────────────────────────
@@ -91,23 +106,128 @@ class LiveChatFragment : Fragment() {
         binding.ivChevron.rotation = if (isOpen) 180f else 0f
     }
 
-    // ── Input & send ─────────────────────────────────────────────────────────
+    // ── Input setup — commentator vs regular user ────────────────────────────
     private fun setupInput() {
-        binding.btnSendChat.setOnClickListener { sendMessage() }
-        binding.etChatInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEND) {
-                sendMessage(); true
-            } else false
+        when {
+            isCommentator || isAdmin -> {
+                // ── Commentator/Admin: text input dikhao ──────────────────────────────
+                binding.etChatInput.visibility  = View.VISIBLE
+                binding.btnSendChat.visibility  = View.VISIBLE
+                binding.btnSendChat.setOnClickListener { sendTextMessage() }
+                binding.etChatInput.setOnEditorActionListener { _, actionId, _ ->
+                    if (actionId == EditorInfo.IME_ACTION_SEND) {
+                        sendTextMessage(); true
+                    } else false
+                }
+            }
+            isGuest -> {
+                // ── Guest: bilkul read-only (kuch bhi nahi dikhao) ──────────────────
+                binding.etChatInput.visibility = View.GONE
+                binding.btnSendChat.visibility = View.GONE
+            }
+            else -> {
+                // ── Regular user: text input hide karo, 5 emoji buttons dikhao ─
+                binding.etChatInput.visibility = View.GONE
+                binding.btnSendChat.visibility = View.GONE
+                addEmojiPanel()
+            }
         }
     }
 
-    private fun sendMessage() {
+    // ── Emoji panel for regular users ────────────────────────────────────────
+    private fun addEmojiPanel() {
+        val emojis = listOf("🔥", "❤️", "👏", "😮", "🏏")
+
+        val px8  = dpToPx(8f)
+        val px12 = dpToPx(12f)
+        val px56 = dpToPx(56f)
+
+        // Outer container — white background, padded
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setBackgroundColor(0xFFFFFFFF.toInt())
+            setPadding(px12, px8, px12, px8)
+        }
+
+        // Label
+        val label = TextView(requireContext()).apply {
+            text = "React to live match:"
+            textSize = 11f
+            setTextColor(0xFF888888.toInt())
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = px8 }
+        }
+        container.addView(label)
+
+        // Emoji row
+        val row = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        emojis.forEach { emoji ->
+            val tv = TextView(requireContext()).apply {
+                text = emoji
+                textSize = 30f
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(0, px56, 1f)
+                isClickable = true
+                isFocusable = true
+
+                // Press effect
+                setOnClickListener {
+                    sendEmoji(emoji)
+                    // Choti animation — scale down phir wapis
+                    animate().scaleX(0.75f).scaleY(0.75f).setDuration(80).withEndAction {
+                        animate().scaleX(1f).scaleY(1f).setDuration(80).start()
+                    }.start()
+                }
+            }
+            row.addView(tv)
+        }
+
+        container.addView(row)
+
+        // Input row ke parent mein add karo
+        // (etChatInput ka parent = inner LinearLayout "input row")
+        val inputRowParent = binding.etChatInput.parent as? ViewGroup
+        inputRowParent?.addView(container)
+    }
+
+    private fun sendEmoji(emoji: String) {
+        val ws = webSocket ?: return
+        if (!isConnected) return
+        try {
+            val json = JSONObject().apply {
+                put("message", emoji)
+                put("username", username)
+            }
+            ws.send(json.toString())
+        } catch (e: Exception) {
+            Log.e("LiveChat", "Emoji send error: ${e.message}")
+        }
+    }
+
+    private fun sendTextMessage() {
         val text = binding.etChatInput.text?.toString()?.trim() ?: return
         if (text.isEmpty() || !isConnected) return
         val ws = webSocket ?: return
-
         try {
-            val json = JSONObject().apply { put("message", text) }
+            val json = JSONObject().apply {
+                put("message", text)
+                put("username", username)
+            }
             ws.send(json.toString())
             binding.etChatInput.setText("")
         } catch (e: Exception) {
@@ -119,7 +239,6 @@ class LiveChatFragment : Fragment() {
     private fun connectWebSocket() {
         if (matchId == -1L) return
 
-        // Same base URL as scoring WS but /ws/chat endpoint
         val baseUrl = "ws://10.107.69.89:7860/ws/chat"
         val url = "$baseUrl?matchId=$matchId&username=${Uri.encode(username)}"
 
@@ -141,17 +260,12 @@ class LiveChatFragment : Fragment() {
                         message  = jo.optString("message", "")
                     )
                     activity?.runOnUiThread {
-                        // Keep max 100 messages
                         if (messages.size >= 100) messages.removeAt(0)
                         messages.add(msg)
                         chatAdapter.notifyItemInserted(messages.size - 1)
 
-                        if (isOpen) {
-                            scrollToBottom()
-                        } else {
-                            unreadCount++
-                            updateBadge()
-                        }
+                        if (isOpen) scrollToBottom()
+                        else { unreadCount++; updateBadge() }
                     }
                 } catch (e: Exception) {
                     Log.e("LiveChat", "Parse error: ${e.message}")
@@ -160,13 +274,13 @@ class LiveChatFragment : Fragment() {
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
                 isConnected = false
-                webSocket = null
+                webSocket   = null
                 activity?.runOnUiThread { updateConnectionDot() }
             }
 
             override fun onClosed(ws: WebSocket, code: Int, reason: String) {
                 isConnected = false
-                webSocket = null
+                webSocket   = null
                 activity?.runOnUiThread { updateConnectionDot() }
             }
         })
@@ -177,8 +291,11 @@ class LiveChatFragment : Fragment() {
         binding.viewConnectionDot.setBackgroundResource(
             if (isConnected) R.drawable.dot_green else R.drawable.dot_grey
         )
-        binding.btnSendChat.isEnabled = isConnected
-        binding.etChatInput.isEnabled = isConnected
+        // Only enable send button for commentator
+        if (isCommentator||isAdmin) {
+            binding.btnSendChat.isEnabled  = isConnected
+            binding.etChatInput.isEnabled  = isConnected
+        }
     }
 
     private fun updateBadge() {
@@ -197,19 +314,29 @@ class LiveChatFragment : Fragment() {
         }
     }
 
+    // ── Helper ───────────────────────────────────────────────────────────────
+    private fun dpToPx(dp: Float): Int =
+        (dp * resources.displayMetrics.density + 0.5f).toInt()
+
     override fun onDestroyView() {
         super.onDestroyView()
         webSocket?.close(1000, "Fragment destroyed")
         webSocket = null
-        _binding = null
+        _binding  = null
     }
 
     companion object {
-        fun newInstance(matchId: Long, username: String): LiveChatFragment {
+        fun newInstance(
+            matchId: Long,
+            username: String,
+            isCommentator: Boolean = false
+        ): LiveChatFragment {
             return LiveChatFragment().apply {
                 arguments = Bundle().apply {
                     putLong("matchId", matchId)
                     putString("username", username)
+                    putBoolean("isCommentator", isCommentator)
+
                 }
             }
         }

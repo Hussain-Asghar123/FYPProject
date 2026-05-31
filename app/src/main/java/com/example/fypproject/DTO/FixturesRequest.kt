@@ -4,6 +4,7 @@ data class FixturesRequest(
     val tournamentId: Long,
     val scorerId: String?,
     val mediaScorerUsername: String?,
+    val commentatorUsername: String? = null,
     val team1Id: Long,
     val team2Id: Long,
     val venue: String,

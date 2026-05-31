@@ -111,6 +111,17 @@
                 android:paddingStart="12dp"
                 android:textColor="#212121"/>
 
+            <EditText
+                android:id="@+id/etCommentatorUsername"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:hint="Commentator Username (optional)"
+                android:inputType="textVisiblePassword"
+                android:background="@drawable/rounded_edittext"
+                android:paddingStart="12dp"
+                android:textColor="#212121"/>
+
             <!-- Venue -->
             <Spinner
                 android:id="@+id/spinnerVenue"

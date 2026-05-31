@@ -9,7 +9,8 @@ object MilestoneDetector {
     fun detectCricketMilestone(
         balls: List<CricketBall>?,
         data: Map<String, Any?>,
-        prevData: Map<String, Any?>?
+        prevData: Map<String, Any?>?,
+        isDoubleWicket: Boolean = false
     ): MilestoneDto? {
         if (balls.isNullOrEmpty()) return null
         val prevBalls = prevData?.getList("cricketBalls") ?: emptyList<Any>()
@@ -102,7 +103,7 @@ object MilestoneDetector {
         // 6. Match-winning shot
         val firstInnings = data["firstInnings"] as? Boolean ?: true
         val target       = (data["target"] as? Number)?.toInt() ?: Int.MAX_VALUE
-        if (!firstInnings && target <= 0) {
+        if (!firstInnings && target <= 0 && !isDoubleWicket) {
             if (event == "6")  return MilestoneDto("WON WITH A SIX! 🏆",  "Match winner!", "🏆", "green")
             if (event == "4") return MilestoneDto("WON WITH A FOUR! 🏆", "Match winner!", "🏆", "green")
         }

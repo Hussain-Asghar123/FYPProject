@@ -9,5 +9,6 @@ data class TournamentRequest(
     val endDate: String,
     val playerType: String,
     val tournamentType: String,
-    val tournamentStage: String
+    val tournamentStage: String,
+    val doubleWicket: Boolean = false
 )

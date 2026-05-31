@@ -11,14 +11,15 @@ import android.widget.TextView
 object BallViewHelper {
 
     private val eventAbbreviations = mapOf(
-        "wicket"   to "W",
-        "bye"      to "B",
-        "legbye"   to "LB",
-        "noball"   to "NB",
-        "wide"     to "WD",
-        "bonus"    to "BN",
-        "boundary" to "",
-        "run"      to ""
+        "wicket"         to "W",
+        "noball_runout"  to "NR",   // ← NEW: NB + Run Out label
+        "bye"            to "B",
+        "legbye"         to "LB",
+        "noball"         to "NB",
+        "wide"           to "WD",
+        "bonus"          to "BN",
+        "boundary"       to "",
+        "run"            to ""
     )
 
     fun createBallView(context: Context, ball: CricketBall): android.view.View {
@@ -26,9 +27,10 @@ object BallViewHelper {
         val badgePx  = dpToPx(context, 14f)
 
         val bgColor = when (ball.eventType) {
-            "wicket"                          -> 0xFFDC2626.toInt()
-            "bye", "legbye", "noball", "wide" -> 0xFF2563EB.toInt()
-            "boundary"                        -> 0xFFFF9800.toInt()
+            "wicket",
+            "noball_runout"                    -> 0xFFDC2626.toInt()  // ← same red as wicket
+            "bye", "legbye", "noball", "wide"  -> 0xFF2563EB.toInt()
+            "boundary"                         -> 0xFFFF9800.toInt()
             "run" -> {
                 val runs = ball.event.toIntOrNull() ?: 0
                 if (runs == 0) 0xFF9E9E9E.toInt() else 0xFF16A34A.toInt()
@@ -36,11 +38,12 @@ object BallViewHelper {
             else -> 0xFFCA8A04.toInt()
         }
 
+        // Label logic — noball_runout shows e.g. "0NR", others unchanged
         val abbrev = eventAbbreviations[ball.eventType] ?: ball.eventType.uppercase()
-        val label  = if (ball.eventType != "run" && ball.eventType != "boundary") {
-            "${ball.event}$abbrev"
-        } else {
-            ball.event
+        val label  = when (ball.eventType) {
+            "noball_runout" -> "${ball.event}NR"
+            "run", "boundary" -> ball.event
+            else -> "${ball.event}$abbrev"
         }
 
         // Ball circle TextView
@@ -57,7 +60,7 @@ object BallViewHelper {
             }
         }
 
-        // If no media — return plain ball (same as before)
+        // If no media — return plain ball
         if (!ball.hasMedia) {
             return TextView(context).apply {
                 layoutParams = android.widget.LinearLayout.LayoutParams(sizePx, sizePx).apply {
@@ -87,7 +90,6 @@ object BallViewHelper {
 
         container.addView(ballTv)
 
-        // 📷 badge — small circle top-right
         val badge = TextView(context).apply {
             layoutParams = android.widget.FrameLayout.LayoutParams(
                 badgePx, badgePx, Gravity.TOP or Gravity.END

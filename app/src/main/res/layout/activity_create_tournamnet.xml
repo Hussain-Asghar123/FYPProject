@@ -267,6 +267,18 @@
                             android:text="Tennis"/>
                     </RadioGroup>
 
+                    <!-- Double Wicket Format (Cricket only) -->
+                    <CheckBox
+                        android:id="@+id/cbDoubleWicket"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Double Wicket Format (Cricket)"
+                        android:textSize="14sp"
+                        android:textColor="#333"
+                        android:buttonTint="#E31212"
+                        android:visibility="gone"/>
+
                     <!-- Organizer Email -->
                     <TextView
                         android:layout_width="match_parent"

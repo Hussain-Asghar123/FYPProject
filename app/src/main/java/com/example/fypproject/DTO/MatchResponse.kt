@@ -29,10 +29,14 @@ data class MatchResponse(
     val battingTeamId: Long? = null,
     val battingTeamName: String? = null,
 
+    // ── NEW: Double Wicket & Commentator ───────────────────────
+    val doubleWicket: Boolean? = null,          // true = 2 wickets = all out
+    val commentatorUsername: String? = null,    // assigned commentator username
+
     // ── Volleyball extras ───────────────────────────────────────
     val sets: Int? = null,
-    val pointsPerSet: Int? = null,      // JS: vbPointsPerSet  (default 25)
-    val finalSetPoints: Int? = null,    // JS: vbFinalSetPoints (default 15)
+    val pointsPerSet: Int? = null,
+    val finalSetPoints: Int? = null,
 
     // ── Futsal extras ───────────────────────────────────────────
     val winnerTeamName: String? = null,

@@ -239,9 +239,14 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
         }
         val total = currentTeamPlayers.size
         val (min, max) = when (sportId) {
-            1L -> 11 to 15; 2L -> 7 to 11; 3L -> 7 to 12
-            4L, 5L, 6L -> 1 to 3; 7L -> 8 to 11; 8L -> 1 to 1
-            else -> { toastShort("Invalid sport"); return }
+            1L         -> 11 to 15   // Cricket
+            2L         -> 7  to 11   // Futsal
+            3L         -> 7  to 12   // Volleyball
+            4L, 5L, 6L -> 1  to 3    // Badminton / Table Tennis / Chess
+            7L         -> 8  to 11   // Tug of War
+            8L         -> 1  to 1    // Ludo
+            9L         -> 5 to 16   // Hockey
+            else       -> { toastShort("Invalid sport"); return }
         }
         if (total < min) { toastShort("Minimum $min players required"); return }
         if (total > max) { toastShort("Maximum $max players allowed"); return }
@@ -277,13 +282,24 @@ class MyTeamFragment : Fragment(R.layout.fragement_my_team) {
     }
 
     private fun createTeam(name: String, dialog: AlertDialog) {
+        if (playerId == -1L) {
+            toastShort("Player profile not found. Please login again.")
+            return
+        }
+        if (tournamentId == -1L) {
+            toastShort("Tournament not found. Please try again.")
+            return
+        }
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = api.createTeam(tournamentId, playerId, CreateTeamRequestDto(name))
                 if (response.isSuccessful) {
                     dialog.dismiss(); toastShort("Team created"); checkTeamExists()
-                } else toastShort("Create failed")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    toastShort("Create failed (${response.code()}): ${errorBody ?: "Unknown error"}")
+                }
             } catch (e: Exception) {
                 toastShort(e.message ?: "Error")
             } finally { setLoading(false) }

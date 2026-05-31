@@ -225,6 +225,18 @@
                             android:textAllCaps="false"
                             android:textColor="@android:color/white"
                             app:cornerRadius="18dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnHockey"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="8dp"
+                            android:backgroundTint="#212121"
+                            android:paddingHorizontal="16dp"
+                            android:text="Hockey"
+                            android:textAllCaps="false"
+                            android:textColor="@android:color/white"
+                            app:cornerRadius="18dp" />
                     </LinearLayout>
 
                 </HorizontalScrollView>
@@ -525,6 +537,33 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="16dp"
                             android:text="Stats"
+                            android:textColor="#212121"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/menuPlayerStats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="Player Stats"
+                            android:src="@drawable/ic_stats" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:text="Player Stats"
                             android:textColor="#212121"
                             android:textSize="16sp" />
 

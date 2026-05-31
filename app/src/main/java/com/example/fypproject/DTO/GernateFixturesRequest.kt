@@ -8,5 +8,6 @@ data class GenerateFixturesRequest(
     val venue: String,
     val overs: Int,
     val scorerId: String?,
-    val mediaScorerUsername: String?
+    val mediaScorerUsername: String?,
+    val commentatorUsername: String? = null
 )

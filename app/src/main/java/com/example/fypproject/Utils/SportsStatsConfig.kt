@@ -22,6 +22,7 @@ object SportStatsConfig {
         Pair("table tennis",  " Table Tennis"),
         Pair("ludo",          " Ludo"),
         Pair("chess",         " Chess"),
+        Pair("hockey",        " Hockey"),
     )
 
     private val CRICKET = listOf(
@@ -83,6 +84,15 @@ object SportStatsConfig {
         StatConfig("goals",         "Wins"),
     )
 
+    private val HOCKEY = listOf(
+        StatConfig("matchesPlayed", "Matches"),
+        StatConfig("goals",         "Goals"),
+        StatConfig("assists",       "Assists"),
+        StatConfig("futsalFouls",   "Fouls",        lowerIsBetter = true),
+        StatConfig("yellowCards",   "Yellow Cards", lowerIsBetter = true),
+        StatConfig("redCards",      "Red Cards",    lowerIsBetter = true),
+    )
+
     fun getConfig(sport: String): List<StatConfig> = when (sport) {
         "cricket"      -> CRICKET
         "futsal"       -> FUTSAL
@@ -91,6 +101,7 @@ object SportStatsConfig {
         "table tennis" -> TABLE_TENNIS
         "ludo"         -> LUDO
         "chess"        -> CHESS
+        "hockey"       -> HOCKEY
         else           -> CRICKET
     }
 

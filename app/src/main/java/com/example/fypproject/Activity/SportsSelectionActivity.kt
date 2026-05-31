@@ -28,6 +28,7 @@ class SportsSelectionActivity : AppCompatActivity() {
         private const val LUDO = 6L
         private const val TUG_OF_WAR = 7L
         private const val CHESS = 8L
+        private const val HOCKEY=9L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +80,7 @@ class SportsSelectionActivity : AppCompatActivity() {
         binding.ludoCard.setOnClickListener { binding.cbLudo.toggle() }
         binding.tugofwarCard.setOnClickListener { binding.cbTugOfWar.toggle() }
         binding.chessCard.setOnClickListener { binding.cbChess.toggle() }
+        binding.hockeyCard.setOnClickListener { binding.cbHockey.toggle() }
     }
 
     private fun getSelectedSports(): List<Long> {
@@ -91,6 +93,7 @@ class SportsSelectionActivity : AppCompatActivity() {
         if (binding.cbLudo.isChecked) list.add(LUDO)
         if (binding.cbTugOfWar.isChecked) list.add(TUG_OF_WAR)
         if (binding.cbChess.isChecked) list.add(CHESS)
+        if(binding.cbHockey.isChecked) list.add(HOCKEY)
         return list
     }
 

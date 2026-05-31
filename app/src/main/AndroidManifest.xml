@@ -22,6 +22,18 @@
         android:theme="@style/Theme.FYPProject"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".Activity.PreferenceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.TaskSportsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Scoring.HockeyScoringActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activity.CompareActivity"
             android:exported="false" />
         <activity
@@ -70,6 +82,9 @@
             android:exported="false" />
         <activity
             android:name=".Activity.HeavyStatsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.PlayerStatsActivity"
             android:exported="false" />
         <activity
             android:name=".Activity.SportsMediaActivity"

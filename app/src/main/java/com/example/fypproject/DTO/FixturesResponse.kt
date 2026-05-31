@@ -16,6 +16,7 @@ data class FixturesResponse(
     val status: String,
     val scorerId: String,
     val mediaScorerUsername: String,
+    val commentatorUsername: String? = null,
 
     val winnerTeamId: Long? = null,   // Winner highlight karne ke liye
     val groupName: String? = null,     // Group stage badge ke liye

@@ -32,6 +32,7 @@ class CreateFixtureActivity : AppCompatActivity() {
     )
     private var tournamentId: Long = -1L
     private var sportId: Long = -1L
+    private var isDoubleWicket: Boolean = false
 
     private var isUpdatingSpinners = false
 
@@ -42,7 +43,13 @@ class CreateFixtureActivity : AppCompatActivity() {
 
         tournamentId = intent.getLongExtra("tournamentId", -1L)
         sportId = intent.getLongExtra("sportId", -1L)
+        isDoubleWicket = intent.getBooleanExtra("doubleWicket", false)
         updateFixtureTypeUI(sportId)
+
+        // Double Wicket format: default overs = 2
+        if (isDoubleWicket && sportId == 1L) {
+            binding.etOvers.setText("2")
+        }
 
         if (tournamentId == -1L) {
             toastShort("Invalid tournament")
@@ -295,8 +302,10 @@ class CreateFixtureActivity : AppCompatActivity() {
 
         val scorerIdText = binding.etScorerId.text.toString().trim()
         val mediaScorerIdText = binding.etMediaScorerId.text.toString().trim()
+        val commentatorText = binding.etCommentatorUsername.text.toString().trim()
         val scorerId = if (scorerIdText.isEmpty()) null else scorerIdText
         val mediaScorerId = if (mediaScorerIdText.isEmpty()) null else mediaScorerIdText
+        val commentatorUsername = if (commentatorText.isEmpty()) null else commentatorText
 
         val fixtureRequest = FixturesRequest(
             tournamentId = tournamentId,
@@ -307,7 +316,8 @@ class CreateFixtureActivity : AppCompatActivity() {
             time = formattedTime,
             overs = overs ?: 0,
             scorerId = scorerId,
-            mediaScorerUsername = mediaScorerId
+            mediaScorerUsername = mediaScorerId,
+            commentatorUsername = commentatorUsername
         )
 
         setLoading(true)

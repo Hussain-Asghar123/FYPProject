@@ -10,6 +10,7 @@ import com.example.fypproject.Scoring.CricketScoringActivity
 import com.example.fypproject.Scoring.FutsalScoringActivity
 import com.example.fypproject.Scoring.LudoScoringActivity
 import com.example.fypproject.Scoring.TableTennisScoringActivity
+import com.example.fypproject.Scoring.HockeyScoringActivity
 import com.example.fypproject.Scoring.TugOfWarScoringActivity
 import com.example.fypproject.Scoring.VolleyBallScoringActivity
 
@@ -23,6 +24,7 @@ object MatchNavigator {
     private const val LUDO         = 6L
     private const val TUG_OF_WAR   = 7L
     private const val CHESS        = 8L
+    private const val HOCKEY       = 9L
 
     fun navigate(context: Context, match: MatchResponse) {
         val prefs    = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -64,6 +66,7 @@ object MatchNavigator {
             TUG_OF_WAR   -> TugOfWarScoringActivity::class.java
             LUDO         -> LudoScoringActivity::class.java
             CHESS        -> ChessScoringActivity::class.java
+            HOCKEY       -> HockeyScoringActivity::class.java
             else         -> {
                 android.util.Log.e("NAV_DEBUG", "sportId null ya unknown: ${match.sportId}")
                 CricketScoringActivity::class.java

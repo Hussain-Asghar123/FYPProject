@@ -110,6 +110,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
         when (detectSport(stats)) {
             SPORT_FUTSAL       -> populateFutsalUI(stats)
+            SPORT_HOCKEY       -> populateFutsalUI(stats)
             SPORT_VOLLEYBALL   -> populateVolleyballUI(stats)
             SPORT_BADMINTON    -> populateBadmintonUI(stats)
             SPORT_TABLE_TENNIS -> populateTableTennisUI(stats)
@@ -138,6 +139,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
                 6L -> SPORT_TUG_OF_WAR
                 7L -> SPORT_LUDO
                 8L -> SPORT_CHESS
+                9L -> SPORT_HOCKEY
                 else -> null
             }
             if (fromId != null) return fromId
@@ -154,7 +156,9 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             name == "tug of war" || name == SPORT_TUG_OF_WAR                 -> SPORT_TUG_OF_WAR
             name == SPORT_LUDO                                                -> SPORT_LUDO
             name == SPORT_CHESS                                               -> SPORT_CHESS
+            name == SPORT_HOCKEY                                              -> SPORT_HOCKEY
             name.contains("futsal")                                           -> SPORT_FUTSAL
+            name.contains("hockey")                                           -> SPORT_HOCKEY
             name.contains("volleyball")                                       -> SPORT_VOLLEYBALL
             name.contains("badminton")                                        -> SPORT_BADMINTON
             name.contains("table")                                            -> SPORT_TABLE_TENNIS
@@ -943,6 +947,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         private const val SPORT_TUG_OF_WAR   = "tug_of_war"
         private const val SPORT_LUDO         = "ludo"
         private const val SPORT_CHESS        = "chess"
+        private const val SPORT_HOCKEY       = "hockey"
     }
 
     override fun onResume() {

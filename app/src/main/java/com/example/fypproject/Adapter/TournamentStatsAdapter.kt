@@ -29,7 +29,7 @@ class TournamentStatsAdapter(
         RecyclerView.ViewHolder(binding.root)
 
     override fun getItemCount(): Int = when (sportType) {
-        SPORT_FUTSAL, SPORT_VOLLEYBALL, SPORT_BADMINTON,
+        SPORT_FUTSAL, SPORT_HOCKEY, SPORT_VOLLEYBALL, SPORT_BADMINTON,
         SPORT_TABLETENNIS, SPORT_TUG_OF_WAR, SPORT_LUDO, SPORT_CHESS ->
             if (isBatting) goalScorerItems.size else assistantItems.size
         else ->
@@ -55,7 +55,7 @@ class TournamentStatsAdapter(
                 else if (!isBatting && holder is BowlingViewHolder)
                     bindCricketBowling(holder.binding, bowlingItems[position], rank, rankBg)
             }
-            SPORT_FUTSAL -> {
+            SPORT_FUTSAL, SPORT_HOCKEY -> {
                 if (isBatting && holder is BattingViewHolder)
                     bindFutsalScorers(holder.binding, goalScorerItems[position], rank, rankBg)
                 else if (!isBatting && holder is BowlingViewHolder)
@@ -263,5 +263,6 @@ class TournamentStatsAdapter(
         const val SPORT_TUG_OF_WAR  = "tug_of_war"
         const val SPORT_LUDO         = "ludo"
         const val SPORT_CHESS        = "chess"
+        const val SPORT_HOCKEY       = "hockey"
     }
 }

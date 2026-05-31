@@ -73,4 +73,7 @@ data class PlayerStatsDto(
     // ── Chess ─────────────────────────────────────────────────────────────────
     // (uses shared futsal fields: goals=wins, assists=checksDelivered)
     val chessMatchesPlayed: Int = 0,
+    val hockeyMatchesPlayed: Int = 0,
+    val greenCards: Int = 0,
+    val penaltyCorners: Int = 0
 )

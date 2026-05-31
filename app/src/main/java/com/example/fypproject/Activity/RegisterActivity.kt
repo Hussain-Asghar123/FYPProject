@@ -1,22 +1,29 @@
 package com.example.fypproject.Activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.fypproject.DTO.CreateAccountRequest
 import com.example.fypproject.Network.ApiClient
+import com.example.fypproject.R
 import com.example.fypproject.Utils.NetworkUi
 import com.example.fypproject.Utils.toastLong
 import com.example.fypproject.Utils.toastShort
-import com.example.fypproject.databinding.ActivityAddAccountBinding
+import com.example.fypproject.databinding.ActivityRegisterBinding
+import com.example.fypproject.databinding.ActivityTaskSportsBinding
 import kotlinx.coroutines.launch
 
-class AddAccountActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityAddAccountBinding
+class RegisterActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityRegisterBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding=ActivityAddAccountBinding.inflate(layoutInflater)
+        binding= ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.btnBack.setOnClickListener {
             finish()
@@ -37,8 +44,8 @@ class AddAccountActivity : AppCompatActivity() {
             createAccount(name,username,password)
         }
     }
-    private fun createAccount(name: String, username: String, password: String){
-        val request= CreateAccountRequest(name, username, password)
+    private fun createAccount(name:String,username:String,password:String){
+        val request= CreateAccountRequest(name,username,password)
         lifecycleScope.launch {
             showLoading(true)
             binding.btnAdd.isEnabled = false
@@ -46,9 +53,13 @@ class AddAccountActivity : AppCompatActivity() {
             try{
                 val response= ApiClient.api.createAccount(request)
                 toastShort("Account created successfully")
+                val prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+                prefs.edit {
+                    putLong("id",         response.id)
+                }
+                startActivity(Intent(this@RegisterActivity, TaskSportsActivity::class.java))
                 finish()
             }catch (e: Exception){
-                toastLong(NetworkUi.userMessage(e))
             } finally {
                 showLoading(false)
                 binding.btnAdd.isEnabled = true
@@ -57,18 +68,8 @@ class AddAccountActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLoading(isLoading: Boolean) {
-        binding.progressOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
-        binding.btnAdd.isEnabled = !isLoading
-        binding.btnBack.isEnabled = !isLoading
-    }
-
     private fun showLoading(show: Boolean) {
         binding.progressOverlay.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun checkEmptyState() {
-        // Add empty state logic here if needed
-        // Example: if (someDataList.isEmpty()) { showEmptyStateView() }
-    }
 }

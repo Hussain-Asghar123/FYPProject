@@ -95,7 +95,7 @@ class HomeActivity : AppCompatActivity() {
         // First run se pehle -1 rakho taake app start par toast na aaye
         var previousUnreadCount = -1
 
-        // ── Poll har 30s mein ─────────────────────────────────────────
+        // ── Poll har 1s mein ─────────────────────────────────────────
         val fetchNotifs = object : Runnable {
             override fun run() {
                 lifecycleScope.launch {
@@ -121,7 +121,7 @@ class HomeActivity : AppCompatActivity() {
                         }
                     } catch (_: Exception) {}
                 }
-                notifHandler.postDelayed(this, 30_000L)
+                notifHandler.postDelayed(this, 1000L)
             }
         }
         notifHandler.post(fetchNotifs)
@@ -171,7 +171,6 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    /** Badge visibility ek jagah se control hoti hai */
     private fun updateBadge(tvBadge: android.widget.TextView, count: Int) {
         tvBadge.text       = if (count > 0) count.toString() else ""
         tvBadge.visibility = if (count > 0) View.VISIBLE else View.GONE
@@ -179,11 +178,7 @@ class HomeActivity : AppCompatActivity() {
 
     // ── Custom Notification Toast ─────────────────────────────────────────────
 
-    /**
-     * Red background wala custom toast jisme chhota sa ✕ button hota hai.
-     * Programmatically banta hai — koi extra layout file zaroorat nahi.
-     * 4 seconds baad automatically gayab ho jaata hai.
-     */
+
     private fun showCustomNotifToast(message: String) {
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         val dp       = resources.displayMetrics.density
@@ -518,6 +513,10 @@ class HomeActivity : AppCompatActivity() {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
             startActivity(Intent(this, HeavyStatsActivity::class.java))
         }
+        binding.menuPlayerStats.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            startActivity(Intent(this, PlayerStatsActivity::class.java))
+        }
         binding.menuMyFavouriteMedia.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.END)
             startActivity(Intent(this, MyFavouriteMediaActivity::class.java))
@@ -563,7 +562,7 @@ class HomeActivity : AppCompatActivity() {
         sportButtons = listOf(
             binding.btnAllSports, binding.btnCricket, binding.btnFutsal,
             binding.btnVolleyBall, binding.btnBadminton, binding.btnTugOfWar,
-            binding.btnLudo, binding.btnChess, binding.btnTableTennis
+            binding.btnLudo, binding.btnChess, binding.btnTableTennis, binding.btnHockey
         )
         updateButtonSelection(binding.btnAllSports)
         currentSportFilter = "All Sports"

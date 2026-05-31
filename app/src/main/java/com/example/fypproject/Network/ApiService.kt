@@ -21,6 +21,8 @@ import com.example.fypproject.DTO.PlayerRequestDto
 import com.example.fypproject.DTO.PlayerResponse
 import com.example.fypproject.DTO.PlayerStatsDto
 import com.example.fypproject.DTO.PlayeraStatsDTO1
+import com.example.fypproject.DTO.PreferenceDto
+import com.example.fypproject.DTO.PreferenceResponse
 import com.example.fypproject.DTO.ProfilePhotoResponse
 import com.example.fypproject.DTO.PtsTableDto
 import com.example.fypproject.DTO.ReuseTeamRequest
@@ -70,6 +72,11 @@ interface ApiService {
     suspend fun login(
         @Body request: LoginRequest
     ): LoginResponse
+
+    @POST("interest")
+    suspend fun createPreference(
+        @Body request: PreferenceDto
+    ): Response<PreferenceResponse>
 
     @GET("match/sport")
     suspend fun getLiveMatches(
@@ -123,6 +130,12 @@ interface ApiService {
         @Path("id") seasonId: Long,
         @Path("sid") sportId: Long
     ): Call<List<TournamentResponse>>
+
+    @GET("tournament/{sportId}/{seasonId}")
+    suspend fun getTournamentBySeasonIdAndSportId(
+        @Path("sportId") sportId: Long,
+        @Path("seasonId") seasonId: Long
+    ): Response<List<TournamentResponse>>
 
     @POST("tournament")
     fun createTournament(

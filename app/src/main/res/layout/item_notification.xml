@@ -39,7 +39,7 @@
             android:id="@+id/tvNotifTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
+            android:textColor="#E31212"
             android:textSize="13sp"
             android:textStyle="bold"
             android:maxLines="1"
@@ -49,10 +49,10 @@
             android:id="@+id/tvNotifMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#9CA3AF"
-            android:textSize="12sp"
+            android:textColor="#ffffff"
+            android:textSize="10sp"
             android:layout_marginTop="2dp"
-            android:maxLines="2"
+            android:maxLines="4"
             android:ellipsize="end"/>
 
     </LinearLayout>

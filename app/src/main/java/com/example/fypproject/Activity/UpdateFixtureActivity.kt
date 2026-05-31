@@ -136,6 +136,7 @@ class UpdateFixtureActivity : AppCompatActivity() {
         binding.etOvers.setText(fixture.overs.toString())
         binding.etScorerId.setText(fixture.scorerId)
         binding.etMediaScorerId.setText(fixture.mediaScorerUsername)
+        binding.etCommentatorUsername.setText(fixture.commentatorUsername ?: "")
         binding.spinnerVenue.setSelection(venueList.indexOf(fixture.venue))
     }
 
@@ -172,6 +173,7 @@ class UpdateFixtureActivity : AppCompatActivity() {
             overs = binding.etOvers.text.toString().toInt(),
             scorerId = binding.etScorerId.text.toString(),
             mediaScorerUsername = binding.etMediaScorerId.text.toString(),
+            commentatorUsername = binding.etCommentatorUsername.text.toString().takeIf { it.isNotEmpty() },
             status = ""
         )
 

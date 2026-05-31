@@ -57,6 +57,8 @@ class CreateTournamnetActivity : AppCompatActivity() {
         val isVisible = sportId == 1L
         binding.tvType.visibility = if (isVisible) View.VISIBLE else View.GONE
         binding.rgTournamentType.visibility = if (isVisible) View.VISIBLE else View.GONE
+        // Double Wicket format only applies to Cricket (sportId == 1)
+        binding.cbDoubleWicket.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     private fun showDatePicker(editText: AppCompatEditText) {
@@ -137,7 +139,8 @@ class CreateTournamnetActivity : AppCompatActivity() {
             endDate = binding.etEndDate.text.toString().trim(),
             playerType = getPlayerType(),
             tournamentType = getTournamentType(),
-            tournamentStage = getTournamentStage()
+            tournamentStage = getTournamentStage(),
+            doubleWicket = binding.cbDoubleWicket.isChecked
         )
 
         api.createTournament(request).enqueue(object : Callback<Void> {

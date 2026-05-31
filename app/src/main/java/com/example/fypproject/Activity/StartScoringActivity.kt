@@ -30,6 +30,7 @@ class StartScoringActivity : AppCompatActivity() {
     private var matchId: Long = -1L
     private var sportId: Long = -1L
     private var futsalHalfMins: Int = 20
+    private var hockeyPeriodMins: Int = 15
 
     private var selectedTossWinnerId: Long? = null
     private var selectedDecision: String? = null
@@ -71,8 +72,17 @@ class StartScoringActivity : AppCompatActivity() {
     private val isLudo        get() = sportId == 6L
     private val isTugOfWar    get() = sportId == 7L
     private val isChess       get() = sportId == 8L
+    private val isHockey      get() = sportId == 9L
 
-    private val needsLineup get() = isCricket ||isFutsal || isVolleyball || isBadminton || isTableTennis || isLudo ||isChess
+    private val isCommentator: Boolean
+        get() {
+            val prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val currentUsername = prefs.getString("username", "") ?: ""
+            val commentatorUsername = matchData?.commentatorUsername ?: ""
+            return currentUsername.isNotEmpty() && currentUsername == commentatorUsername
+        }
+
+    private val needsLineup get() = isCricket ||isFutsal || isVolleyball || isBadminton || isTableTennis || isLudo ||isChess || isHockey
 
     private val sportDecisions = mapOf(
         1L to Pair("Bat", "Bowl"),
@@ -81,7 +91,7 @@ class StartScoringActivity : AppCompatActivity() {
 
     private val maxPerTeam: Int
         get() = when {
-            isCricket->11
+            isCricket -> if (matchData?.doubleWicket == true) 2 else 11
             isBadminton   -> if (bdFormat == "singles") 1 else 2
             isTableTennis -> if (ttFormat == "singles") 1 else 2
             isLudo -> if (ludoFormat == "1v1") 1 else 2
@@ -113,7 +123,9 @@ class StartScoringActivity : AppCompatActivity() {
         binding.badmintonConfigSection.visibility   = if (isBadminton)   View.VISIBLE else View.GONE
         binding.chessConfigSection.visibility       = if (isChess)       View.VISIBLE else View.GONE
         binding.futsalConfigSection.visibility = if (isFutsal) View.VISIBLE else View.GONE
+        binding.hockeyConfigSection?.visibility = if (isHockey) View.VISIBLE else View.GONE
         if (isFutsal) setupFutsalSteppers()
+        if (isHockey) setupHockeySteppers()
         binding.ludoConfigSection.visibility = if (isLudo) View.VISIBLE else View.GONE
         if (isLudo) setupLudoFormat()
 
@@ -149,6 +161,7 @@ class StartScoringActivity : AppCompatActivity() {
             isTugOfWar    -> "Who Starts First?"
             isLudo        -> "Who Starts First?"
             isChess       -> "Who Plays White?"
+            isHockey      -> "Who Pushes First?"
             else          -> "Who Won The Toss?"
         }
 
@@ -171,6 +184,7 @@ class StartScoringActivity : AppCompatActivity() {
             isLudo        -> "🎲 Start Ludo Match"
             isTugOfWar    -> "🪢 Start Tug of War"
             isChess       -> "♟️ Start Chess Match"
+            isHockey      -> "🏑 Start Hockey Match"
             else          -> "Start Match"
         }
     }
@@ -187,6 +201,20 @@ class StartScoringActivity : AppCompatActivity() {
     private fun refreshFutsalLabels() {
         binding.tvFutsalHalfValue.text = futsalHalfMins.toString()
         binding.tvFutsalSummary.text = "$futsalHalfMins minutes per half"
+    }
+
+    private fun setupHockeySteppers() {
+        binding.btnHockeyPeriodDecrement?.setOnClickListener {
+            if (hockeyPeriodMins > 5) { hockeyPeriodMins--; refreshHockeyLabels() }
+        }
+        binding.btnHockeyPeriodIncrement?.setOnClickListener {
+            hockeyPeriodMins++; refreshHockeyLabels()
+        }
+    }
+
+    private fun refreshHockeyLabels() {
+        binding.tvHockeyPeriodValue?.text = hockeyPeriodMins.toString()
+        binding.tvHockeySummary?.text = "$hockeyPeriodMins minutes per period"
     }
 
     private fun setupLudoFormat() {
@@ -412,6 +440,7 @@ class StartScoringActivity : AppCompatActivity() {
         binding.timeText.text   = match.time      ?: "-"
         binding.scorerText.text = match.scorerId  ?: "-"
         if (isCricket) binding.oversText.text = if (match.overs != null) "${match.overs} Overs" else "-"
+
         binding.tossTeamABtn.text = match.team1Name ?: "Team A"
         binding.tossTeamBBtn.text = match.team2Name ?: "Team B"
         binding.tvSquadTeam1Label.text = match.team1Name ?: "Team 1"
@@ -509,6 +538,7 @@ class StartScoringActivity : AppCompatActivity() {
             isLudo        -> "START"
             isTugOfWar    -> "PULL"
             isChess       -> selectedDecision?.uppercase() ?: "WHITE"
+            isHockey      -> "PUSH"
             else          -> selectedDecision
         }
 
@@ -521,7 +551,7 @@ class StartScoringActivity : AppCompatActivity() {
             finalSetPoints   = when { isVolleyball -> vbFinalSetPoints; isTableTennis -> 0; isBadminton -> bdFinalSetPoints; else -> matchData?.finalSetPoints },
             team1PlayingIds  = if (needsLineup) team1PlayingIds.ifEmpty { null } else null,
             team2PlayingIds  = if (needsLineup) team2PlayingIds.ifEmpty { null } else null,
-            halfDurationMins = if (isFutsal) futsalHalfMins else matchData?.halfDurationMins,
+            halfDurationMins = if (isFutsal) futsalHalfMins else if (isHockey) hockeyPeriodMins else matchData?.halfDurationMins,
             scorerId         = binding.etScorerUsername.text?.toString()?.trim()
                 ?.takeIf { it.isNotEmpty() } ?: matchData?.scorerId,
             matchFormat      = when {

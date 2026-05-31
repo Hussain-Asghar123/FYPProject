@@ -97,7 +97,6 @@ class NotificationPanelFragment : DialogFragment() {
                         val unread = list.count { !it.isRead }
                         updateUnreadUI(unread, tvUnread, btnMarkAll)
 
-                        // Footer sirf tab show karo jab sab read ho
                         tvFooter.visibility = if (unread == 0) View.VISIBLE else View.GONE
                     }
                 }

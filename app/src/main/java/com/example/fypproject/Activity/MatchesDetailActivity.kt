@@ -50,7 +50,7 @@ class MatchesDetailActivity : AppCompatActivity() {
     private var selectedTournamentSportId: Long? = null
     private var isTournamentLocked = false
 
-    private val allSportIds = listOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L)
+    private val allSportIds = listOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L)
 
     // Sport buttons list — easier to loop
     private val sportButtons by lazy {
@@ -63,7 +63,8 @@ class MatchesDetailActivity : AppCompatActivity() {
             binding.btnTableTennis,
             binding.btnTugOfWar,
             binding.btnLudo,
-            binding.btnChess
+            binding.btnChess,
+            binding.btnHockey
         )
     }
 
@@ -77,7 +78,8 @@ class MatchesDetailActivity : AppCompatActivity() {
             5L to binding.btnBadminton,
             6L to binding.btnLudo,
             7L to binding.btnTugOfWar,
-            8L to binding.btnChess
+            8L to binding.btnChess,
+            9L to binding.btnHockey
         )
     }
 
@@ -90,7 +92,8 @@ class MatchesDetailActivity : AppCompatActivity() {
         5L to "Badminton",
         6L to "Ludo",
         7L to "TugOfWar",
-        8L to "Chess"
+        8L to "Chess",
+        9L to "Hockey"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -367,6 +370,7 @@ class MatchesDetailActivity : AppCompatActivity() {
                 "Ludo"         -> binding.btnLudo
                 "TugOfWar"     -> binding.btnTugOfWar
                 "Chess"        -> binding.btnChess
+                "Hockey"       -> binding.btnHockey
                 else           -> binding.btnAllSports
             }
         )
@@ -390,6 +394,7 @@ class MatchesDetailActivity : AppCompatActivity() {
         binding.btnTugOfWar.setOnClickListener     { onSportSelected("TugOfWar",     7L, it) }
         binding.btnLudo.setOnClickListener         { onSportSelected("Ludo",         6L, it) }
         binding.btnChess.setOnClickListener        { onSportSelected("Chess",        8L, it) }
+        binding.btnHockey.setOnClickListener       { onSportSelected("Hockey",       9L, it) }
 
         highlightSelectedSport(binding.btnAllSports)
     }

@@ -53,6 +53,7 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
 
                     val recyclerView = when (detectedSport) {
                         "futsal"      -> binding.rvLeaderboard
+                        "hockey"      -> binding.rvLeaderboardHockey
                         "volleyball"  -> binding.rvLeaderboardVolleyball
                         "badminton"   -> binding.rvLeaderboardBadminton
                         "tabletennis" -> binding.rvLeaderboardTableTennis
@@ -80,6 +81,7 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         binding.headerCricket.isVisible          = sport == "cricket"
         binding.rvLeaderboardCricket.isVisible   = sport == "cricket"
         binding.futsalScrollView.isVisible       = sport == "futsal"
+        binding.hockeyScrollView.isVisible       = sport == "hockey"
         binding.volleyballScrollView.isVisible   = sport == "volleyball"
         binding.headerBadminton.isVisible        = sport == "badminton"
         binding.rvLeaderboardBadminton.isVisible = sport == "badminton"
@@ -111,6 +113,7 @@ class PointsTableFragement : Fragment(R.layout.fragement_points_table) {
         val normalized = sport?.trim()?.lowercase()
         return when (normalized) {
             "futsal", "football"          -> "futsal"
+            "hockey"                      -> "hockey"
             "cricket"                     -> "cricket"
             "volleyball"                  -> "volleyball"
             "badminton"                   -> "badminton"

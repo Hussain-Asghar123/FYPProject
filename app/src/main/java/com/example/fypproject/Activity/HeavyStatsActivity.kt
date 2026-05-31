@@ -42,6 +42,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         private const val SPORT_TABLETENNIS = "table tennis"
         private const val SPORT_LUDO = "ludo"
         private const val SPORT_CHESS = "chess"
+        private const val SPORT_HOCKEY = "hockey"
     }
 
     private lateinit var binding: ActivityHeavyStatsBinding
@@ -208,6 +209,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         R.id.chipTableTennis -> SPORT_TABLETENNIS
         R.id.chipLudo -> SPORT_LUDO
         R.id.chipChess -> SPORT_CHESS
+        R.id.chipHockey -> SPORT_HOCKEY
         else -> SPORT_CRICKET
     }
 
@@ -218,6 +220,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         SPORT_TABLETENNIS -> R.id.chipTableTennis
         SPORT_LUDO -> R.id.chipLudo
         SPORT_CHESS -> R.id.chipChess
+        SPORT_HOCKEY -> R.id.chipHockey
         else -> R.id.chipCricket
     }
 
@@ -238,6 +241,7 @@ class HeavyStatsActivity : AppCompatActivity() {
             "tabletennis" -> SPORT_TABLETENNIS
             "ludo" -> SPORT_LUDO
             "chess" -> SPORT_CHESS
+            "hockey" -> SPORT_HOCKEY
             else -> SPORT_CRICKET
         }
     }
@@ -410,6 +414,7 @@ class HeavyStatsActivity : AppCompatActivity() {
         styleChip(binding.chipTableTennis, sport == SPORT_TABLETENNIS)
         styleChip(binding.chipLudo, sport == SPORT_LUDO)
         styleChip(binding.chipChess, sport == SPORT_CHESS)
+        styleChip(binding.chipHockey, sport == SPORT_HOCKEY)
     }
 
     private fun detectSport(stats: PlayerStatsDto): String {
@@ -431,6 +436,7 @@ class HeavyStatsActivity : AppCompatActivity() {
             SPORT_TABLETENNIS -> bindTableTennisStats(stats)
             SPORT_LUDO -> bindLudoStats(stats)
             SPORT_CHESS -> bindChessStats(stats)
+            SPORT_HOCKEY -> bindHockeyStats(stats)
             else -> bindCricketStats(stats)
         }
     }
@@ -788,6 +794,46 @@ class HeavyStatsActivity : AppCompatActivity() {
             )
         )
         binding.layoutBowlingStats.root.visibility = View.GONE
+    }
+
+    private fun bindHockeyStats(stats: PlayerStatsDto) {
+        val matches = stats.hockeyMatchesPlayed.takeIf { it > 0 } ?: stats.matchesPlayed
+        
+        ItemSummaryStatsBinding.bind(binding.boxMatches.root).apply {
+            tvBoxLabel.text = "Matches"
+            tvBoxValue.text = matches.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxRuns.root).apply {
+            tvBoxLabel.text = "Goals"
+            tvBoxValue.text = stats.goals.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxWickets.root).apply {
+            tvBoxLabel.text = "Assists"
+            tvBoxValue.text = stats.assists.toString()
+        }
+        ItemSummaryStatsBinding.bind(binding.boxManOfMatch.root).apply {
+            tvBoxLabel.text = "POMs"
+            tvBoxValue.text = stats.pomCount.toString()
+        }
+
+        setupGrid(
+            binding.layoutBattingStats.root, "Performance",
+            listOf(
+                "Goals" to stats.goals.toString(),
+                "Assists" to stats.assists.toString(),
+                "G+A" to (stats.goals + stats.assists).toString(),
+                "Penalty Corners" to stats.penaltyCorners.toString()
+            )
+        )
+        setupGrid(
+            binding.layoutBowlingStats.root, "Discipline",
+            listOf(
+                "Fouls" to stats.futsalFouls.toString(),
+                "Green Cards" to stats.greenCards.toString(),
+                "Yellow Cards" to stats.yellowCards.toString(),
+                "Red Cards" to stats.redCards.toString()
+            )
+        )
     }
 
     private fun setupGrid(root: View, title: String, dataList: List<Pair<String, String>>) {

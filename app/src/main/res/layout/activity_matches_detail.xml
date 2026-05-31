@@ -239,6 +239,18 @@
                 android:textColor="@android:color/white"
                 app:cornerRadius="18dp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHockey"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#FF444444"
+                android:paddingHorizontal="16dp"
+                android:text="Hockey"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                app:cornerRadius="18dp" />
+
         </LinearLayout>
     </HorizontalScrollView>
 
